@@ -996,7 +996,7 @@ incs.afro[incs.afro <= c(-0.5)] <- c(-0.5)
 
 We plotted AFRO countries in incidence-space (Fig. S4A).
 
-```{r, echo = include.code, fig.height = 12, fig.width = 10}
+```{r, echo = include.code, fig.height = 25, fig.width = 18}
 
 ##' make colour palette
 colfunc = colorRampPalette(c("red", "white", "blue"))
@@ -1029,7 +1029,7 @@ for (c in 1:length(uncodes.afro)){
 
 We plotted AMRO countries in incidence-space (Fig. S4B).
 
-```{r, echo = include.code, fig.height = 10, fig.width = 10}
+```{r, echo = include.code, fig.height = 20, fig.width = 18}
 
 ##' make colour palette
 colfunc = colorRampPalette(c("red", "white", "blue"))
