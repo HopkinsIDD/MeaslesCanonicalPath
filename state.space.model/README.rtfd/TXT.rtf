@@ -1,0 +1,69 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf400
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww22660\viewh14580\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 ReadMe \'97 this file describes the contents of the input and output files for the Measles burden analysis\
+\
+Files with an \'93input-\'93 prefix are considered to be input variables, or co-variates in the analysis.  These are taken to be known at the start of the analysis\
+\
+Files with an \'93output-\'93 prefix are estimated or fitted quantities that are a result of the extend Kalman Filter analysis (for example, we have reported cases as an input, and estimated cases as an output)\
+\
+#################\
+INPUT FILES	\
+- nearly all input files have the same format  \'97 \'93input-mcv1vaxeff.csv\'94 and \'93input-gbd_region.csv\'94  are the only files with a different format\
+- 193 rows indicate the call countries in the world, the first column gives the 3-digit ISO code identifier for each country\
+- subsequent columns give values for each year from 1980-2012, column headings give the year\
+\
+#################\
+\
+input-births.csv		- gives total live births per year\
+input-cases.csv		- gives total number of reported measles cases per year\
+input-deaths_5.csv		- gives total number of childhood deaths due to all causes each year\
+input-gbd_region.csv	- gives the col1) WHO regional and col2) GBD regional designations for each country\
+input-mcv1.csv		- gives the proportion of children in each cohort given first dose of measles vaccine.\
+input-mcv1vaxeff.csv	- binary, 0 = first dose at 9m of age, 1 = first dose at 1y age\
+input-mcv2.csv		- gives the proportion of children in each cohort given first dose of measles vaccine.\
+				- NOTE - this is in dependent of whether they received their first dose\
+\
+input-populations.csv	- gives the total population size in each year\
+input-sia.csv			- gives the SIA coverage (SIA= supplemental immunization activity, a periodic vaccination campaign) in each year \'97 0 when no SIA given\
+\
+\
+#################\
+OUTPUT FILES	\
+- nearly all output files have the same format  \'97 \'93output-pars\'94  is the only file with a different format\
+- 193 rows indicate the call countries in the world, the first column gives the 3-digit ISO code identifier for each country\
+- subsequent columns give values for each year from 1981-2012, no column headings given\
+\
+#################\
+\
+output-ageclass1-mortality.csv 	- gives the estimated total number of estimated deaths in ages 0-1y \
+output-ageclass2-mortality.csv	- gives the estimated total number of estimated deaths in ages 1-5y  \
+output-ageclass3-mortality.csv	-  gives the estimated total number of estimated deaths in ages 5-10y \
+output-ageclass4-mortality.csv	-  gives the estimated total number of estimated deaths in ages >10y \
+\
+output-estimated_incidence.csv	- gives the estimated total number of cases in all ages \'97 column headings are years - this file was also saved as state_space_cases.csv and state_space_cases2.csv and used in the main analysis.\
+\
+output-estimated_mortality.csv	- gives the estimated total number of deaths in all ages\
+\
+output-lb_estimated_mortality.csv	 - gives the estimated 25th percentile of the number of deaths in all ages\
+output-lb_incidence.csv		 - gives the estimated 25th percentile of the number of cases in all ages\
+	\
+output-pars.csv			- gives the parameter estimates (see Simons et al) for each country\
+					- each column is one parameter, order is transmission rate, initial susceptibles, \
+					- baseline underreporting, outbreak underreporting, system variance, observation\
+					- variance\
+\
+output-sia_effective.csv		- gives an updated sia coverage for each country/year\
+					- analogous to \'93input-sia.csv\'94 but deprecated for efficacy and age targets\
+\
+output-ub_estimated_mortality.csv	- gives the estimated 95th percentile of the number of deaths in all ages\
+output-ub_incidence.csv			- gives the estimated 95th percentile of the number of cases in all ages\
+\
+OTHER\
+#################\
+codes.csv 			- C1 is a 3-digit country code, C2 is the 3-digit ISO code used in the files above, C3 is the WHO region (African,Americas, Europe, Estearn Mediterranean, Southeast Asian, Western Pacific), C4 is the global burden of disease region designation, C5 is the name in English\
+}

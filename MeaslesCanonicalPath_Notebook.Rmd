@@ -325,7 +325,7 @@ axis(1, c(0,max(cc$closest)), labels = c(0,1))
 
 ```
 
-This can be repeated for all countries, and hence for a given year a map can be produced which is colored according to each countries position along the path. This is seen below for 2014 (Fig. 2B of the paper).  We have also made available web application, developed with R package Shiny, to view all countries position on the canonical path between 1980 and 2014 (available at http://iddynamics.jhsph.edu/apps/shiny/measlescanonicalpath).
+This can be repeated for all countries, and hence for a given year a map can be produced which is colored according to each countries position along the path. This is seen below for 2014 (Fig. 2B of the paper).  We have also made available web application, developed with R package Shiny, to view all countries position on the canonical path between 1980 and 2014 (available at http://iddynamics.jhsph.edu/apps/shiny/measlescanonicalpath/).
 
 ```{r, fig.height = 6, fig.width = 10, echo = include.code}
 
@@ -358,22 +358,76 @@ list[w.plot, A, canonical.path] = plot.world.map (d = canonical.path.data,
 w.plot
 ```
 
-Along with this analysis, we use a method for estimating the susceptibility in each year of age over time which was developed in @statespace. This method uses extended Kalman filter techniques to reconstruct the susceptibility of the population over time, given data on birth rate and vaccination rate, reported measles case data, along with knowledge of the dynamics of measles in the general population. This method will generate the number of susceptibles by age for each country and each year. For ease, we simply download the dataset already generated here.
+Along with this analysis, we used a method for estimating the susceptibility in each year of age which was developed by @tak2015. Each age cohort's susceptiblity is estimated based on its opportunity for immunization (via routine and supplmentary activities) and risk of natural infection. The probabliity of immunization was estimated per WHO reported administrative vaccination coverage estimates (@who). The probability of natural infection by age was estimated by assuming a constant hazard of infection over age that scaled each year relative to the proportional decline in estimated measles incidence corrected for under-reporting. Measles incidence, corrected for under-reporting, was estimated using a state space model per @statespace and @simons2012. The following chunks of code first uses the state-space model to estimate the number of measles cases (corrected for under-reporting) by year and country, then goes on to infer susceptibilty by age for each country and each year.
+
+```{r, eval=F, include=F}
+##' this chunk of code runs the state space model that estimates measles incidence as "output-estimated_incidence.csv"
+source("state.space.model/run_state_space_model.R")
+
+```
+
+```{r, eval=F, include=F}
+##' this chunk of code infers susceptiblity from the estimated measles incidence, birth rates, and vaccination rates
+All.countries = as.character(unique(canonical.path.data$Country))
+All.countries = All.countries[-(which(All.countries %in% c("","Andorra","Monaco", "Tuvalu", "Dominica", 
+                                                           "Saint Kitts and Nevis", "Palau", "Marshall Islands",
+                                                           "San Marino")))]
+All.countries= All.countries[order(All.countries)]
+years = seq(1990,2015)
+
+number.of.susceptibles = number.of.individuals = data.frame(matrix(0, length(years) * length(All.countries), 62))
+colnames(number.of.susceptibles) = colnames(number.of.individuals) = c("Country", "Year", paste("X",0:59, sep = ""))
+count = 1
+for(i in 1 : length(All.countries)){
+    for(j in 1 : length(years)){
+        list[tot.susc,tot.susc.disrupted,
+             pred,ages, rel.foi,
+             prop.vacc, prop.vacc.disrupted,
+             prop.nat.imm, coverage, years.sia,
+             age.range, ages.vacc, coverage.sia,
+             mat.protect] = getLexisVaccPopStructSpecifyYear(country = All.countries[i],
+                                                             barchart.susc = T,
+                                                             proportion.pop=F,
+                                                             reported.cases = F,
+                                                             year = years[j], max.x = 3000000,
+                                                             output.plot = F)
+        tot.imm <- mat.protect+(pred-mat.protect)*prop.vacc + (pred-mat.protect)*(1-prop.vacc)*(prop.nat.imm)
+        
+        denom <- rep(1,length(pred))
+        tot.susc <- pred-tot.imm
+        
+        number.of.individuals[count, ] = c(All.countries[i], years[j], round(as.numeric(pred)))
+        number.of.susceptibles[count, ] = c(All.countries[i], years[j], round(as.numeric(tot.susc)))
+        count = count + 1
+    }
+    print(paste(All.countries[i], "done"))
+}
+
+for(i in 0:59){
+    number.of.susceptibles[ , paste("X", i, sep = "")] = as.numeric(number.of.susceptibles[ , paste("X", i, sep = "")])
+    number.of.individuals[ , paste("X", i, sep = "")] = as.numeric(number.of.individuals[ , paste("X", i, sep = "")])
+}
+write.csv(number.of.susceptibles, "data/est_sus_by_year.csv")
+write.csv(number.of.individuals, "data/est_age_dist_by_year.csv")
+```
+
+For ease, we can simply read in the already estimated proportion susceptible by age, year, and country.
 
 ```{r, echo = include.code, include=F}
 ##' import the estimated susceptibles for each country and year.
 estimated.susceptibles.by.year = read.csv("data/est_sus_by_year.csv", stringsAsFactors = F)
-
+estimated.age.dist.by.year = read.csv("data/est_age_dist_by_year.csv", stringsAsFactors = F)
 ```
 
-We can then use the dataset of the number of susceptibles by country, year, and age, to link each country and year to the canonical path and determine the estimated proporiton of susceptibles at each canonical path point. 
+We can then use the dataset of the number of susceptibles by country, year, and age, to link each country and year to the canonical path and determine the estimated total proporiton of susceptibles, and age-specific proportion susceptibles at each canonical path point. 
 
 ```{r, echo = include.code, include=F}
 
 ##' run code to generate the number of susceptibles by age by canonical path point
-list[dist.by.age, canonical.path, prop.sus, d1] = 
+list[dist.by.age, canonical.path, prop.sus, d1, prop.sus.by.age] = 
     plots.for.sus.dist.by.canonical.path (d1 = canonical.path.data, 
                                           d2 = estimated.susceptibles.by.year, 
+                                          d3 = estimated.age.dist.by.year,
                                           rep.cases = 1,
                                           regions,
                                           make.inc.cv.scale.same = 1,
@@ -487,6 +541,14 @@ axis(1, at = c(1,length(unique(dist.by.age$point))),labels = c("",""))
 The figures below show the estimated proportion of susceptibles who are under 5 (Fig. 2D), and the age at which an SIA would have to go up to in order to cover 90% of all susceptibles (Fig. 2E).
 
 ```{r, echo = include.code, include = F}
+#average across five year age groups
+prop.sus.by.age <- prop.sus.by.age[,-1]
+a = 1:59
+n = 5
+min = seq.int(from=1, to=length(a), by=n)
+max = c((min-1)[2:length(min)], length(a))
+prop.sus.by.age.group = apply(prop.sus.by.age, 1, function(x) sapply(1:length(min), function(i) mean(x[min[i]:max[i]])))
+
 dist.by.age.rep = dist.by.age
 points = unique(dist.by.age.rep$point)
 perc.by.age.sia.rep = data.frame(matrix(NA, max(points), 5))
@@ -519,10 +581,18 @@ perc.by.age.sia.rep$pos = 1:nrow(perc.by.age.sia.rep)
 
 
 ```{r, echo = include.code, fig.height = 5, fig.width = 8}
+
+levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)", 
+          xlab="position on canonical path",
+          col.regions=colorRampPalette(brewer.pal(9,"Greys")), main="Age-Specific Proportion
+          Susceptible for each Position on the Canonical Path", scales=list(y=list(at=1:12,
+          labels=c("<5","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49",
+                   "50-54","55-59"))))
+
+
 plot( perc.by.age.sia.rep$pos, perc.by.age.sia.rep$perc.to.5, pch = 21, cex = 2,
       xlab = '', ylab= '% of susceptibles 5 or under', bty="n",
       xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black',ylim = c(15,60))
-
 smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5))
 result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$perc.to.5)]))
 perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$perc.to.5),2] <- result$y
@@ -555,7 +625,6 @@ j = which(rownames(nigeria.pop) %in%paste("X", 1981:2014, sep = ""))
 nigeria.pop = nigeria.pop[j] %>% data.frame 
 colnames(nigeria.pop) = "pop"
 nigeria.pop$pop = nigeria.pop$pop %>% as.character %>% as.numeric
-
 
 cases.by.country.by.year = read.csv("data/Measles_cases_by_year.csv", stringsAsFactors = FALSE)
 

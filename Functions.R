@@ -7,14 +7,14 @@ scl <- function(x){ (x - min(x,na.rm = T))/(max(x,na.rm = T) - min(x,na.rm = T))
 
 list <- structure(NA,class="result")
 "[<-.result" <- function(x,...,value) {
-    args <- as.list(match.call())
-    args <- args[-c(1:2,length(args))]
-    length(value) <- length(args)
-    for(i in seq(along=args)) {
-        a <- args[[i]]
-        if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
-    }
-    x
+  args <- as.list(match.call())
+  args <- args[-c(1:2,length(args))]
+  length(value) <- length(args)
+  for(i in seq(along=args)) {
+    a <- args[[i]]
+    if(!missing(a)) eval.parent(substitute(a <- v,list(a=a,v=value[[i]])))
+  }
+  x
 }
 
 
@@ -34,185 +34,185 @@ generate.data <- function(window.length, regions,
                           gaussian.st.dev, cutoff = 50, 
                           interp.resolution = 20,
                           year.shift.inc = 3){
-    
-    list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
-    
-    x = seq(1980, 2014) 
-    
-    ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
-    list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = interp.datasets(subset.data, 
-                                                                                                        subset.vaccination, 
-                                                                                                        subset.birth.rates, 
-                                                                                                        subset.pop.by.year,
-                                                                                                        x,
-                                                                                                        x)
-    
-    ##' output matrices the correct size for our animation
-    list[mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac] = 
-        prepare.matrices.for.animation(interp.subset.data, subset.data)
-    
-    ##' number of unique years that we will have data for. The longer the window, the less unique years of data.
-    num.windows = length(x) - window.length + 1
-    
-    ##' first year of data
-    year = 1980
-    
-    ##' setting up the datasets
-    coeff.var = matrix(0, length(subset.data[ , 1]), num.windows)
-    incidence.per.1000 = matrix(0, length(subset.data[ , 1]), num.windows)
-    mean.br = matrix(0, length(subset.data[ , 1]), num.windows)
-    mean.vac = matrix(0, length(subset.data[ , 1]), num.windows)
-    
-    ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
-    ##' mean vaccination rate over periods of length given by the window length.
-    for ( j in 1 : num.windows){
-        for ( i in 1 : length(subset.data[ , 1])){
-            coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
-                mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
-                if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
-                    coeff.var[i, j]  =  0
-                } 
-            }
-            incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
-                                                 as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
-            if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-            if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-        }
-        year = year + 1
+  
+  list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
+  
+  x = seq(1980, 2014) 
+  
+  ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
+  list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = interp.datasets(subset.data, 
+                                                                                                      subset.vaccination, 
+                                                                                                      subset.birth.rates, 
+                                                                                                      subset.pop.by.year,
+                                                                                                      x,
+                                                                                                      x)
+  
+  ##' output matrices the correct size for our animation
+  list[mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac] = 
+    prepare.matrices.for.animation(interp.subset.data, subset.data)
+  
+  ##' number of unique years that we will have data for. The longer the window, the less unique years of data.
+  num.windows = length(x) - window.length + 1
+  
+  ##' first year of data
+  year = 1980
+  
+  ##' setting up the datasets
+  coeff.var = matrix(0, length(subset.data[ , 1]), num.windows)
+  incidence.per.1000 = matrix(0, length(subset.data[ , 1]), num.windows)
+  mean.br = matrix(0, length(subset.data[ , 1]), num.windows)
+  mean.vac = matrix(0, length(subset.data[ , 1]), num.windows)
+  
+  ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
+  ##' mean vaccination rate over periods of length given by the window length.
+  for ( j in 1 : num.windows){
+    for ( i in 1 : length(subset.data[ , 1])){
+      coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
+        mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
+        if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
+          coeff.var[i, j]  =  0
+        } 
+      }
+      incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
+                                         as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
+      if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
+      if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
     }
+    year = year + 1
+  }
+  
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
+  for(i in 1 : nrow(subset.data)){
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
+      as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
     
-    incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
-    for(i in 1 : nrow(subset.data)){
-        incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
-            as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
-        
+  }
+  ##' for calculating the weighted coefficient of variation, we need to take the weighted
+  ##' mean of locally calculated coefficient of variations. The following function will
+  ##' generate the matrix of weights used to calculate this weighted average.
+  ##' the weights are gaussian, centred on a specific year, with
+  ##' specified number of years for the standard deviation
+  
+  w1 = generate.cv.weights(coeff.var,
+                           gaussian.st.dev,
+                           cutoff)
+  
+  ##' for incidence, birth rate and vaccination rate, we can weight slightly differently
+  ##' as there is no issue with the weighting of yearly calculated values.
+  ##' the following function produces the weights used for weighting these variables
+  
+  w2 = generate.other.weights(d = incidence.per.1000.each.year,
+                              window.length,
+                              gaussian.st.dev,
+                              cutoff, year.shift.inc)
+  
+  
+  ##' make a set of matrices that are the same size as the matrices containing the data.
+  coeff.2 = coeff.var
+  incidence.2 = incidence.per.1000
+  mbr2 = mean.br
+  mvacc2 = mean.vac
+  for(i in 1 : length(coeff.var[1, ])){
+    for(j in 1 : length(coeff.var[, 1])){
+      ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
+      coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
+      incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
+      mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
+      mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T)
+      
+      ##' Should we do weighted average of birth rate and vaccination rate?
+      ##' If so uncomment the next two lines
+      
+      #mbr2[j, i] = sum(mean.br[j, ] * w1[i, ], na.rm = T)
+      #mvacc2[j, i] = sum(mean.vac[j, i] * w1[i, ], na.rm = T)
     }
-    ##' for calculating the weighted coefficient of variation, we need to take the weighted
-    ##' mean of locally calculated coefficient of variations. The following function will
-    ##' generate the matrix of weights used to calculate this weighted average.
-    ##' the weights are gaussian, centred on a specific year, with
-    ##' specified number of years for the standard deviation
-    
-    w1 = generate.cv.weights(coeff.var,
-                             gaussian.st.dev,
-                             cutoff)
-    
-    ##' for incidence, birth rate and vaccination rate, we can weight slightly differently
-    ##' as there is no issue with the weighting of yearly calculated values.
-    ##' the following function produces the weights used for weighting these variables
-    
-    w2 = generate.other.weights(d = incidence.per.1000.each.year,
-                                window.length,
-                                gaussian.st.dev,
-                                cutoff, year.shift.inc)
-    
-    
-    ##' make a set of matrices that are the same size as the matrices containing the data.
-    coeff.2 = coeff.var
-    incidence.2 = incidence.per.1000
-    mbr2 = mean.br
-    mvacc2 = mean.vac
-    for(i in 1 : length(coeff.var[1, ])){
-        for(j in 1 : length(coeff.var[, 1])){
-            ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
-            coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
-            incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
-            mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
-            mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T)
-            
-            ##' Should we do weighted average of birth rate and vaccination rate?
-            ##' If so uncomment the next two lines
-            
-            #mbr2[j, i] = sum(mean.br[j, ] * w1[i, ], na.rm = T)
-            #mvacc2[j, i] = sum(mean.vac[j, i] * w1[i, ], na.rm = T)
-        }
-    }
-    
-    ##' set the original data to be equal to the weighted data
-    coeff.var.cases = coeff.2
-    incidence.per.1000 = incidence.2
-    mean.br = mbr2
-    mean.vac = mvacc2
-    
-    
-    ##' set up the timeline on which we do the interpolation. 
-    ##' The number of sections that the yearly data is split up to is given by interp.resolution  
-    x = seq(1980 + (window.length - 1), 2014)
-    xout = seq(1980 + (window.length - 1), 2014, 1/interp.resolution)
-    
-    ##' interpolate the data and add columns that contain the corresponding country and WHO region of each line
-    
-    coeff.var.cases = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(coeff.var.cases, x, xout))
-    incidence.per.1000 = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(incidence.per.1000, x, xout))
-    mean.br = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.br, x, xout))
-    mean.vac = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.vac, x, xout))
-    
-    ##' round the data to 2 decimal places for ease of reading.
-    mean.vac[, -(1:2)] = as.numeric(mean.vac[, -(1:2)])
-    mean.br[, -(1:2)] = as.numeric(mean.br[, -(1:2)])
-    incidence.per.1000[, -(1:2)] = as.numeric(incidence.per.1000[, -(1:2)])
-    coeff.var.cases[, -(1:2)] = as.numeric(coeff.var.cases[, -(1:2)])
-    
-    
-    ##' set up the output to be the appropriate size and add column labels.
-    ##' Additionally add enough room to include additional data for each year that will be used 
-    ##' to calibrate the data for each year, so that the minimum and maximum of vaccination rate is 0 and 100 each time.
-    ##' This ensures that the colour scale is constant
-    
-    output.data = matrix(0, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + (2 * length(regions) * length(xout)), 7)
-    output.data  =  data.frame(output.data)
-    colnames(output.data) = c("Country", "Coefficient.of.Variation", "Incidence", "Mean.vaccination", "Mean.birth.rate", "Year", "WHO_REGION")
-    
-    ##' input the appropriate data to the outputs 
-    output.data$Country[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 1], length(coeff.var.cases[1, -(1:2)]))
-    output.data$WHO_REGION[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 2], length(coeff.var.cases[1, -(1:2)]))
-    count = 1
-    for(i in 3 : length(coeff.var.cases[1, ])){
-        output.data$Coefficient.of.Variation[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = coeff.var.cases[, i]
-        output.data$Incidence[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = incidence.per.1000[, i]
-        output.data$Mean.vaccination[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.vac[, i]
-        output.data$Mean.birth.rate[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.br[, i]
-        output.data$Year[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = xout[i - 2]  
-        count = count + 1
-    }
-    
-    ##' add in the dummy data for each year to keep the scales constant.
-    year.mins = matrix(0, length(xout), 2)
-    
-    for(i in 1 : length(xout)){
-        t  =  subset(output.data, output.data$Year ==  unique(xout)[i])
-        year.mins[i, 1] = xout[i]
-        year.mins[i, 2] = as.numeric(min(t$Mean.birth.rate,na.rm = T)  )
-    }
-    
-    l =  expand.grid("", -1, 0, c(0,100), 0, xout, regions)
-    
-    for(i in 1 : (2 * length(regions) * length(xout))){
-        y = l[i, 6]
-        j = which(year.mins[, 1] == y)
-        l[i, 5]  =  year.mins[j, 2]
-    }
-    
-    output.data[((length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + 1 ): length(output.data[, 1]), ]  =  l
-    
-    for( i in 1 : (2 * length(regions) * length(xout))){
-        output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] = regions[as.numeric(output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] )]
-        output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)])  + i, 1] = ""
-    }
-    
-    ##' make sure that each column that should be numeric is numeric.
-    output.data$Coefficient.of.Variation = as.numeric(output.data$Coefficient.of.Variation)
-    output.data$Incidence  =  as.numeric(output.data$Incidence)
-    output.data$Mean.vaccination  =  as.numeric(output.data$Mean.vaccination)
-    output.data$Mean.birth.rate  =  as.numeric(output.data$Mean.birth.rate)
-    output.data$Year   =  as.numeric(output.data$Year)
-    output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
-    return(output.data)
+  }
+  
+  ##' set the original data to be equal to the weighted data
+  coeff.var.cases = coeff.2
+  incidence.per.1000 = incidence.2
+  mean.br = mbr2
+  mean.vac = mvacc2
+  
+  
+  ##' set up the timeline on which we do the interpolation. 
+  ##' The number of sections that the yearly data is split up to is given by interp.resolution  
+  x = seq(1980 + (window.length - 1), 2014)
+  xout = seq(1980 + (window.length - 1), 2014, 1/interp.resolution)
+  
+  ##' interpolate the data and add columns that contain the corresponding country and WHO region of each line
+  
+  coeff.var.cases = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(coeff.var.cases, x, xout))
+  incidence.per.1000 = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(incidence.per.1000, x, xout))
+  mean.br = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.br, x, xout))
+  mean.vac = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.vac, x, xout))
+  
+  ##' round the data to 2 decimal places for ease of reading.
+  mean.vac[, -(1:2)] = as.numeric(mean.vac[, -(1:2)])
+  mean.br[, -(1:2)] = as.numeric(mean.br[, -(1:2)])
+  incidence.per.1000[, -(1:2)] = as.numeric(incidence.per.1000[, -(1:2)])
+  coeff.var.cases[, -(1:2)] = as.numeric(coeff.var.cases[, -(1:2)])
+  
+  
+  ##' set up the output to be the appropriate size and add column labels.
+  ##' Additionally add enough room to include additional data for each year that will be used 
+  ##' to calibrate the data for each year, so that the minimum and maximum of vaccination rate is 0 and 100 each time.
+  ##' This ensures that the colour scale is constant
+  
+  output.data = matrix(0, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + (2 * length(regions) * length(xout)), 7)
+  output.data  =  data.frame(output.data)
+  colnames(output.data) = c("Country", "Coefficient.of.Variation", "Incidence", "Mean.vaccination", "Mean.birth.rate", "Year", "WHO_REGION")
+  
+  ##' input the appropriate data to the outputs 
+  output.data$Country[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 1], length(coeff.var.cases[1, -(1:2)]))
+  output.data$WHO_REGION[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 2], length(coeff.var.cases[1, -(1:2)]))
+  count = 1
+  for(i in 3 : length(coeff.var.cases[1, ])){
+    output.data$Coefficient.of.Variation[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = coeff.var.cases[, i]
+    output.data$Incidence[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = incidence.per.1000[, i]
+    output.data$Mean.vaccination[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.vac[, i]
+    output.data$Mean.birth.rate[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.br[, i]
+    output.data$Year[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = xout[i - 2]  
+    count = count + 1
+  }
+  
+  ##' add in the dummy data for each year to keep the scales constant.
+  year.mins = matrix(0, length(xout), 2)
+  
+  for(i in 1 : length(xout)){
+    t  =  subset(output.data, output.data$Year ==  unique(xout)[i])
+    year.mins[i, 1] = xout[i]
+    year.mins[i, 2] = as.numeric(min(t$Mean.birth.rate,na.rm = T)  )
+  }
+  
+  l =  expand.grid("", -1, 0, c(0,100), 0, xout, regions)
+  
+  for(i in 1 : (2 * length(regions) * length(xout))){
+    y = l[i, 6]
+    j = which(year.mins[, 1] == y)
+    l[i, 5]  =  year.mins[j, 2]
+  }
+  
+  output.data[((length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + 1 ): length(output.data[, 1]), ]  =  l
+  
+  for( i in 1 : (2 * length(regions) * length(xout))){
+    output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] = regions[as.numeric(output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] )]
+    output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)])  + i, 1] = ""
+  }
+  
+  ##' make sure that each column that should be numeric is numeric.
+  output.data$Coefficient.of.Variation = as.numeric(output.data$Coefficient.of.Variation)
+  output.data$Incidence  =  as.numeric(output.data$Incidence)
+  output.data$Mean.vaccination  =  as.numeric(output.data$Mean.vaccination)
+  output.data$Mean.birth.rate  =  as.numeric(output.data$Mean.birth.rate)
+  output.data$Year   =  as.numeric(output.data$Year)
+  output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
+  return(output.data)
 }
 
 ########################
@@ -225,54 +225,54 @@ interp.datasets.state.space <- function(subset.data,
                                         subset.pop.by.year, 
                                         x,
                                         xout){
+  
+  interp.subset.data = matrix(0, length(subset.data[, 1]), length(xout) + 2)
+  interp.subset.data[, 1] = as.character(subset.data$Country)
+  interp.subset.data[, 2] = as.character(subset.data$WHO_REGION)
+  
+  interp.subset.vacc = matrix(0, length(subset.vaccination[, 1]), length(xout) + 2)
+  interp.subset.vacc[, 1] = as.character(subset.data$Country)
+  interp.subset.vacc[, 2] = as.character(subset.data$WHO_REGION)
+  
+  interp.subset.br = matrix(0, length(subset.birth.rates[, 1]), length(xout) + 2)
+  interp.subset.br[, 1] = as.character(subset.data$Country)
+  interp.subset.br[, 2] = as.character(subset.data$WHO_REGION)
+  
+  interp.subset.pop = matrix(0, length(subset.pop.by.year[, 1]), length(xout) + 2)
+  interp.subset.pop[, 1] = as.character(subset.data$Country)
+  interp.subset.pop[, 2] = as.character(subset.data$WHO_REGION)
+  
+  for ( i in 1 : length(subset.pop.by.year[, 1])){
+    y = subset.data[i, paste(x)]
+    if(length(which(is.na(y) == FALSE)) < 2) {
+      interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
+        list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
+        interp.subset.data[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
+        colnames(interp.subset.data) = c("Country", "WHO_REGION", paste(x))
+      }
     
-    interp.subset.data = matrix(0, length(subset.data[, 1]), length(xout) + 2)
-    interp.subset.data[, 1] = as.character(subset.data$Country)
-    interp.subset.data[, 2] = as.character(subset.data$WHO_REGION)
+    y1 = subset.vaccination[i, paste("X", x, sep = "")]
+    list[qq,ww] =  approx (as.numeric(x), as.numeric(y1),  method = "linear", xout )
+    interp.subset.vacc[i, 3: length(interp.subset.vacc[1, ])]  =  round(ww, 2)
+    colnames(interp.subset.vacc) = c("Country", "WHO_REGION", x)
     
-    interp.subset.vacc = matrix(0, length(subset.vaccination[, 1]), length(xout) + 2)
-    interp.subset.vacc[, 1] = as.character(subset.data$Country)
-    interp.subset.vacc[, 2] = as.character(subset.data$WHO_REGION)
-    
-    interp.subset.br = matrix(0, length(subset.birth.rates[, 1]), length(xout) + 2)
-    interp.subset.br[, 1] = as.character(subset.data$Country)
-    interp.subset.br[, 2] = as.character(subset.data$WHO_REGION)
-    
-    interp.subset.pop = matrix(0, length(subset.pop.by.year[, 1]), length(xout) + 2)
-    interp.subset.pop[, 1] = as.character(subset.data$Country)
-    interp.subset.pop[, 2] = as.character(subset.data$WHO_REGION)
-    
-    for ( i in 1 : length(subset.pop.by.year[, 1])){
-        y = subset.data[i, paste(x)]
-        if(length(which(is.na(y) == FALSE)) < 2) {
-            interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
-            list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
-            interp.subset.data[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-            colnames(interp.subset.data) = c("Country", "WHO_REGION", paste(x))
-        }
-        
-        y1 = subset.vaccination[i, paste("X", x, sep = "")]
-        list[qq,ww] =  approx (as.numeric(x), as.numeric(y1),  method = "linear", xout )
-        interp.subset.vacc[i, 3: length(interp.subset.vacc[1, ])]  =  round(ww, 2)
-        colnames(interp.subset.vacc) = c("Country", "WHO_REGION", x)
-        
-        y2 =as.numeric( c(subset.birth.rates[i, paste("X", x, sep = "")]))
-        if(length(which(is.na(y2) == FALSE)) < 2) 
-        {interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
-            list[qq,ww] =  approx (as.numeric(x), as.numeric(y2),  method = "linear", xout )
-            interp.subset.br[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-        }
-        colnames(interp.subset.br) = c("Country", "WHO_REGION", x)
-        
-        
-        y3 = subset.pop.by.year[i, paste("X", x, sep = "")]
-        list[qq,ww] =  approx (as.numeric(x), as.numeric(y3),  method = "linear", xout )
-        interp.subset.pop[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-        colnames(interp.subset.pop) = c("Country", "WHO_REGION",x)
+    y2 =as.numeric( c(subset.birth.rates[i, paste("X", x, sep = "")]))
+    if(length(which(is.na(y2) == FALSE)) < 2) 
+    {interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
+      list[qq,ww] =  approx (as.numeric(x), as.numeric(y2),  method = "linear", xout )
+      interp.subset.br[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
     }
+    colnames(interp.subset.br) = c("Country", "WHO_REGION", x)
     
-    return(list(interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop))
     
+    y3 = subset.pop.by.year[i, paste("X", x, sep = "")]
+    list[qq,ww] =  approx (as.numeric(x), as.numeric(y3),  method = "linear", xout )
+    interp.subset.pop[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
+    colnames(interp.subset.pop) = c("Country", "WHO_REGION",x)
+  }
+  
+  return(list(interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop))
+  
 }
 
 
@@ -284,65 +284,65 @@ interp.datasets.state.space <- function(subset.data,
 
 ############################
 get.data.for.animation <- function(regions){
-    
-    ##' import the case, birth rate, population and vaccination data for all countries
-    cases.by.country.by.year = read.csv("data/Measles_cases_by_year.csv", stringsAsFactors = FALSE)
-    Birth.rates = read.csv("data/Birth_rates.csv", stringsAsFactors = FALSE)
-    pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE)
-    vacc.rates = read.csv("data/Measles_vac_all.csv", stringsAsFactors = FALSE)
-    
-    
-    ##' only include data for the specified WHO regions (generally use all regions)
-    subset.pop.by.year = subset(pop.by.year, pop.by.year$WHO_REGION %in% regions)
-    subset.vaccination = subset(vacc.rates, vacc.rates$WHO_REGION %in% regions)
-    subset.birth.rates = subset(Birth.rates, Birth.rates$WHO_REGION %in% regions)
-    subset.data = subset(cases.by.country.by.year, cases.by.country.by.year$WHO_REGION %in% regions)
-    
-    ##' rename the Cname variable to Country
-    colnames(subset.data)[3] = "Country"
-    
-    ##' edit the data, so that only countries which are in all data sets are included 
-    missing1 = setdiff(subset.vaccination$Country, subset.pop.by.year$Country.Name)
-    if(length(missing1) > 0){
-        j = which(subset.vaccination$Country %in% missing1)
-        subset.vaccination = subset.vaccination[-j, ]
-    }
-    missing2 = setdiff(subset.birth.rates$Country, subset.vaccination$Country)
-    if(length(missing2) > 0){
-        j = which(subset.birth.rates$Country %in% missing2)
-        subset.birth.rates = subset.birth.rates[-j, ]
-    }
-    missing3 = setdiff(subset.data$Country, subset.vaccination$Country)
-    if(length(missing3) > 0){
-        j = which(subset.data$Country %in% missing3)
-        subset.data = subset.data[-j, ]
-    }
-    
-    ##' rename data sets for editing
-    p1  =  subset.pop.by.year
-    p2  =  subset.vaccination
-    p3  =  subset.birth.rates
-    p4  =  subset.data
-    
-    ##' edit data so that the entry for each country, is on the same line in each data set.
-    for ( i in 1 : length(subset.vaccination[, 1])){
-        C  =  subset.vaccination$Country[i]
-        p2[i, ]  =  subset.vaccination[i, ]
-        j = which(subset.pop.by.year$Country.Name == C)
-        p1[i, ]  =  subset.pop.by.year[j, ]
-        j = which(subset.birth.rates$Country == C)
-        p3[i, ]  =  subset.birth.rates[j, ]
-        j = which(subset.data$Country == C)
-        p4[i, ]  =  subset.data[j, ]
-    }
-    
-    ##" rename back to original names
-    subset.pop.by.year = p1
-    subset.vaccination = p2
-    subset.birth.rates = p3
-    subset.data = p4
-    
-    return(list(subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data))
+  
+  ##' import the case, birth rate, population and vaccination data for all countries
+  cases.by.country.by.year = read.csv("data/Measles_cases_by_year.csv", stringsAsFactors = FALSE)
+  Birth.rates = read.csv("data/Birth_rates.csv", stringsAsFactors = FALSE)
+  pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE)
+  vacc.rates = read.csv("data/Measles_vac_all.csv", stringsAsFactors = FALSE)
+  
+  
+  ##' only include data for the specified WHO regions (generally use all regions)
+  subset.pop.by.year = subset(pop.by.year, pop.by.year$WHO_REGION %in% regions)
+  subset.vaccination = subset(vacc.rates, vacc.rates$WHO_REGION %in% regions)
+  subset.birth.rates = subset(Birth.rates, Birth.rates$WHO_REGION %in% regions)
+  subset.data = subset(cases.by.country.by.year, cases.by.country.by.year$WHO_REGION %in% regions)
+  
+  ##' rename the Cname variable to Country
+  colnames(subset.data)[3] = "Country"
+  
+  ##' edit the data, so that only countries which are in all data sets are included 
+  missing1 = setdiff(subset.vaccination$Country, subset.pop.by.year$Country.Name)
+  if(length(missing1) > 0){
+    j = which(subset.vaccination$Country %in% missing1)
+    subset.vaccination = subset.vaccination[-j, ]
+  }
+  missing2 = setdiff(subset.birth.rates$Country, subset.vaccination$Country)
+  if(length(missing2) > 0){
+    j = which(subset.birth.rates$Country %in% missing2)
+    subset.birth.rates = subset.birth.rates[-j, ]
+  }
+  missing3 = setdiff(subset.data$Country, subset.vaccination$Country)
+  if(length(missing3) > 0){
+    j = which(subset.data$Country %in% missing3)
+    subset.data = subset.data[-j, ]
+  }
+  
+  ##' rename data sets for editing
+  p1  =  subset.pop.by.year
+  p2  =  subset.vaccination
+  p3  =  subset.birth.rates
+  p4  =  subset.data
+  
+  ##' edit data so that the entry for each country, is on the same line in each data set.
+  for ( i in 1 : length(subset.vaccination[, 1])){
+    C  =  subset.vaccination$Country[i]
+    p2[i, ]  =  subset.vaccination[i, ]
+    j = which(subset.pop.by.year$Country.Name == C)
+    p1[i, ]  =  subset.pop.by.year[j, ]
+    j = which(subset.birth.rates$Country == C)
+    p3[i, ]  =  subset.birth.rates[j, ]
+    j = which(subset.data$Country == C)
+    p4[i, ]  =  subset.data[j, ]
+  }
+  
+  ##" rename back to original names
+  subset.pop.by.year = p1
+  subset.vaccination = p2
+  subset.birth.rates = p3
+  subset.data = p4
+  
+  return(list(subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data))
 }
 
 
@@ -360,51 +360,51 @@ interp.datasets <- function(subset.data,
                             subset.pop.by.year, 
                             x,
                             xout){
+  
+  interp.subset.data = matrix(0, length(subset.data[, 1]), length(xout) + 2)
+  interp.subset.data[, 1] = subset.data$Country
+  interp.subset.data[, 2] = subset.data$WHO_REGION
+  
+  interp.subset.vacc = matrix(0, length(subset.vaccination[, 1]), length(xout) + 2)
+  interp.subset.vacc[, 1] = subset.data$Country
+  interp.subset.vacc[, 2] = subset.data$WHO_REGION
+  
+  interp.subset.br = matrix(0, length(subset.birth.rates[, 1]), length(xout) + 2)
+  interp.subset.br[, 1] = subset.data$Country
+  interp.subset.br[, 2] = subset.data$WHO_REGION
+  
+  interp.subset.pop = matrix(0, length(subset.pop.by.year[, 1]), length(xout) + 2)
+  interp.subset.pop[, 1] = subset.data$Country
+  interp.subset.pop[, 2] = subset.data$WHO_REGION
+  
+  for ( i in 1 : length(subset.pop.by.year[, 1])){
+    y = subset.data[i, paste("X", x, sep = "")]
+    list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
+    interp.subset.data[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
+    colnames(interp.subset.data) = c("Country", "WHO_REGION", x)
     
-    interp.subset.data = matrix(0, length(subset.data[, 1]), length(xout) + 2)
-    interp.subset.data[, 1] = subset.data$Country
-    interp.subset.data[, 2] = subset.data$WHO_REGION
+    y1 = subset.vaccination[i, paste("X", x, sep = "")]
+    list[qq,ww] =  approx (as.numeric(x), as.numeric(y1),  method = "linear", xout )
+    interp.subset.vacc[i, 3: length(interp.subset.vacc[1, ])]  =  round(ww, 2)
+    colnames(interp.subset.vacc) = c("Country", "WHO_REGION", x)
     
-    interp.subset.vacc = matrix(0, length(subset.vaccination[, 1]), length(xout) + 2)
-    interp.subset.vacc[, 1] = subset.data$Country
-    interp.subset.vacc[, 2] = subset.data$WHO_REGION
-    
-    interp.subset.br = matrix(0, length(subset.birth.rates[, 1]), length(xout) + 2)
-    interp.subset.br[, 1] = subset.data$Country
-    interp.subset.br[, 2] = subset.data$WHO_REGION
-    
-    interp.subset.pop = matrix(0, length(subset.pop.by.year[, 1]), length(xout) + 2)
-    interp.subset.pop[, 1] = subset.data$Country
-    interp.subset.pop[, 2] = subset.data$WHO_REGION
-    
-    for ( i in 1 : length(subset.pop.by.year[, 1])){
-        y = subset.data[i, paste("X", x, sep = "")]
-        list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
-        interp.subset.data[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-        colnames(interp.subset.data) = c("Country", "WHO_REGION", x)
-        
-        y1 = subset.vaccination[i, paste("X", x, sep = "")]
-        list[qq,ww] =  approx (as.numeric(x), as.numeric(y1),  method = "linear", xout )
-        interp.subset.vacc[i, 3: length(interp.subset.vacc[1, ])]  =  round(ww, 2)
-        colnames(interp.subset.vacc) = c("Country", "WHO_REGION", x)
-        
-        y2 = subset.birth.rates[i, paste("X", x, sep = "")]
-        if(length(which(is.na(y2) == FALSE)) < 2) 
-        {interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
-            list[qq,ww] =  approx (as.numeric(x), as.numeric(y2),  method = "linear", xout )
-            interp.subset.br[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-        }
-        colnames(interp.subset.br) = c("Country", "WHO_REGION", x)
-        
-        
-        y3 = subset.pop.by.year[i, paste("X", x, sep = "")]
-        list[qq,ww] =  approx (as.numeric(x), as.numeric(y3),  method = "linear", xout )
-        interp.subset.pop[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-        colnames(interp.subset.pop) = c("Country", "WHO_REGION", x)
+    y2 = subset.birth.rates[i, paste("X", x, sep = "")]
+    if(length(which(is.na(y2) == FALSE)) < 2) 
+    {interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
+      list[qq,ww] =  approx (as.numeric(x), as.numeric(y2),  method = "linear", xout )
+      interp.subset.br[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
     }
+    colnames(interp.subset.br) = c("Country", "WHO_REGION", x)
     
-    return(list(interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop))
     
+    y3 = subset.pop.by.year[i, paste("X", x, sep = "")]
+    list[qq,ww] =  approx (as.numeric(x), as.numeric(y3),  method = "linear", xout )
+    interp.subset.pop[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
+    colnames(interp.subset.pop) = c("Country", "WHO_REGION", x)
+  }
+  
+  return(list(interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop))
+  
 }
 
 
@@ -417,28 +417,28 @@ interp.datasets <- function(subset.data,
 ############################
 
 prepare.matrices.for.animation <- function(interp.subset.data, subset.data){
-    
-    mean.cases = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
-    mean.cases[, 1] = subset.data$Country
-    mean.cases[, 2] = subset.data$WHO_REGION
-    
-    coeff.var.cases = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
-    coeff.var.cases[, 1] = subset.data$Country
-    coeff.var.cases[, 2] = subset.data$WHO_REGION
-    
-    incidence.per.1000 = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
-    incidence.per.1000[, 1] = subset.data$Country
-    incidence.per.1000[, 2] = subset.data$WHO_REGION
-    
-    mean.br = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
-    mean.br[, 1] = subset.data$Country
-    mean.br[, 2] = subset.data$WHO_REGION
-    
-    mean.vac = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
-    mean.vac[, 1] = subset.data$Country
-    mean.vac[, 2] = subset.data$WHO_REGION
-    
-    return(list(mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac))
+  
+  mean.cases = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
+  mean.cases[, 1] = subset.data$Country
+  mean.cases[, 2] = subset.data$WHO_REGION
+  
+  coeff.var.cases = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
+  coeff.var.cases[, 1] = subset.data$Country
+  coeff.var.cases[, 2] = subset.data$WHO_REGION
+  
+  incidence.per.1000 = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
+  incidence.per.1000[, 1] = subset.data$Country
+  incidence.per.1000[, 2] = subset.data$WHO_REGION
+  
+  mean.br = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
+  mean.br[, 1] = subset.data$Country
+  mean.br[, 2] = subset.data$WHO_REGION
+  
+  mean.vac = matrix(0, length(interp.subset.data[, 1]), length(interp.subset.data[1, ]))
+  mean.vac[, 1] = subset.data$Country
+  mean.vac[, 2] = subset.data$WHO_REGION
+  
+  return(list(mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac))
 }
 
 
@@ -451,14 +451,14 @@ prepare.matrices.for.animation <- function(interp.subset.data, subset.data){
 
 ############################
 output.weights.gaussian.with.cutoff <- function(x, st.dev, cutoff, neg.only = F){
-    
-    weights = dnorm(x, mean = 0, sd = st.dev)
-    if(neg.only == T){
-        weights[which(x > cutoff)] = 0
-    } else{
-        weights[which(abs(x) > cutoff)] = 0
-    }
-    return(weights)
+  
+  weights = dnorm(x, mean = 0, sd = st.dev)
+  if(neg.only == T){
+    weights[which(x > cutoff)] = 0
+  } else{
+    weights[which(abs(x) > cutoff)] = 0
+  }
+  return(weights)
 }
 
 
@@ -480,38 +480,32 @@ output.weights.gaussian.with.cutoff <- function(x, st.dev, cutoff, neg.only = F)
 interpolate.give.dataset <- function(data,  
                                      x,
                                      xout){
-    ##' make a matrix to hold the interpolated data, which has number of rows equal to number
-    ##' of countries in the data set, and number of colunms equal to the length of the chosen time frame
-    interp.data = matrix(0, length(data[, 1]), length(xout))
-    for ( i in 1 : length(data[, 1])){
-        y = data[i, ]
-        ##' if there are less than 2 non-NA entries in the data, then report 0, as there
-        ##' will be no way to interpolate the data
-        if(length(which(!is.na(y)) == F) < 2){
-            interp.data[i, ]  =  0} else{
-                ##' otherwise interpolate the data y, over the time frame xout, and capture the x
-                ##' and interpolated y in qq and ww respectively
-                list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
-                ##' put the interpolated data into the interpolated data matrix
-                interp.data[i, ]  =  ww
-            }
-    }
-    
-    return(interp.data)
-    
+  ##' make a matrix to hold the interpolated data, which has number of rows equal to number
+  ##' of countries in the data set, and number of colunms equal to the length of the chosen time frame
+  interp.data = matrix(0, length(data[, 1]), length(xout))
+  for ( i in 1 : length(data[, 1])){
+    y = data[i, ]
+    ##' if there are less than 2 non-NA entries in the data, then report 0, as there
+    ##' will be no way to interpolate the data
+    if(length(which(!is.na(y)) == F) < 2){
+      interp.data[i, ]  =  0} else{
+        ##' otherwise interpolate the data y, over the time frame xout, and capture the x
+        ##' and interpolated y in qq and ww respectively
+        list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
+        ##' put the interpolated data into the interpolated data matrix
+        interp.data[i, ]  =  ww
+      }
+  }
+  
+  return(interp.data)
+  
 }
 
 
 
 
-
-#############################################################################################
-
 ##' Estimate the number of infectious individuals by age for a given country in a given year.
-##' Most options in this function relate to discounting vaccination to account for Ebola outbreak
-
-#############################################################################################
-
+##' Code and method via Takahashi et al. 2015
 getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
                                             proportion.pop=FALSE, barchart.susc=FALSE,
                                             add.disrupted=FALSE, resurgence=FALSE,
@@ -521,323 +515,309 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
                                             year,
                                             reported.cases = T,
                                             max.x = 200000, output.plot = T){
+  
+  ages <- 1:60
+  
+  # 1. Routine Coverage - bring WHO data and find right country
+  df <- read.csv("data/UNICEF.WHO.Measles.AdminCoverage.downloadedMay2014.csv")
+  df <- read.csv("data/Measles.vac.WHO.estimates.csv")
+  mtch <- match(df$Cname, country)
+  
+  coverage <- as.numeric(df[which(mtch==1 & !is.na(mtch),arr.ind=TRUE),paste("X",1980:min(year, 2013),sep="")]/100)
+  if (country=="Liberia") coverage[2] <- 0.40 #Probable mistage Take the average for the decade
+  #print(coverage)
+  if (country=="Liberia") coverage[2] <- 0.40
+  # -- Data ends in 2013 - extend from 2013 to 2015 - by assuming same level as 2013
+  if(year > 2013){
+    coverage <-c( coverage[1:length(coverage)],rep(coverage[length(coverage)],year - 2013))
+  }
+  
+  if (is.na(coverage[1])) coverage[1] <- 0  #if 1980 value is NA, set it to zero
+  #missing data fix
+  for (j in 2:length(coverage)) {if (is.na(coverage[j])) coverage[j] <- coverage[j-1]} #set subsequent values to previous years value if NA
+  #express as coverage in every cohort by reversing
+  prop.vacc <- c(coverage[length(coverage):1],rep(0,60-length(coverage))) #get coverage in every cohort
+  prop.vacc <- pmin(prop.vacc,max.cover)#constrain max to max.cover
+  
+  #adjust for 90% vaccine efficacy for all routine vaccination [note: Saki does not have this in]
+  prop.vacc <- prop.vacc*0.95
+  
+  #for the 1-5 year olds, bring in data based on Saki's and multiply by vaccine efficacy
+  #  prop.vacc[1:5] <- cover.from.DHS*0.95
+  prop.vacc = c(prop.vacc,rep(tail(prop.vacc,1),60-length(prop.vacc)))
+  #create disrupted - and bring in Saki's numbers - again multiply by vaccine efficacy
+  prop.vacc.disrupted <- prop.vacc
+  #prop.vacc.disrupted[1:5] <- cover.from.DHS.disrupted[1:5]*0.95
+  
+  # 2. SIAs - bring in WHO data, find right country, age range, year
+  country1 = country
+  #if( country == "Tanzania"){country1 = "United Republic of Tanzania"}
+  # if(country == "Congo, Republic of the"){country1 = "Congo (the)"}
+  #if(country == "Gambia, The"){country1 = "Gambia (the)"}
+  #if(country == "Congo, Democratic Republic of the"){country1 = "Democratic Republic of the Congo (the)"}
+  if(country == "Niger"){
+    coverage.file <- "data/All_SIA_Routine_May2014_2.csv"
+    year.now <- year
+    df <- read.csv(coverage.file,stringsAsFactors =FALSE)
+    mtch <- which(df$country=="Niger",arr.ind=TRUE)
+    if (sum(is.na(mtch))==length(mtch)) print("could not match country name to data-file")  else df <- df[mtch,]
+    years <- as.numeric(substring(df$date,5,nchar(df$date)))
+    df <- df[years<year.now,]
+  }else{
+    coverage.file <- "data/All_SIA_Routine_May2014_2.csv"
+    year.now <- year
+    df <- read.csv(coverage.file,stringsAsFactors =FALSE)
+    mtch <- which(df$country==country1,arr.ind=TRUE)
+    if (sum(is.na(mtch))==length(mtch)) print("could not match country name to data-file")  else df <- df[mtch,]
+    years <- as.numeric(substring(df$date,5,nchar(df$date)))
+    df <- df[years<year.now,]
+  }
+  
+  if(grepl("(the)", country, fixed = TRUE)) country =  gsub(" (the)","", country, fixed = T)
+  if(grepl("(the)", country1, fixed = TRUE)){ country1 =  gsub(" (the)","", country1, fixed = T)}
+  # 3. set up the SIAs - here also, we just need yearly timing
+  # also assume 97% efficacy
+  years.sia <- as.numeric(substring(df$date,5,nchar(df$date))[df$is.SIA==1])
+  if (length(years.sia)>0) {
+    coverage.sia <- pmin(df$percent.cov[df$is.SIA==1]*0.97,max.cover)    #adjust for 97% vaccine efficacy for all SIA delivery
+    age.range <- cbind(df$age.low[df$is.SIA==1],df$age.high[df$is.SIA==1])
     
-    ages <- 1:60
-    
-    # 1. Routine Coverage - bring WHO data and find right country
-    df <- read.csv("data/UNICEF.WHO.Measles.AdminCoverage.downloadedMay2014.csv")
-    df <- read.csv("data/Measles.vac.WHO.estimates.csv")
-    mtch <- match(df$Cname, country)
-    
-    coverage <- as.numeric(df[which(mtch==1 & !is.na(mtch),arr.ind=TRUE),paste("X",1980:min(year, 2013),sep="")]/100)
-    if (country=="Liberia") coverage[2] <- 0.40 #Probable mistage Take the average for the decade
-    #print(coverage)
-    if (country=="Liberia") coverage[2] <- 0.40
-    # -- Data ends in 2013 - extend from 2013 to 2015 - by assuming same level as 2013
-    if(year > 2013){
-        coverage <-c( coverage[1:length(coverage)],rep(coverage[length(coverage)],year - 2013))
+    for (j in 1:length(years.sia)) {
+      if(!is.na(age.range[j,1]) & !is.na(age.range[j,2])){
+        cov.ages.SIA <- year.now-years.sia[j]+1+c(age.range[j,1],age.range[j,2])/12
+        find.bins.SIA <- findInterval(cov.ages.SIA,ages,all.inside=TRUE)
+        
+        # complete dependence
+        p.overlap <- pmax(pmin(pmax(prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]],coverage.sia[j]),1),0)
+        # complete independence
+        p.indep <- pmax(pmin((prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]] +
+                                (1-prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]])*(coverage.sia[j])),1),0)
+        # new cover
+        prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]] <- overlap * p.overlap + (1-overlap) * p.indep
+        
+        # complete dependence for disrupted
+        p.overlap <- pmax(pmin(pmax(prop.vacc.disrupted[find.bins.SIA[1]:find.bins.SIA[2]],coverage.sia[j]),1),0)
+        # complete independence  for disrupted
+        p.indep <- pmax(pmin((prop.vacc.disrupted[find.bins.SIA[1]:find.bins.SIA[2]] +
+                                (1-prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]])*(coverage.sia[j])),1),0)
+        # new cover  for disrupted
+        prop.vacc.disrupted[find.bins.SIA[1]:find.bins.SIA[2]] <- overlap * p.overlap + (1-overlap) * p.indep
+        
+      }
+      
     }
-    
-    if (is.na(coverage[1])) coverage[1] <- 0  #if 1980 value is NA, set it to zero
-    #missing data fix
-    for (j in 2:length(coverage)) {if (is.na(coverage[j])) coverage[j] <- coverage[j-1]} #set subsequent values to previous years value if NA
-    #express as coverage in every cohort by reversing
-    prop.vacc <- c(coverage[length(coverage):1],rep(0,60-length(coverage))) #get coverage in every cohort
-    prop.vacc <- pmin(prop.vacc,max.cover)#constrain max to max.cover
-    
-    #adjust for 90% vaccine efficacy for all routine vaccination [note: Saki does not have this in]
-    prop.vacc <- prop.vacc*0.95
-    
-    #for the 1-5 year olds, bring in data based on Saki's and multiply by vaccine efficacy
-    #  prop.vacc[1:5] <- cover.from.DHS*0.95
-    prop.vacc = c(prop.vacc,rep(tail(prop.vacc,1),60-length(prop.vacc)))
-    #create disrupted - and bring in Saki's numbers - again multiply by vaccine efficacy
-    prop.vacc.disrupted <- prop.vacc
-    #prop.vacc.disrupted[1:5] <- cover.from.DHS.disrupted[1:5]*0.95
-    
-    # 2. SIAs - bring in WHO data, find right country, age range, year
-    country1 = country
-    #if( country == "Tanzania"){country1 = "United Republic of Tanzania"}
-   # if(country == "Congo, Republic of the"){country1 = "Congo (the)"}
-    #if(country == "Gambia, The"){country1 = "Gambia (the)"}
-    #if(country == "Congo, Democratic Republic of the"){country1 = "Democratic Republic of the Congo (the)"}
-     if(country == "Niger"){
-     coverage.file <- "data/All_SIA_Routine_May2014_2.csv"
-         year.now <- year
-         df <- read.csv(coverage.file,stringsAsFactors =FALSE)
-         mtch <- which(df$country=="Niger",arr.ind=TRUE)
-         if (sum(is.na(mtch))==length(mtch)) print("could not match country name to data-file")  else df <- df[mtch,]
-         years <- as.numeric(substring(df$date,5,nchar(df$date)))
-         df <- df[years<year.now,]
-     }else{
-         coverage.file <- "data/All_SIA_Routine_May2014_2.csv"
-        year.now <- year
-        df <- read.csv(coverage.file,stringsAsFactors =FALSE)
-        mtch <- which(df$country==country1,arr.ind=TRUE)
-        if (sum(is.na(mtch))==length(mtch)) print("could not match country name to data-file")  else df <- df[mtch,]
-        years <- as.numeric(substring(df$date,5,nchar(df$date)))
-        df <- df[years<year.now,]
+  }else{
+    age.range = NA
+    ages.vacc = NA
+    coverage.sia = NA
+  }
+  
+  # 4. Population structure
+  
+  
+  ##' we look at any years between 2000 and 2015 to construct Lexis diagram. 
+  ##' We can calculate the population at any multiple of 5 from 2000 to 2015, so to 
+  ##' calculate population for in between years, we consider the population at either end of
+  ##' these 5 year intervals and take the point at which we lie e.g. 2002 lies 2/5th's of 
+  ##' the way between 2000 and 2005.
+  
+  if(year < 2015){
+    possible.years = seq(1950, 2015, 5)
+    y = which(possible.years > year)[1]
+    z = possible.years[y]
+    z1 = possible.years[y-1]
+  } else{
+    z = year
+    z1 = 2010
+  }
+  
+  
+  p <- read.csv("data/Population_through_time.csv")
+  country2 = country
+  # if(country == "Congo, Democratic Republic of the") {country2 = "Democratic Republic of the Congo"}
+  # if(country == "Congo, Republic of the"){country2 = "Congo"}
+  # if(country == "Gambia, The"){country2 = "Gambia"}
+  # if(country == "Tanzania"){country2 = "United Republic of Tanzania"}
+  # if(country == "Moldova") {country2 = "Republic of Moldova"}
+  # if(country == "Russia") {country2 = "Russian Federation"}
+  # if(country == "Iran") {country2 = "Iran (Islamic Republic of)"}
+  # if(country == "Syria") {country2 = "Syrian Arab Republic"}
+  # if(country == "Korea, South") {country2 = "Republic of Korea"}
+  # if(country == "Laos"){country2 = "Lao People's Democratic Republic"}
+  # if(country == "Vietnam"){country2 = "Viet Nam"}
+  # if(country == "Brunei"){country2 = "Brunei Darussalam"}
+  # if(country == "Macedonia") {country2 = "TFYR Macedonia"}
+  # if(country == "Venezuela"){country2 = "Venezuela (Bolivarian Republic of)"}
+  # if(country == "United States") {country2 = "United States of America"}
+  # if(country == "Micronesia, Federated States of"){country2 = "Micronesia (Fed. States of)"}
+  # if(country == "Burma"){country2 = "Myanmar"}
+  pop.struct.past = p[which(p$Region == country2 & p$Data == z1), 4:ncol(p)] * 1000
+  pop.struct.future = p[which(p$Region == country2 & p$Data == z), 4:ncol(p)] * 1000
+  
+  fraction = year - z1
+  
+  pop.struct = (5 - fraction)/5 * pop.struct.past + fraction / 5 * pop.struct.future
+  pop.struct[14] = sum(pop.struct[14:length(pop.struct)])
+  pop.struct = pop.struct[1:14]
+  age <- seq(5,70,by=5)
+  sp <- smooth.spline(age,pop.struct)
+  pred <- predict(sp,ages)$y
+  #!make sure pop size stays the same
+  pred <- sum(pop.struct)*pred/sum(pred)
+  
+  
+  # 5. Natural Immunity 
+  
+  # This is the state space model adjusted disease burden.
+  df <- read.csv("data/WHO_measles_burden_2013.csv",stringsAsFactors=FALSE,row.names=1)
+  #df <- read.csv("data/output-estimated_incidence.csv",stringsAsFactors=FALSE,row.names=1)
+  if(reported.cases == T){
+    df <- read.csv("Measles_cases_by_year2.csv", stringsAsFactors = FALSE)
+  }
+  country.codes <- read.csv("data/country_codes.csv")
+  iso <- country.codes[which(country.codes[,1]==country1),"ISO3_code"]
+  if(country == "Cabo Verde"){iso = "CPV"}
+  if(reported.cases == T){
+    est.burden = numeric(length(seq(1981, year)))
+    all.years = seq(1981, min(year, 2013))
+    df <- (df[which(df$Cname==country), ])
+    for(i in 1 : length(all.years)){
+      est.burden[i] = as.numeric(df[which(colnames(df) == paste("X", all.years[i], sep = ""))])
     }
+  }  else{
+    est.burden <- as.numeric(df[which(rownames(df)==iso), which(colnames(df) %in% paste("X", 1981:year,sep = ""))])
+  }
+  base.burden <- mean(est.burden[5:15],na.rm=T)
+  rel.burden <- est.burden / base.burden
+  j = which(is.na(rel.burden))
+  if(length(j) > 0){
+    for(k in 1 : length(j)){
+      if((j[k] > 1) & (j[k] < length(rel.burden))){
+        p = which(!is.na(rel.burden[(j[k]+1): length(rel.burden)] ))[1]
+        if(is.na(p) ){
+          rel.burden[j[k]] = 0
+        }else{
+          rel.burden[j[k]] = mean(rel.burden[j[k]-1], rel.burden[j[k]+p])  
+        }
+      }
+      if(j[k] == length(rel.burden)){
+        rel.burden[j[k]] = rel.burden[j[k]-1]
+      }
+    }
+  }
+  # this needs to be considered -- what is the magnitude of measles resurgence ????
+  # needs to be some kind of best/worst case scenario
+  # currently set at the "baseline" which is the average of the 10 years centered around 1990
+  rel.burden <- c(rep(1,60 - length(rel.burden[10:length(rel.burden)]) ),
+                  rel.burden[10:length(rel.burden)])
+  rel.burden[is.na(rel.burden)] = 1
+  
+  #     ifelse(resurgence==FALSE,rel.burden <- c(rep(1,60 - length(rel.burden[10:length(rel.burden)]) ),
+  #                                              rel.burden[10:length(rel.burden)]),
+  #            rel.burden <- c(rep(1,35),rel.burden[10:length(rel.burden)],rep(1,
+  #                                                                            60 - 35 - length(rel.burden[10:length(rel.burden)]))))
+  #     
+  
+  # ifelse(resurgence==FALSE,rel.burden <- c(rep(1,35),rel.burden[10:32],rep(rel.burden[32],2)),
+  #         rel.burden <- c(rep(1,35),rel.burden[10:32],rep(1,2)))
+  
+  
+  
+  foi.base <- log(.05)/-20  				# baseline foi -- 95% immune by 20y -- should be tunable
+  rel.foi <- rev(rel.burden)*foi.base
+  prop.nat.imm <- 1-exp(-cumsum(rel.foi))		# cumulative probability of natural immunity
+  #browser()
+  
+  
+  # 6. Maternal immunity - remove those protected by maternal immunity from the susceptibles [approx 1/2 kids aged < 1]
+  mat.protect <-c(pred[1]*0.5,rep(0,length(pred)-1))
+  
+  # 7. Figure
+  if(output.plot ){
     
-    if(grepl("(the)", country, fixed = TRUE)) country =  gsub(" (the)","", country, fixed = T)
-    if(grepl("(the)", country1, fixed = TRUE)){ country1 =  gsub(" (the)","", country1, fixed = T)}
-    # 3. set up the SIAs - here also, we just need yearly timing
-    # also assume 97% efficacy
-    years.sia <- as.numeric(substring(df$date,5,nchar(df$date))[df$is.SIA==1])
+    layout(matrix(c(1,1,1,1,2,2),2,3))
+    par(mar=c(4,4,3,2))
+    
+    plot(1980:year,type="n",ylim=c(0,40),xlim=c(1980,year - 1), xlab="", ylab="Age (years)",cex.lab = 1.6, cex.axis = 1.6)
+    points(1980:year,0.5+0:(year - 1980),pch=15,col="skyblue", cex=coverage[1])  
+    for (j in 0:(year - 1980)) { points((1980:year)+j,0.5+(0:(year - 1980)),pch=15,col="skyblue", cex=coverage[j+1]*1.5)}
+    
     if (length(years.sia)>0) {
-        coverage.sia <- pmin(df$percent.cov[df$is.SIA==1]*0.97,max.cover)    #adjust for 97% vaccine efficacy for all SIA delivery
-        age.range <- cbind(df$age.low[df$is.SIA==1],df$age.high[df$is.SIA==1])
+      for (j in 1:length(years.sia)) {
+        ages.vacc <- seq(round(age.range[j,1]/12),round(age.range[j,2]/12),by=1)
+        points(rep(years.sia[j],length(ages.vacc))+0.1,ages.vacc+
+                 0.6,cex=coverage.sia[j]*1.5,col=4, pch=15)
+      }}
+    
+    legend("topleft",legend=country,bty="n",cex=2.5)
+    legend("topright",legend=c("routine","camapign"),col=c("skyblue","blue"),pch=15,bty="n", cex = 2)
+    par(mar=c(4,0,3,2))
+    
+  }
+  
+  
+  # plot out the lexis
+  
+  
+  tot.imm <- mat.protect+(pred-mat.protect)*prop.vacc + (pred-mat.protect)*(1-prop.vacc)*(prop.nat.imm)
+  tot.imm.disrupted <- mat.protect+ (pred-mat.protect)*prop.vacc.disrupted  +
+    (pred-mat.protect)*(1-prop.vacc.disrupted)*(prop.nat.imm)
+  #print(tot.imm.disrupted)
+  
+  if (!barchart.susc)  {
+    if (proportion.pop) denom <- pred else denom <- 1
+    if(output.plot == T){
+      plot(pred/denom,ages,type="l",xlab="Population size", ylim=c(0,40),
+           xlim=range(c(0,pred,pred*(1-prop.vacc)),na.rm=TRUE), cex.axis = 1.6, cex.lab= 1.6)
+      points(pred*prop.vacc/denom,ages, type="l")
+      points(tot.imm/denom,ages, type="l")
+      
+      polygon(c(pred/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),col="red",border="NA")
+      polygon(c(tot.imm/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),col="thistle",border="NA")
+      polygon(c(pred*prop.vacc/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),col="skyblue",border="NA")
+      if (add.disrupted) polygon(c(pred*prop.vacc.disrupted/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),
+                                 col="grey",border="NA")
+      
+      legend("topright",legend=c("vaccinated","naturally immune","unvaccinated"),col=c("skyblue","thistle","red"),
+             pch=15,bty="n", cex = 2)
+    }
+  } else {
+    if (proportion.pop) denom <- pred else denom <- rep(1,length(pred))
+    tot.susc <- pred-tot.imm
+    tot.susc.disrupted <- pred-tot.imm.disrupted
+    
+    xlims <- range(c(0,tot.susc/denom),na.rm=TRUE)
+    if (add.disrupted) xlims <- range(c(0,tot.susc/denom,tot.susc.disrupted/denom),na.rm=TRUE)
+    
+    #quick and dirty for display
+    xlims <- c(0,max.x)
+    if(output.plot == T){
+      if(proportion.pop == T){
+        plot(tot.susc/denom,ages,type="n", xlab=" ", ylim=c(0,40))
+      }
+      else{plot(tot.susc/denom,ages,type="n", xlab=" ", ylim=c(0,40), xlim=xlims)}
+      for (j in 1:length(tot.susc)) {
+        if (add.disrupted) points(c(0,tot.susc.disrupted[j]/denom[j]),
+                                  rep(ages[j],2)-0.5,lwd=6,type="l", col="coral", pch=15)
+        points(c(0,tot.susc[j]/denom[j]),rep(ages[j],2)-0.5,lwd=6,type="l", col="seagreen4", pch=15)
         
-        for (j in 1:length(years.sia)) {
-            if(!is.na(age.range[j,1]) & !is.na(age.range[j,2])){
-                cov.ages.SIA <- year.now-years.sia[j]+1+c(age.range[j,1],age.range[j,2])/12
-                find.bins.SIA <- findInterval(cov.ages.SIA,ages,all.inside=TRUE)
-                
-                # complete dependence
-                p.overlap <- pmax(pmin(pmax(prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]],coverage.sia[j]),1),0)
-                # complete independence
-                p.indep <- pmax(pmin((prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]] +
-                                          (1-prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]])*(coverage.sia[j])),1),0)
-                # new cover
-                prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]] <- overlap * p.overlap + (1-overlap) * p.indep
-                
-                # complete dependence for disrupted
-                p.overlap <- pmax(pmin(pmax(prop.vacc.disrupted[find.bins.SIA[1]:find.bins.SIA[2]],coverage.sia[j]),1),0)
-                # complete independence  for disrupted
-                p.indep <- pmax(pmin((prop.vacc.disrupted[find.bins.SIA[1]:find.bins.SIA[2]] +
-                                          (1-prop.vacc[find.bins.SIA[1]:find.bins.SIA[2]])*(coverage.sia[j])),1),0)
-                # new cover  for disrupted
-                prop.vacc.disrupted[find.bins.SIA[1]:find.bins.SIA[2]] <- overlap * p.overlap + (1-overlap) * p.indep
-                
-            }
-           
-        }
+      }
+      if (add.disrupted & !proportion.pop)
+        legend("topright",legend=c("Number of susceptibles","with 18 months disruption"),
+               bty="n", pch=15,col=c("red","coral"))
+      if (add.disrupted & proportion.pop)
+        legend("topright",legend=c("Proportion of susceptibles","with 18 months disruption"),
+               bty="n", pch=15,col=c("red","coral"))
     }
     
-    # 4. Population structure
-    
-    
-    ##' we look at any years between 2000 and 2015 to construct Lexis diagram. 
-    ##' We can calculate the population at any multiple of 5 from 2000 to 2015, so to 
-    ##' calculate population for in between years, we consider the population at either end of
-    ##' these 5 year intervals and take the point at which we lie e.g. 2002 lies 2/5th's of 
-    ##' the way between 2000 and 2005.
-    
-    if(year < 2015){
-        possible.years = seq(1950, 2015, 5)
-        y = which(possible.years > year)[1]
-        z = possible.years[y]
-        z1 = possible.years[y-1]
-    } else{
-        z = year
-        z1 = 2010
-    }
-    
-    
-    #     filename.past <- paste("data/NumbersOfMaleFemaleUrbanRuralPopAfricanCountry",z1,sep="")
-    #     filename.future <- paste("data/NumbersOfMaleFemaleUrbanRuralPopAfricanCountry",z,sep="")
-    #      
-    #     df <- read.csv(paste(filename.past,".csv",sep=""),stringsAsFactors=FALSE)
-    #     chs <- which(df$Country==country1 & df$Urban.Rural=="U",arr.ind=TRUE)
-    #     pop.struct <- as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)])+as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)+1])
-    #     chs <- which(df$Country==country1 & df$Urban.Rural=="R",arr.ind=TRUE)
-    #     pop.struct.past <- pop.struct + as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)])+
-    #         as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)+1])
-    #     
-    #     df <- read.csv(paste(filename.future,".csv",sep=""),stringsAsFactors=FALSE)
-    #     chs <- which(df$Country==country1 & df$Urban.Rural=="U",arr.ind=TRUE)
-    #     pop.struct <- as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)])+as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)+1])
-    #     chs <- which(df$Country==country1 & df$Urban.Rural=="R",arr.ind=TRUE)
-    #     pop.struct.future <- pop.struct + as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)])+
-    #         as.numeric(df[chs,seq(4,(ncol(df)-1), by=2)+1])
-    
-    p <- read.csv("data/Population_through_time.csv")
-    country2 = country
-    if(country == "Congo, Democratic Republic of the") {country2 = "Democratic Republic of the Congo"}
-    if(country == "Congo, Republic of the"){country2 = "Congo"}
-    if(country == "Gambia, The"){country2 = "Gambia"}
-    if(country == "Tanzania"){country2 = "United Republic of Tanzania"}
-    if(country == "Moldova") {country2 = "Republic of Moldova"}
-    if(country == "Russia") {country2 = "Russian Federation"}
-    if(country == "Iran") {country2 = "Iran (Islamic Republic of)"}
-    if(country == "Syria") {country2 = "Syrian Arab Republic"}
-    if(country == "Korea, South") {country2 = "Republic of Korea"}
-    if(country == "Laos"){country2 = "Lao People's Democratic Republic"}
-    if(country == "Vietnam"){country2 = "Viet Nam"}
-    if(country == "Brunei"){country2 = "Brunei Darussalam"}
-    if(country == "Macedonia") {country2 = "TFYR Macedonia"}
-    if(country == "Venezuela"){country2 = "Venezuela (Bolivarian Republic of)"}
-    if(country == "United States") {country2 = "United States of America"}
-    if(country == "Micronesia, Federated States of"){country2 = "Micronesia (Fed. States of)"}
-    if(country == "Burma"){country2 = "Myanmar"}
-    pop.struct.past = p[which(p$Region == country2 & p$Data == z1), 4:ncol(p)] * 1000
-    pop.struct.future = p[which(p$Region == country2 & p$Data == z), 4:ncol(p)] * 1000
-    
-    fraction = year - z1
-    
-    pop.struct = (5 - fraction)/5 * pop.struct.past + fraction / 5 * pop.struct.future
-    pop.struct[14] = sum(pop.struct[14:length(pop.struct)])
-    pop.struct = pop.struct[1:14]
-    age <- seq(5,70,by=5)
-    sp <- smooth.spline(age,pop.struct)
-    pred <- predict(sp,ages)$y
-    #!make sure pop size stays the same
-    pred <- sum(pop.struct)*pred/sum(pred)
-    
-    
-    # 5. Natural Immunity - Matt Ferrari Black Magic
-    # doesn't currently assume that there is any rebound of measles in 2014-15
-    # such an assumption would increase the amount of natural immunity in all age classes
-    
-    # This is the state space model adjusted disease burden.
-    df <- read.csv("data/WHO_measles_burden_2013.csv",stringsAsFactors=FALSE,row.names=1)
-    if(reported.cases == T){
-        df <- read.csv("Measles_cases_by_year2.csv", stringsAsFactors = FALSE)
-    }
-    country.codes <- read.csv("data/country_codes.csv")
-    iso <- country.codes[which(country.codes[,1]==country1),"ISO3_code"]
-    if(country == "Cabo Verde"){iso = "CPV"}
-    if(reported.cases == T){
-        est.burden = numeric(length(seq(1981, year)))
-        all.years = seq(1981, min(year, 2013))
-        df <- (df[which(df$Cname==country), ])
-        for(i in 1 : length(all.years)){
-            est.burden[i] = as.numeric(df[which(colnames(df) == paste("X", all.years[i], sep = ""))])
-        }
-    }  else{
-        est.burden <- as.numeric(df[which(rownames(df)==iso), which(colnames(df) %in% paste("X", 1981:year,sep = ""))])
-    }
-    base.burden <- mean(est.burden[5:15],na.rm=T)
-    rel.burden <- est.burden / base.burden
-    j = which(is.na(rel.burden))
-    if(length(j) > 0){
-        for(k in 1 : length(j)){
-            if((j[k] > 1) & (j[k] < length(rel.burden))){
-                p = which(!is.na(rel.burden[(j[k]+1): length(rel.burden)] ))[1]
-                if(is.na(p) ){
-                    rel.burden[j[k]] = 0
-                }else{
-                    rel.burden[j[k]] = mean(rel.burden[j[k]-1], rel.burden[j[k]+p])  
-                }
-            }
-            if(j[k] == length(rel.burden)){
-                rel.burden[j[k]] = rel.burden[j[k]-1]
-            }
-        }
-    }
-    # this needs to be considered -- what is the magnitude of measles resurgence ????
-    # needs to be some kind of best/worst case scenario
-    # currently set at the "baseline" which is the average of the 10 years centered around 1990
-    rel.burden <- c(rep(1,60 - length(rel.burden[10:length(rel.burden)]) ),
-                    rel.burden[10:length(rel.burden)])
-    rel.burden[is.na(rel.burden)] = 1
-    
-    #     ifelse(resurgence==FALSE,rel.burden <- c(rep(1,60 - length(rel.burden[10:length(rel.burden)]) ),
-    #                                              rel.burden[10:length(rel.burden)]),
-    #            rel.burden <- c(rep(1,35),rel.burden[10:length(rel.burden)],rep(1,
-    #                                                                            60 - 35 - length(rel.burden[10:length(rel.burden)]))))
-    #     
-    
-    # ifelse(resurgence==FALSE,rel.burden <- c(rep(1,35),rel.burden[10:32],rep(rel.burden[32],2)),
-    #         rel.burden <- c(rep(1,35),rel.burden[10:32],rep(1,2)))
-    
-    
-    
-    foi.base <- log(.05)/-20  				# baseline foi -- 95% immune by 20y -- should be tunable
-    rel.foi <- rev(rel.burden)*foi.base
-    prop.nat.imm <- 1-exp(-cumsum(rel.foi))		# cumulative probability of natural immunity
-    #browser()
-    
-    
-    # 6. Maternal immunity - remove those protected by maternal immunity from the susceptibles [approx 1/2 kids aged < 1]
-    mat.protect <-c(pred[1]*0.5,rep(0,length(pred)-1))
-    
-    # 7. Figure
-    if(output.plot ){
-        
-        layout(matrix(c(1,1,1,1,2,2),2,3))
-        par(mar=c(4,4,3,2))
-        
-        plot(1980:year,type="n",ylim=c(0,40),xlim=c(1980,year - 1), xlab="", ylab="Age (years)",cex.lab = 1.6, cex.axis = 1.6)
-        points(1980:year,0.5+0:(year - 1980),pch=15,col="skyblue", cex=coverage[1])  
-        for (j in 0:(year - 1980)) { points((1980:year)+j,0.5+(0:(year - 1980)),pch=15,col="skyblue", cex=coverage[j+1]*1.5)}
-        
-        if (length(years.sia)>0) {
-            for (j in 1:length(years.sia)) {
-                ages.vacc <- seq(round(age.range[j,1]/12),round(age.range[j,2]/12),by=1)
-                points(rep(years.sia[j],length(ages.vacc))+0.1,ages.vacc+
-                           0.6,cex=coverage.sia[j]*1.5,col=4, pch=15)
-            }}
-        
-        legend("topleft",legend=country,bty="n",cex=2.5)
-        legend("topright",legend=c("routine","camapign"),col=c("skyblue","blue"),pch=15,bty="n", cex = 2)
-        par(mar=c(4,0,3,2))
-        
-    }
-    
-    
-    # plot out the lexis
-    
-    
-    tot.imm <- mat.protect+(pred-mat.protect)*prop.vacc + (pred-mat.protect)*(1-prop.vacc)*(prop.nat.imm)
-    tot.imm.disrupted <- mat.protect+ (pred-mat.protect)*prop.vacc.disrupted  +
-        (pred-mat.protect)*(1-prop.vacc.disrupted)*(prop.nat.imm)
-    #print(tot.imm.disrupted)
-    
-    if (!barchart.susc)  {
-        if (proportion.pop) denom <- pred else denom <- 1
-        if(output.plot == T){
-            plot(pred/denom,ages,type="l",xlab="Population size", ylim=c(0,40),
-                 xlim=range(c(0,pred,pred*(1-prop.vacc)),na.rm=TRUE), cex.axis = 1.6, cex.lab= 1.6)
-            points(pred*prop.vacc/denom,ages, type="l")
-            points(tot.imm/denom,ages, type="l")
-            
-            polygon(c(pred/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),col="red",border="NA")
-            polygon(c(tot.imm/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),col="thistle",border="NA")
-            polygon(c(pred*prop.vacc/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),col="skyblue",border="NA")
-            if (add.disrupted) polygon(c(pred*prop.vacc.disrupted/denom,rep(0,length(pred))),c(ages,ages[length(ages):1]),
-                                       col="grey",border="NA")
-            
-            legend("topright",legend=c("vaccinated","naturally immune","unvaccinated"),col=c("skyblue","thistle","red"),
-                   pch=15,bty="n", cex = 2)
-        }
-    } else {
-        if (proportion.pop) denom <- pred else denom <- rep(1,length(pred))
-        tot.susc <- pred-tot.imm
-        tot.susc.disrupted <- pred-tot.imm.disrupted
-        
-        xlims <- range(c(0,tot.susc/denom),na.rm=TRUE)
-        if (add.disrupted) xlims <- range(c(0,tot.susc/denom,tot.susc.disrupted/denom),na.rm=TRUE)
-        
-        #quick and dirty for display
-        xlims <- c(0,max.x)
-        if(output.plot == T){
-            if(proportion.pop == T){
-                plot(tot.susc/denom,ages,type="n", xlab=" ", ylim=c(0,40))
-            }
-            else{plot(tot.susc/denom,ages,type="n", xlab=" ", ylim=c(0,40), xlim=xlims)}
-            for (j in 1:length(tot.susc)) {
-                if (add.disrupted) points(c(0,tot.susc.disrupted[j]/denom[j]),
-                                          rep(ages[j],2)-0.5,lwd=6,type="l", col="coral", pch=15)
-                points(c(0,tot.susc[j]/denom[j]),rep(ages[j],2)-0.5,lwd=6,type="l", col="seagreen4", pch=15)
-                
-            }
-            if (add.disrupted & !proportion.pop)
-                legend("topright",legend=c("Number of susceptibles","with 18 months disruption"),
-                       bty="n", pch=15,col=c("red","coral"))
-            if (add.disrupted & proportion.pop)
-                legend("topright",legend=c("Proportion of susceptibles","with 18 months disruption"),
-                       bty="n", pch=15,col=c("red","coral"))
-        }
-        
-    }
-    
-    if (barchart.susc) return(list(tot.susc=tot.susc,tot.susc.disrupted=tot.susc.disrupted,
-                                   popsize=pred,ages=ages, rel.foi=rel.foi,
-                                   prop.vacc=prop.vacc,prop.vacc.disrupted=prop.vacc.disrupted,
-                                   prop.nat.imm=prop.nat.imm, coverage, years.sia,
-                                   age.range, ages.vacc, coverage.sia, mat.protect))
-    
+  }
+  
+  if (barchart.susc) return(list(tot.susc=tot.susc,tot.susc.disrupted=tot.susc.disrupted,
+                                 popsize=pred,ages=ages, rel.foi=rel.foi,
+                                 prop.vacc=prop.vacc,prop.vacc.disrupted=prop.vacc.disrupted,
+                                 prop.nat.imm=prop.nat.imm, coverage, years.sia,
+                                 age.range, ages.vacc, coverage.sia, mat.protect))
+  
 }
 
 
@@ -847,39 +827,39 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
 #########################
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-    library(grid)
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
     
-    # Make a list from the ... arguments and plotlist
-    plots <- c(list(...), plotlist)
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
     
-    numPlots = length(plots)
-    
-    # If layout is NULL, then use 'cols' to determine layout
-    if (is.null(layout)) {
-        # Make the panel
-        # ncol: Number of columns of plots
-        # nrow: Number of rows needed, calculated from # of cols
-        layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                         ncol = cols, nrow = ceiling(numPlots/cols))
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
     }
-    
-    if (numPlots==1) {
-        print(plots[[1]])
-        
-    } else {
-        # Set up the page
-        grid.newpage()
-        pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-        
-        # Make each plot, in the correct location
-        for (i in 1:numPlots) {
-            # Get the i,j matrix positions of the regions that contain this subplot
-            matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-            
-            print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                            layout.pos.col = matchidx$col))
-        }
-    }
+  }
 }
 
 
@@ -896,62 +876,62 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
 
 prepare.anim.data.for.analysis <- function(input.data, mean.age.sus){
-    require(dplyr)
-    input.data = add.mcv2.data.to.anim.data (input.data, non.mcv2.alpha = 0.4, mcv2.alpha = 0.4)
-    years = colnames(mean.age.sus)
-    names = colnames(input.data)
-    anim.data = cbind(input.data, matrix(0, nrow(input.data), 1))
-    colnames(anim.data) = c(names, "Mean.Age.Sus")
-    anim.data = anim.data %>% filter(Year %in% years)
-    Af.d = filter(anim.data, WHO_REGION == "AFR", Country != "")
-    Af.countries = unique(Af.d$Country)
-    for( i in 1 : nrow(anim.data)){
-        y = anim.data$Year[i]
-        c = anim.data$Country[i]
-        k = which(rownames(mean.age.sus)==c)
-        if(length(k) > 0){
-            anim.data$Mean.Age.Sus[i] = mean.age.sus[k, paste(y)]
-        }
+  require(dplyr)
+  input.data = add.mcv2.data.to.anim.data (input.data, non.mcv2.alpha = 0.4, mcv2.alpha = 0.4)
+  years = colnames(mean.age.sus)
+  names = colnames(input.data)
+  anim.data = cbind(input.data, matrix(0, nrow(input.data), 1))
+  colnames(anim.data) = c(names, "Mean.Age.Sus")
+  anim.data = anim.data %>% filter(Year %in% years)
+  Af.d = filter(anim.data, WHO_REGION == "AFR", Country != "")
+  Af.countries = unique(Af.d$Country)
+  for( i in 1 : nrow(anim.data)){
+    y = anim.data$Year[i]
+    c = anim.data$Country[i]
+    k = which(rownames(mean.age.sus)==c)
+    if(length(k) > 0){
+      anim.data$Mean.Age.Sus[i] = mean.age.sus[k, paste(y)]
     }
-    
-    
-    years = seq(min(anim.data$Year) + 1, max(anim.data$Year))
-    require(dplyr)
-    anim.data$MCV2 = as.numeric(as.character(anim.data$MCV2))
-    anim.data$shape = as.numeric(as.character(anim.data$shape))
-    
-    Af.data = filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
-                     Country != "")
-    Af.data = filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
-                     Country != "South Sudan")
-    Af.data = Af.data[order(Af.data$Country), ]
-    Af.data$Country = as.factor(Af.data$Country)
-    Af.data = filter(Af.data, Country != "")
-    Af.data$br.vacc = (100-Af.data$Mean.vaccination) * Af.data$Mean.birth.rate / 100
-    levels(Af.data$Country)[levels(Af.data$Country)=="Congo, Democratic Republic of the"] <- "DRC"
-    levels(Af.data$Country)[levels(Af.data$Country)=="Congo, Republic of the"] <- "Republic of the Congo"
-    levels(Af.data$Country)[levels(Af.data$Country)=="Gambia, The"] <- "The Gambia"
-    Af.data = Af.data[order(Af.data$Country), ]
-    
-    
-    Amr.data = filter(anim.data, WHO_REGION == "AMR", Year %in% years, !is.na(Mean.Age.Sus),
-                      Country != "" , Mean.birth.rate > 0 , Mean.vaccination > 0)
-    Amr.data = Amr.data[order(Amr.data$Country), ]
-    Amr.data$Country = as.factor(Amr.data$Country)
-    Amr.data = filter(Amr.data, Country != "")
-    Amr.data$br.vacc = (100-Amr.data$Mean.vaccination) * Amr.data$Mean.birth.rate / 100
-    Amr.data = Amr.data[order(Amr.data$Country), ]
-    
-    Rest.data = filter(anim.data, WHO_REGION %in% c("WPR","EUR", "SEAR", "EMR"), Year %in% years, !is.na(Mean.Age.Sus),
-                       Country != "" , Mean.birth.rate > 0 , Mean.vaccination > 0)
-    Rest.data = Rest.data[order(Rest.data$Country), ]
-    Rest.data$Country = as.factor(Rest.data$Country)
-    Rest.data = filter(Rest.data, Country != "")
-    Rest.data$br.vacc = (100-Rest.data$Mean.vaccination) * Rest.data$Mean.birth.rate / 100
-    Rest.data = Rest.data[order(Rest.data$Country), ]
-    
-    anim.data$br.vacc = (100-anim.data$Mean.vaccination) * anim.data$Mean.birth.rate / 100
-    return(list(anim.data, Af.data, Amr.data, Rest.data))
+  }
+  
+  
+  years = seq(min(anim.data$Year) + 1, max(anim.data$Year))
+  require(dplyr)
+  anim.data$MCV2 = as.numeric(as.character(anim.data$MCV2))
+  anim.data$shape = as.numeric(as.character(anim.data$shape))
+  
+  Af.data = filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
+                   Country != "")
+  Af.data = filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
+                   Country != "South Sudan")
+  Af.data = Af.data[order(Af.data$Country), ]
+  Af.data$Country = as.factor(Af.data$Country)
+  Af.data = filter(Af.data, Country != "")
+  Af.data$br.vacc = (100-Af.data$Mean.vaccination) * Af.data$Mean.birth.rate / 100
+  levels(Af.data$Country)[levels(Af.data$Country)=="Congo, Democratic Republic of the"] <- "DRC"
+  levels(Af.data$Country)[levels(Af.data$Country)=="Congo, Republic of the"] <- "Republic of the Congo"
+  levels(Af.data$Country)[levels(Af.data$Country)=="Gambia, The"] <- "The Gambia"
+  Af.data = Af.data[order(Af.data$Country), ]
+  
+  
+  Amr.data = filter(anim.data, WHO_REGION == "AMR", Year %in% years, !is.na(Mean.Age.Sus),
+                    Country != "" , Mean.birth.rate > 0 , Mean.vaccination > 0)
+  Amr.data = Amr.data[order(Amr.data$Country), ]
+  Amr.data$Country = as.factor(Amr.data$Country)
+  Amr.data = filter(Amr.data, Country != "")
+  Amr.data$br.vacc = (100-Amr.data$Mean.vaccination) * Amr.data$Mean.birth.rate / 100
+  Amr.data = Amr.data[order(Amr.data$Country), ]
+  
+  Rest.data = filter(anim.data, WHO_REGION %in% c("WPR","EUR", "SEAR", "EMR"), Year %in% years, !is.na(Mean.Age.Sus),
+                     Country != "" , Mean.birth.rate > 0 , Mean.vaccination > 0)
+  Rest.data = Rest.data[order(Rest.data$Country), ]
+  Rest.data$Country = as.factor(Rest.data$Country)
+  Rest.data = filter(Rest.data, Country != "")
+  Rest.data$br.vacc = (100-Rest.data$Mean.vaccination) * Rest.data$Mean.birth.rate / 100
+  Rest.data = Rest.data[order(Rest.data$Country), ]
+  
+  anim.data$br.vacc = (100-anim.data$Mean.vaccination) * anim.data$Mean.birth.rate / 100
+  return(list(anim.data, Af.data, Amr.data, Rest.data))
 }
 
 
@@ -959,46 +939,46 @@ prepare.anim.data.for.analysis <- function(input.data, mean.age.sus){
 
 
 first.sia.year.by.country.correct <- function (){
-    ##' read in data
-    SIA = read.csv("data/output-sia_age_corrected.csv", stringsAsFactors = F)
-    SIA$Country = ""
-    SIA$WHO_REGION = ""
-    country.codes <- read.csv("data/country_codes.csv")
-    k = which(country.codes$Report_country_name == "Serbia future")
-    if(length(k) > 0){
-        country.codes = country.codes[-(k),]
+  ##' read in data
+  SIA = read.csv("data/output-sia_age_corrected.csv", stringsAsFactors = F)
+  SIA$Country = ""
+  SIA$WHO_REGION = ""
+  country.codes <- read.csv("data/country_codes.csv")
+  k = which(country.codes$Report_country_name == "Serbia future")
+  if(length(k) > 0){
+    country.codes = country.codes[-(k),]
+  }
+  k = which(country.codes$Report_country_name == "Uruguay")
+  country.codes$Region_Code[k] = "AMRO"
+  for(i in 1 : nrow(SIA)){
+    a = rownames(SIA)[i]
+    j = which(country.codes$ISO3_code == a)
+    if(length(j) > 0 ){
+      SIA$Country[i] = as.character(country.codes$Report_country_name[j])
+      pp = as.character(country.codes$Region_Code[j])
+      SIA$WHO_REGION[i] = substring(pp,1, nchar(pp) -1)
     }
-    k = which(country.codes$Report_country_name == "Uruguay")
-    country.codes$Region_Code[k] = "AMRO"
-    for(i in 1 : nrow(SIA)){
-        a = rownames(SIA)[i]
-        j = which(country.codes$ISO3_code == a)
-        if(length(j) > 0 ){
-            SIA$Country[i] = as.character(country.codes$Report_country_name[j])
-            pp = as.character(country.codes$Region_Code[j])
-            SIA$WHO_REGION[i] = substring(pp,1, nchar(pp) -1)
-        }
+  }
+  cs = (SIA$Country)
+  reg = SIA$WHO_REGION
+  ##' set up matrix
+  first.sia = matrix(NA, length(cs), 3)
+  first.sia [, 1:2] = cbind(cs, reg)
+  ##' load packages for filter and str_sub
+  require(dplyr)
+  require(stringr)
+  
+  for(i in 1 : length(cs)){
+    c = cs[i]
+    a = SIA %>% filter(., Country == c)
+    a = a[paste("X", 1980:2012, sep = "")]
+    if(length(a) > 0){
+      first.sia[i, 3] = which(a>0)[1] + 1979
     }
-    cs = (SIA$Country)
-    reg = SIA$WHO_REGION
-    ##' set up matrix
-    first.sia = matrix(NA, length(cs), 3)
-    first.sia [, 1:2] = cbind(cs, reg)
-    ##' load packages for filter and str_sub
-    require(dplyr)
-    require(stringr)
-    
-    for(i in 1 : length(cs)){
-        c = cs[i]
-        a = SIA %>% filter(., Country == c)
-        a = a[paste("X", 1980:2012, sep = "")]
-        if(length(a) > 0){
-            first.sia[i, 3] = which(a>0)[1] + 1979
-        }
-    }
-    first.sia = data.frame(first.sia)
-    colnames(first.sia) = c("Country", "Region", "Year")
-    return(first.sia)
+  }
+  first.sia = data.frame(first.sia)
+  colnames(first.sia) = c("Country", "Region", "Year")
+  return(first.sia)
 }
 
 
@@ -1007,41 +987,41 @@ first.sia.year.by.country.correct <- function (){
 ##########################################
 mean.sia.pos <- function(first.sia.by.country, countries = Af.countries,
                          data = Af.data, region){
-     d = first.sia.by.country %>% filter(., Region == region)
-     if(region == "AFR"){
-         d$Country = as.character(d$Country)
-         d$Country[which(d$Country == "C\xf4te d\x92Ivoire")] =
-             "Cote d'Ivoire"
-         d$Country[which(d$Country == "Democratic Republic of the Congo")] =
-             "Congo, Democratic Republic of the"
-         d$Country[which(d$Country == "Cape Verde")] =
-             "Cabo Verde"
-         d$Country[which(d$Country == "Gambia")] = "Gambia, The"
-         d$Country[which(d$Country == "United Republic of Tanzania")] = "Tanzania"
-         d$Country[which(d$Country == "Congo")] = "Congo, Republic of the"
-     }
-
-     sia = filter(d, Country %in% countries)
-    
-    first.sia.inc.cv = matrix(NA, nrow(sia), 4)
-    for(i in 1 : nrow(sia)){
-        c = as.character(sia$Country[i])
-        y = as.numeric(as.character(sia$Year[i]))
-        if(!is.na(y)){
-            p = filter(data, Country == c, Year == y)
-            first.sia.inc.cv[i, 1] = p$Coefficient.of.Variation
-            first.sia.inc.cv[i, 2] = p$Incidence
-            first.sia.inc.cv[i, 3] = p$Mean.birth.rate
-            first.sia.inc.cv[i, 4] = p$Mean.vaccination
-        }
-        
+  d = first.sia.by.country %>% filter(., Region == region)
+  if(region == "AFR"){
+    d$Country = as.character(d$Country)
+    d$Country[which(d$Country == "C\xf4te d\x92Ivoire")] =
+      "Cote d'Ivoire"
+    d$Country[which(d$Country == "Democratic Republic of the Congo")] =
+      "Congo, Democratic Republic of the"
+    d$Country[which(d$Country == "Cape Verde")] =
+      "Cabo Verde"
+    d$Country[which(d$Country == "Gambia")] = "Gambia, The"
+    d$Country[which(d$Country == "United Republic of Tanzania")] = "Tanzania"
+    d$Country[which(d$Country == "Congo")] = "Congo, Republic of the"
+  }
+  
+  sia = filter(d, Country %in% countries)
+  
+  first.sia.inc.cv = matrix(NA, nrow(sia), 4)
+  for(i in 1 : nrow(sia)){
+    c = as.character(sia$Country[i])
+    y = as.numeric(as.character(sia$Year[i]))
+    if(!is.na(y)){
+      p = filter(data, Country == c, Year == y)
+      first.sia.inc.cv[i, 1] = p$Coefficient.of.Variation
+      first.sia.inc.cv[i, 2] = p$Incidence
+      first.sia.inc.cv[i, 3] = p$Mean.birth.rate
+      first.sia.inc.cv[i, 4] = p$Mean.vaccination
     }
     
-    mean.sia.intro = data.frame(cbind(mean(first.sia.inc.cv[, 1],na.rm = T), mean(first.sia.inc.cv[, 2], na.rm = T),
-                                      mean(first.sia.inc.cv[, 3], na.rm = T),mean(first.sia.inc.cv[, 4], na.rm = T)))
-    
-    colnames(mean.sia.intro) = c("CV", "inc", "br", "vacc")
-    return(mean.sia.intro)
+  }
+  
+  mean.sia.intro = data.frame(cbind(mean(first.sia.inc.cv[, 1],na.rm = T), mean(first.sia.inc.cv[, 2], na.rm = T),
+                                    mean(first.sia.inc.cv[, 3], na.rm = T),mean(first.sia.inc.cv[, 4], na.rm = T)))
+  
+  colnames(mean.sia.intro) = c("CV", "inc", "br", "vacc")
+  return(mean.sia.intro)
 }
 
 
@@ -1052,28 +1032,28 @@ mean.sia.pos <- function(first.sia.by.country, countries = Af.countries,
 ##' work out when median position in taxonomy space when sia introduced
 ##########################################
 median.sia.pos <- function(first.sia.by.country, countries = Af.countries,
-                         data = Af.data){
-    sia = filter(first.sia.by.country, Country %in% countries)
-    
-    first.sia.inc.cv = matrix(NA, nrow(sia), 4)
-    for(i in 1 : nrow(sia)){
-        c = as.character(sia$Country[i])
-        y = as.numeric(as.character(sia$Year[i]))
-        if(!is.na(y)){
-            p = filter(data, Country == c, Year == y)
-            first.sia.inc.cv[i, 1] = p$Coefficient.of.Variation
-            first.sia.inc.cv[i, 2] = p$Incidence
-            first.sia.inc.cv[i, 3] = p$Mean.birth.rate
-            first.sia.inc.cv[i, 4] = p$Mean.vaccination
-        }
-        
+                           data = Af.data){
+  sia = filter(first.sia.by.country, Country %in% countries)
+  
+  first.sia.inc.cv = matrix(NA, nrow(sia), 4)
+  for(i in 1 : nrow(sia)){
+    c = as.character(sia$Country[i])
+    y = as.numeric(as.character(sia$Year[i]))
+    if(!is.na(y)){
+      p = filter(data, Country == c, Year == y)
+      first.sia.inc.cv[i, 1] = p$Coefficient.of.Variation
+      first.sia.inc.cv[i, 2] = p$Incidence
+      first.sia.inc.cv[i, 3] = p$Mean.birth.rate
+      first.sia.inc.cv[i, 4] = p$Mean.vaccination
     }
     
-    mean.sia.intro = data.frame(cbind(median(first.sia.inc.cv[, 1],na.rm = T), median(first.sia.inc.cv[, 2], na.rm = T),
-                                      mean(first.sia.inc.cv[, 3], na.rm = T),mean(first.sia.inc.cv[, 4], na.rm = T)))
-    
-    colnames(mean.sia.intro) = c("CV", "inc", "br", "vacc")
-    return(mean.sia.intro)
+  }
+  
+  mean.sia.intro = data.frame(cbind(median(first.sia.inc.cv[, 1],na.rm = T), median(first.sia.inc.cv[, 2], na.rm = T),
+                                    mean(first.sia.inc.cv[, 3], na.rm = T),mean(first.sia.inc.cv[, 4], na.rm = T)))
+  
+  colnames(mean.sia.intro) = c("CV", "inc", "br", "vacc")
+  return(mean.sia.intro)
 }
 
 
@@ -1092,27 +1072,27 @@ median.sia.pos <- function(first.sia.by.country, countries = Af.countries,
 #'
 #' @examples
 calculate.mcv2.intro.pos <- function(MCV2.countries, data = Af.data){
-    mcv2.intro.pos = matrix(0, nrow(MCV2.countries), 4)
-    for(i in 1 : nrow(MCV2.countries)){
-        if(as.numeric(MCV2.countries[i, 2]) < 1990){
-            AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
-                                 data$Year == 1990), ]
-            
-        }else{
-            AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
-                                 data$Year == as.numeric(MCV2.countries[i, 2])), ]
-            
-        }
-        
-        mcv2.intro.pos[i, ] = c(AAA$Coefficient.of.Variation, AAA$Incidence, 
-                                AAA$Mean.vaccination, AAA$Mean.birth.rate)
+  mcv2.intro.pos = matrix(0, nrow(MCV2.countries), 4)
+  for(i in 1 : nrow(MCV2.countries)){
+    if(as.numeric(MCV2.countries[i, 2]) < 1990){
+      AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
+                         data$Year == 1990), ]
+      
+    }else{
+      AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
+                         data$Year == as.numeric(MCV2.countries[i, 2])), ]
+      
     }
     
-    mean.pos.br.vacc.mcv2 = cbind(mean(mcv2.intro.pos[,1 ]), mean(mcv2.intro.pos[, 2]),
-                                  mean(mcv2.intro.pos[, 3]), mean(mcv2.intro.pos[, 4]))
-    mean.pos.br.vacc.mcv2 = data.frame(mean.pos.br.vacc.mcv2)
-    colnames(mean.pos.br.vacc.mcv2) = c('CV', 'inc', 'vacc', 'br')
-    return(mean.pos.br.vacc.mcv2)
+    mcv2.intro.pos[i, ] = c(AAA$Coefficient.of.Variation, AAA$Incidence, 
+                            AAA$Mean.vaccination, AAA$Mean.birth.rate)
+  }
+  
+  mean.pos.br.vacc.mcv2 = cbind(mean(mcv2.intro.pos[,1 ]), mean(mcv2.intro.pos[, 2]),
+                                mean(mcv2.intro.pos[, 3]), mean(mcv2.intro.pos[, 4]))
+  mean.pos.br.vacc.mcv2 = data.frame(mean.pos.br.vacc.mcv2)
+  colnames(mean.pos.br.vacc.mcv2) = c('CV', 'inc', 'vacc', 'br')
+  return(mean.pos.br.vacc.mcv2)
 }
 
 
@@ -1133,27 +1113,27 @@ calculate.mcv2.intro.pos <- function(MCV2.countries, data = Af.data){
 #'
 #' @examples
 calculate.mcv2.intro.pos.median <- function(MCV2.countries, data = Af.data){
-    mcv2.intro.pos = matrix(0, nrow(MCV2.countries), 4)
-    for(i in 1 : nrow(MCV2.countries)){
-        if(as.numeric(MCV2.countries[i, 2]) < 1990){
-            AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
-                                 data$Year == 1990), ]
-            
-        }else{
-            AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
-                                 data$Year == as.numeric(MCV2.countries[i, 2])), ]
-            
-        }
-        
-        mcv2.intro.pos[i, ] = c(AAA$Coefficient.of.Variation, AAA$Incidence, 
-                                AAA$Mean.vaccination, AAA$Mean.birth.rate)
+  mcv2.intro.pos = matrix(0, nrow(MCV2.countries), 4)
+  for(i in 1 : nrow(MCV2.countries)){
+    if(as.numeric(MCV2.countries[i, 2]) < 1990){
+      AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
+                         data$Year == 1990), ]
+      
+    }else{
+      AAA = data[which(data$Country == as.character(MCV2.countries[i, 1]) &
+                         data$Year == as.numeric(MCV2.countries[i, 2])), ]
+      
     }
     
-    mean.pos.br.vacc.mcv2 = cbind(median(mcv2.intro.pos[,1 ]), median(mcv2.intro.pos[, 2]),
-                                  mean(mcv2.intro.pos[, 3]), mean(mcv2.intro.pos[, 4]))
-    mean.pos.br.vacc.mcv2 = data.frame(mean.pos.br.vacc.mcv2)
-    colnames(mean.pos.br.vacc.mcv2) = c('CV', 'inc', 'vacc', 'br')
-    return(mean.pos.br.vacc.mcv2)
+    mcv2.intro.pos[i, ] = c(AAA$Coefficient.of.Variation, AAA$Incidence, 
+                            AAA$Mean.vaccination, AAA$Mean.birth.rate)
+  }
+  
+  mean.pos.br.vacc.mcv2 = cbind(median(mcv2.intro.pos[,1 ]), median(mcv2.intro.pos[, 2]),
+                                mean(mcv2.intro.pos[, 3]), mean(mcv2.intro.pos[, 4]))
+  mean.pos.br.vacc.mcv2 = data.frame(mean.pos.br.vacc.mcv2)
+  colnames(mean.pos.br.vacc.mcv2) = c('CV', 'inc', 'vacc', 'br')
+  return(mean.pos.br.vacc.mcv2)
 }
 
 
@@ -1163,17 +1143,17 @@ calculate.mcv2.intro.pos.median <- function(MCV2.countries, data = Af.data){
 ##' calculate the mean position each year 
 ##########################################
 arrow.position.by.year <- function (years, data){
-    data = filter(data, Country != "")
-    av.pos.by.year = matrix(0, length(years), 5)
-    for(i in 1 : length(years)){
-        d = data[which(data$Year == years[i]), ]
-        av.pos.by.year[i, ] = cbind(years[i], mean(d$Coefficient.of.Variation), mean(d$Incidence),
-                                    mean(d$Mean.birth.rate), mean(d$Mean.vaccination))
-    }
-    
-    av.pos.by.year = data.frame(av.pos.by.year)
-    colnames(av.pos.by.year) = c('year', 'x', 'y','br','vacc')
-    return(av.pos.by.year)   
+  data = filter(data, Country != "")
+  av.pos.by.year = matrix(0, length(years), 5)
+  for(i in 1 : length(years)){
+    d = data[which(data$Year == years[i]), ]
+    av.pos.by.year[i, ] = cbind(years[i], mean(d$Coefficient.of.Variation), mean(d$Incidence),
+                                mean(d$Mean.birth.rate), mean(d$Mean.vaccination))
+  }
+  
+  av.pos.by.year = data.frame(av.pos.by.year)
+  colnames(av.pos.by.year) = c('year', 'x', 'y','br','vacc')
+  return(av.pos.by.year)   
 }
 
 
@@ -1182,17 +1162,17 @@ arrow.position.by.year <- function (years, data){
 ##' calculate the mean position each year 
 ##########################################
 arrow.position.by.year.median <- function (years, data){
-    data = filter(data, Country != "")
-    av.pos.by.year = matrix(0, length(years), 5)
-    for(i in 1 : length(years)){
-        d = data[which(data$Year == years[i]), ]
-        av.pos.by.year[i, ] = cbind(years[i], median(d$Coefficient.of.Variation), median(d$Incidence),
-                                    mean(d$Mean.birth.rate), mean(d$Mean.vaccination))
-    }
-    
-    av.pos.by.year = data.frame(av.pos.by.year)
-    colnames(av.pos.by.year) = c('year', 'x', 'y','br','vacc')
-    return(av.pos.by.year)   
+  data = filter(data, Country != "")
+  av.pos.by.year = matrix(0, length(years), 5)
+  for(i in 1 : length(years)){
+    d = data[which(data$Year == years[i]), ]
+    av.pos.by.year[i, ] = cbind(years[i], median(d$Coefficient.of.Variation), median(d$Incidence),
+                                mean(d$Mean.birth.rate), mean(d$Mean.vaccination))
+  }
+  
+  av.pos.by.year = data.frame(av.pos.by.year)
+  colnames(av.pos.by.year) = c('year', 'x', 'y','br','vacc')
+  return(av.pos.by.year)   
 }
 
 
@@ -1234,121 +1214,121 @@ plot.arrow.with.labels <- function(arrow.data, output.plot.points, pos.mcv2, pos
                                    y.axis.ticks = seq(0, 2.5, 0.5),
                                    arrow.size = 10,
                                    title = "Taxonomic regime change: Africa 1990-2014"){
+  
+  
+  a <- ggplot() + 
+    geom_path(data = arrow.data, aes(x, y, label = NULL ), size = arrow.size,
+              arrow = arrow(type="closed"), color = "wheat2", alpha = 0.7) + 
+    geom_point(data=output.years.to.plot, aes(x = x, y = y, size = 8), pch=1, col = normal.col, size = 8) +
+    geom_text(data = output.years.to.plot, color = "gray30",family=p.font,
+              mapping=aes(x=x + 0.045, y=y, label=paste(round(vacc, 1), ", ", round(br), sep = "")), size=4) +
+    geom_point(aes( x = CV, y = inc), pch=1,data = pos.mcv2, colour = mcv.col, size = 8) +
+    geom_text(data = pos.mcv2, color = "gray30",family=p.font,
+              mapping=aes(x=CV + 0.045, y=inc, label=paste(round(vacc, 1), ", ", round(br), sep = "")), size=4) +
+    geom_point(aes(x = CV, y = inc), pch = 1, data = pos.sia, colour = sia.col, size = 8) +
+    geom_text(data = pos.sia, color = "gray30",family=p.font,
+              mapping=aes(x=CV + 0.045, y=inc, label=paste(round(vacc, 1), ", ", round(br), sep = "")), size=4) 
+  
+  desc <- p.title %>%
+    strwrap(width = 0.9 * getOption("width")) %>%
+    paste0(collapse = "\n")
+  
+  normal.text <- normal.t %>%
+    strwrap(width = 0.25 * getOption("width")) %>%
+    paste0(collapse = "\n")
+  
+  
+  mcv2.text <- mcv2.t %>%
+    strwrap(width = 0.27 * getOption("width")) %>%
+    paste0(collapse = "\n")
+  
+  sia.text <- sia.t %>%
+    strwrap(width = 0.27 * getOption("width")) %>%
+    paste0(collapse = "\n")
+  
+  
+  if(do.arrows == T){
+    qqq1<- a + 
+      
+      theme(axis.ticks = element_blank(),
+            text=element_text(family=p.font),
+            panel.grid = element_blank(),
+            panel.background = element_blank(),
+            panel.border = element_blank(),
+            axis.text = element_text(color = "gray30", size = 11,family=p.font),
+            plot.title = element_text(face = "bold", hjust = 0.012,
+                                      vjust = 0.8, color = "#3C3C3C", size = 20)) +
+      
+      labs(x = NULL, y = NULL, title = title) +
+      
+      # annotate("text", x = 0.73, y = 2.53, size = 4, p.fontface = "bold", color = "gray30",
+      #          hjust = 0.38, vjust = -1, label = "Incidence") +
+      
+      geom_vline(xintercept = x.axis.ticks,
+                 color = "wheat4", linetype = "dotted", size = 0.5)+
+      
+      geom_hline(yintercept = y.axis.ticks,
+                 color = "wheat4", linetype = "dotted", size = 0.5)  +
+      
+      
+      #annotate("text", x = 0.73, y = 2.53, size = 5, color = "gray30",
+      #         hjust = 0.045, vjust = -0.51, label = desc,family=p.font) +
+      
+      geom_segment(aes(x = pos.mcv2$CV+.013, xend = pos.mcv2$CV + .12,
+                       y = pos.mcv2$inc + .03, yend =  pos.mcv2$inc + 0.32),
+                   color = mcv.col, 
+                   alpha = 0.7, size = 0.7, show.legend = FALSE) +
+      
+      annotate("text", x =  pos.mcv2$CV + .13, y =  pos.mcv2$inc + .32, size = 4, color = "gray30",
+               label = mcv2.text, hjust = 0, family=p.font) +
+      
+      geom_segment(aes(x = pos.sia$CV - .013, xend = pos.sia$CV - .12,
+                       y = pos.sia$inc - .03, yend = pos.sia$inc - .32),color = sia.col, 
+                   alpha = 0.7, size = 0.7, show.legend = FALSE) +
+      
+      annotate("text", x = pos.sia$CV - .18, y = pos.sia$inc - .40, size = 4, color = "gray30",
+               label = sia.text, hjust = 0, family=p.font) +
+      
+      geom_segment(aes(x = arrow.data$x[1]+.013, xend = arrow.data$x[1] + .12,
+                       y = arrow.data$y[1]- .03, yend = arrow.data$y[1] - .32),color = normal.col, 
+                   alpha = 0.7, size = 0.7, show.legend = FALSE) +
+      
+      annotate("text", x = arrow.data$x[1] + .13, y =  arrow.data$y[1] - .32, size = 4, color = "gray30",
+               label = normal.text, hjust = 0, family=p.font) 
     
-    
-    a <- ggplot() + 
-        geom_path(data = arrow.data, aes(x, y, label = NULL ), size = arrow.size,
-                  arrow = arrow(type="closed"), color = "wheat2", alpha = 0.7) + 
-        geom_point(data=output.years.to.plot, aes(x = x, y = y, size = 8), pch=1, col = normal.col, size = 8) +
-        geom_text(data = output.years.to.plot, color = "gray30",family=p.font,
-                  mapping=aes(x=x + 0.045, y=y, label=paste(round(vacc, 1), ", ", round(br), sep = "")), size=4) +
-        geom_point(aes( x = CV, y = inc), pch=1,data = pos.mcv2, colour = mcv.col, size = 8) +
-        geom_text(data = pos.mcv2, color = "gray30",family=p.font,
-                  mapping=aes(x=CV + 0.045, y=inc, label=paste(round(vacc, 1), ", ", round(br), sep = "")), size=4) +
-        geom_point(aes(x = CV, y = inc), pch = 1, data = pos.sia, colour = sia.col, size = 8) +
-        geom_text(data = pos.sia, color = "gray30",family=p.font,
-                  mapping=aes(x=CV + 0.045, y=inc, label=paste(round(vacc, 1), ", ", round(br), sep = "")), size=4) 
-    
-    desc <- p.title %>%
-        strwrap(width = 0.9 * getOption("width")) %>%
-        paste0(collapse = "\n")
-    
-    normal.text <- normal.t %>%
-        strwrap(width = 0.25 * getOption("width")) %>%
-        paste0(collapse = "\n")
-    
-    
-    mcv2.text <- mcv2.t %>%
-        strwrap(width = 0.27 * getOption("width")) %>%
-        paste0(collapse = "\n")
-    
-    sia.text <- sia.t %>%
-        strwrap(width = 0.27 * getOption("width")) %>%
-        paste0(collapse = "\n")
-    
-    
-    if(do.arrows == T){
-        qqq1<- a + 
-            
-            theme(axis.ticks = element_blank(),
-                  text=element_text(family=p.font),
-                  panel.grid = element_blank(),
-                  panel.background = element_blank(),
-                  panel.border = element_blank(),
-                  axis.text = element_text(color = "gray30", size = 11,family=p.font),
-                  plot.title = element_text(face = "bold", hjust = 0.012,
-                                            vjust = 0.8, color = "#3C3C3C", size = 20)) +
-            
-            labs(x = NULL, y = NULL, title = title) +
-            
-            # annotate("text", x = 0.73, y = 2.53, size = 4, p.fontface = "bold", color = "gray30",
-            #          hjust = 0.38, vjust = -1, label = "Incidence") +
-            
-            geom_vline(xintercept = x.axis.ticks,
-                       color = "wheat4", linetype = "dotted", size = 0.5)+
-            
-            geom_hline(yintercept = y.axis.ticks,
-                       color = "wheat4", linetype = "dotted", size = 0.5)  +
-            
-            
-            #annotate("text", x = 0.73, y = 2.53, size = 5, color = "gray30",
-            #         hjust = 0.045, vjust = -0.51, label = desc,family=p.font) +
-            
-            geom_segment(aes(x = pos.mcv2$CV+.013, xend = pos.mcv2$CV + .12,
-                             y = pos.mcv2$inc + .03, yend =  pos.mcv2$inc + 0.32),
-                         color = mcv.col, 
-                         alpha = 0.7, size = 0.7, show.legend = FALSE) +
-            
-            annotate("text", x =  pos.mcv2$CV + .13, y =  pos.mcv2$inc + .32, size = 4, color = "gray30",
-                     label = mcv2.text, hjust = 0, family=p.font) +
-            
-            geom_segment(aes(x = pos.sia$CV - .013, xend = pos.sia$CV - .12,
-                             y = pos.sia$inc - .03, yend = pos.sia$inc - .32),color = sia.col, 
-                         alpha = 0.7, size = 0.7, show.legend = FALSE) +
-            
-            annotate("text", x = pos.sia$CV - .18, y = pos.sia$inc - .40, size = 4, color = "gray30",
-                     label = sia.text, hjust = 0, family=p.font) +
-            
-            geom_segment(aes(x = arrow.data$x[1]+.013, xend = arrow.data$x[1] + .12,
-                             y = arrow.data$y[1]- .03, yend = arrow.data$y[1] - .32),color = normal.col, 
-                         alpha = 0.7, size = 0.7, show.legend = FALSE) +
-            
-            annotate("text", x = arrow.data$x[1] + .13, y =  arrow.data$y[1] - .32, size = 4, color = "gray30",
-                     label = normal.text, hjust = 0, family=p.font) 
-        
-    } else {
-        qqq1<- a + 
-            
-            theme(axis.ticks = element_blank(),
-                  text=element_text(family=p.font),
-                  panel.grid = element_blank(),
-                  panel.background = element_blank(),
-                  panel.border = element_blank(),
-                  axis.text = element_text(color = "gray30", size = 11,family=p.font),
-                  plot.title = element_text(face = "bold", hjust = 0.012,
-                                            vjust = 0.8, color = "#3C3C3C", size = 20)) +
-            
-            labs(x = NULL, y = NULL, title = title) +
-            
-            # annotate("text", x = 0.73, y = 2.53, size = 4, fontface = "bold", color = "gray30",
-            #          hjust = 0.38, vjust = -1, label = "Incidence") +
-            
-            geom_vline(xintercept = x.axis.ticks,
-                       color = "wheat4", linetype = "dotted", size = 0.5)+
-            
-            geom_hline(yintercept = y.axis.ticks,
-                       color = "wheat4", linetype = "dotted", size = 0.5)  
-        
-        
-        
-    }
+  } else {
+    qqq1<- a + 
+      
+      theme(axis.ticks = element_blank(),
+            text=element_text(family=p.font),
+            panel.grid = element_blank(),
+            panel.background = element_blank(),
+            panel.border = element_blank(),
+            axis.text = element_text(color = "gray30", size = 11,family=p.font),
+            plot.title = element_text(face = "bold", hjust = 0.012,
+                                      vjust = 0.8, color = "#3C3C3C", size = 20)) +
+      
+      labs(x = NULL, y = NULL, title = title) +
+      
+      # annotate("text", x = 0.73, y = 2.53, size = 4, fontface = "bold", color = "gray30",
+      #          hjust = 0.38, vjust = -1, label = "Incidence") +
+      
+      geom_vline(xintercept = x.axis.ticks,
+                 color = "wheat4", linetype = "dotted", size = 0.5)+
+      
+      geom_hline(yintercept = y.axis.ticks,
+                 color = "wheat4", linetype = "dotted", size = 0.5)  
     
     
     
-    return(qqq1)
-    
-    
-    
+  }
+  
+  
+  
+  return(qqq1)
+  
+  
+  
 }
 
 
@@ -1389,86 +1369,86 @@ incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2014),
                                 arrow.size = 3, xint = 1.7, yint = 7,
                                 line.color = 'grey2',
                                 breaks = c(1,5,10,20,40,80,120,160)){
-    
-    if(state.space == 1){
-        years = c(min(anim.data$Year), max(anim.data$Year))
-    }
-    
-    D = anim.data[which(anim.data$WHO_REGION %in% regions & 
-                            anim.data$Year %in% years & 
-                            anim.data$Country != ""), ]
-    D$colour = matrix(0, nrow(D), 1)
-    count = 1
-    
   
-    for(i in 1 : length(years)){
-        for(j in 1 : length(regions)){
-            k = which(D$Year == years[i] & D$WHO_REGION == regions[j])
-            D$shape[k] = count
-            D$colour[k] = count
-            count = count + 1
-        }
+  if(state.space == 1){
+    years = c(min(anim.data$Year), max(anim.data$Year))
+  }
+  
+  D = anim.data[which(anim.data$WHO_REGION %in% regions & 
+                        anim.data$Year %in% years & 
+                        anim.data$Country != ""), ]
+  D$colour = matrix(0, nrow(D), 1)
+  count = 1
+  
+  
+  for(i in 1 : length(years)){
+    for(j in 1 : length(regions)){
+      k = which(D$Year == years[i] & D$WHO_REGION == regions[j])
+      D$shape[k] = count
+      D$colour[k] = count
+      count = count + 1
     }
-    max.incidence = max(D$Incidence)
-    D$alpha[which(D$Country %in% countries.of.interest)] = 1
-    D = rbind(D, D[1, ])
-    D$alpha[nrow(D)] = 0
-    D$size = matrix(0, nrow(D), 1)
-    D$size[which(D$Country %in% countries.of.interest)] = text.size
-    if("Congo, Democratic Republic of the" %in% countries.of.interest){
-        D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  max.incidence = max(D$Incidence)
+  D$alpha[which(D$Country %in% countries.of.interest)] = 1
+  D = rbind(D, D[1, ])
+  D$alpha[nrow(D)] = 0
+  D$size = matrix(0, nrow(D), 1)
+  D$size[which(D$Country %in% countries.of.interest)] = text.size
+  if("Congo, Democratic Republic of the" %in% countries.of.interest){
+    D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  if("United States" %in% countries.of.interest){
+    D$Country[which(D$Country == "United States")] = "USA"
+  }
+  a <- ggplot(D, aes(x = Coefficient.of.Variation, y = 100*Incidence, label = Country)) 
+  
+  
+  a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
+    scale_shape_manual(values=shapes, name  ="",
+                       breaks=c(1, 2, 3, 4),
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+    scale_colour_manual(values = rep(colors, 2),name  ="",
+                        breaks=c(1, 2, 3, 4),
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+    scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
+                       breaks = 100*breaks) + 
+    theme_classic() + scale_alpha(guide = "none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text=element_text(size=20), #, color = 'darkgrey'), 
+          axis.title=element_text(size=20), #, color = 'darkgrey'),
+          legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
+    labs(x = "coefficient of variation",
+         y = paste("mean incidence per 100,000"), 
+         color = "% not vaccinated" )
+  
+  
+  y = seq(min(years), max(years))
+  Mean_X = matrix(0, length(y), length(regions))
+  Mean_Y = matrix(0, length(y), length(regions))
+  for ( i in 1:length(y)){
+    for(j in 1 : length(regions)){
+      Mean_X[i, j] = mean(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
+                                                                     anim.data$WHO_REGION == regions[j] & 
+                                                                     anim.data$Country != "")], na.rm = T)
+      Mean_Y[i, j] = mean(anim.data$Incidence[which(anim.data$Year == y[i] &
+                                                      anim.data$WHO_REGION == regions[j] & 
+                                                      anim.data$Country != "")], na.rm = T)
     }
-    if("United States" %in% countries.of.interest){
-        D$Country[which(D$Country == "United States")] = "USA"
-    }
-    a <- ggplot(D, aes(x = Coefficient.of.Variation, y = 100*Incidence, label = Country)) 
     
-    
-    a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
-        scale_shape_manual(values=shapes, name  ="",
-                           breaks=c(1, 2, 3, 4),
-                           labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
-        scale_colour_manual(values = rep(colors, 2),name  ="",
-                            breaks=c(1, 2, 3, 4),
-                            labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
-        scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
-                           breaks = 100*breaks) + 
-        theme_classic() + scale_alpha(guide = "none") +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-              axis.text=element_text(size=20), #, color = 'darkgrey'), 
-              axis.title=element_text(size=20), #, color = 'darkgrey'),
-              legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
-        labs(x = "coefficient of variation",
-             y = paste("mean incidence per 100,000"), 
-             color = "% not vaccinated" )
-    
-    
-    y = seq(min(years), max(years))
-    Mean_X = matrix(0, length(y), length(regions))
-    Mean_Y = matrix(0, length(y), length(regions))
-    for ( i in 1:length(y)){
-        for(j in 1 : length(regions)){
-            Mean_X[i, j] = mean(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
-                                                                             anim.data$WHO_REGION == regions[j] & 
-                                                                             anim.data$Country != "")], na.rm = T)
-            Mean_Y[i, j] = mean(anim.data$Incidence[which(anim.data$Year == y[i] &
-                                                              anim.data$WHO_REGION == regions[j] & 
-                                                              anim.data$Country != "")], na.rm = T)
-        }
-        
-    }
-    
-    
-    df <- data.frame(x = Mean_X, y  = 100*Mean_Y)
-    qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = arrow.size,
-                         arrow = arrow(), color = colors[1]) +
-        geom_path(data = df, aes(x.2, y.2, label = NULL ), size = arrow.size,
-                  arrow = arrow(), color = colors[2])  +
-        #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
-        #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
-        theme(axis.line.x = element_line(color="black", size = 0.5),
-              axis.line.y = element_line(color="black", size = 0.5))
-    return(qqq1)
+  }
+  
+  
+  df <- data.frame(x = Mean_X, y  = 100*Mean_Y)
+  qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = arrow.size,
+                       arrow = arrow(), color = colors[1]) +
+    geom_path(data = df, aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2])  +
+    #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
+    #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
+  return(qqq1)
 }
 
 
@@ -1476,90 +1456,90 @@ incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2014),
 
 
 incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 2014), 
-                                regions, shapes = c(1,2,16,17),
-                                countries.of.interest = c("Malawi", "United States", "Brazil",
-                                                          "Congo, Democratic Republic of the",
-                                                          "Zambia", "Tanzania",
-                                                          "Colombia"),
-                                colors = c("deeppink", "royalblue1"), 
-                                text.size = 4,
-                                arrow.size = 3, xint = 1.7, yint = 7,
-                                line.color = 'grey2',
-                                breaks = c(1,5,10,20,40,80,120,160)){
-    
-    D = anim.data[which(anim.data$WHO_REGION %in% regions & 
-                            anim.data$Year %in% years & 
-                            anim.data$Country != ""), ]
-    D$colour = matrix(0, nrow(D), 1)
-    count = 1
-    for(i in 1 : length(years)){
-        for(j in 1 : length(regions)){
-            k = which(D$Year == years[i] & D$WHO_REGION == regions[j])
-            D$shape[k] = count
-            D$colour[k] = count
-            count = count + 1
-        }
+                                       regions, shapes = c(1,2,16,17),
+                                       countries.of.interest = c("Malawi", "United States", "Brazil",
+                                                                 "Congo, Democratic Republic of the",
+                                                                 "Zambia", "Tanzania",
+                                                                 "Colombia"),
+                                       colors = c("deeppink", "royalblue1"), 
+                                       text.size = 4,
+                                       arrow.size = 3, xint = 1.7, yint = 7,
+                                       line.color = 'grey2',
+                                       breaks = c(1,5,10,20,40,80,120,160)){
+  
+  D = anim.data[which(anim.data$WHO_REGION %in% regions & 
+                        anim.data$Year %in% years & 
+                        anim.data$Country != ""), ]
+  D$colour = matrix(0, nrow(D), 1)
+  count = 1
+  for(i in 1 : length(years)){
+    for(j in 1 : length(regions)){
+      k = which(D$Year == years[i] & D$WHO_REGION == regions[j])
+      D$shape[k] = count
+      D$colour[k] = count
+      count = count + 1
     }
-    max.incidence = max(D$Incidence)
-    D$alpha[which(D$Country %in% countries.of.interest)] = 1
-    D = rbind(D, D[1, ])
-    D$alpha[nrow(D)] = 0
-    D$size = matrix(0, nrow(D), 1)
-    D$size[which(D$Country %in% countries.of.interest)] = text.size
-    if("Congo, Democratic Republic of the" %in% countries.of.interest){
-        D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
-    }
-    if("United States" %in% countries.of.interest){
-        D$Country[which(D$Country == "United States")] = "USA"
-    }
-    a <- ggplot(D, aes(x = Coefficient.of.Variation, y = 100*Incidence, label = Country)) 
-    
-    
-    a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
-        scale_shape_manual(values=shapes, name  ="",
-                           breaks=c(1, 2, 3, 4),
-                           labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
-        scale_colour_manual(values = rep(colors, 2),name  ="",
-                            breaks=c(1, 2, 3, 4),
-                            labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
-        scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
-                           breaks = 100*breaks) + 
-        theme_classic() + scale_alpha(guide = "none") +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-              axis.text=element_text(size=20), #, color = 'darkgrey'), 
-              axis.title=element_text(size=20), #, color = 'darkgrey'),
-              legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
-        labs(x = "coefficient of variation",
-             y = paste("median incidence per 100,000"), 
-             color = "% not vaccinated" )
-    
-    
-    y = seq(min(years), max(years))
-    Median_X = matrix(0, length(y), length(regions))
-    Median_Y = matrix(0, length(y), length(regions))
-    for ( i in 1:length(y)){
-        for(j in 1 : length(regions)){
-            Median_X[i, j] = median(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
-                                                                             anim.data$WHO_REGION == regions[j] & 
-                                                                             anim.data$Country != "")], na.rm = T)
-            Median_Y[i, j] = median(anim.data$Incidence[which(anim.data$Year == y[i] &
-                                                              anim.data$WHO_REGION == regions[j] & 
-                                                              anim.data$Country != "")], na.rm = T)
-        }
-        
+  }
+  max.incidence = max(D$Incidence)
+  D$alpha[which(D$Country %in% countries.of.interest)] = 1
+  D = rbind(D, D[1, ])
+  D$alpha[nrow(D)] = 0
+  D$size = matrix(0, nrow(D), 1)
+  D$size[which(D$Country %in% countries.of.interest)] = text.size
+  if("Congo, Democratic Republic of the" %in% countries.of.interest){
+    D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  if("United States" %in% countries.of.interest){
+    D$Country[which(D$Country == "United States")] = "USA"
+  }
+  a <- ggplot(D, aes(x = Coefficient.of.Variation, y = 100*Incidence, label = Country)) 
+  
+  
+  a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
+    scale_shape_manual(values=shapes, name  ="",
+                       breaks=c(1, 2, 3, 4),
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+    scale_colour_manual(values = rep(colors, 2),name  ="",
+                        breaks=c(1, 2, 3, 4),
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+    scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
+                       breaks = 100*breaks) + 
+    theme_classic() + scale_alpha(guide = "none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text=element_text(size=20), #, color = 'darkgrey'), 
+          axis.title=element_text(size=20), #, color = 'darkgrey'),
+          legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
+    labs(x = "coefficient of variation",
+         y = paste("median incidence per 100,000"), 
+         color = "% not vaccinated" )
+  
+  
+  y = seq(min(years), max(years))
+  Median_X = matrix(0, length(y), length(regions))
+  Median_Y = matrix(0, length(y), length(regions))
+  for ( i in 1:length(y)){
+    for(j in 1 : length(regions)){
+      Median_X[i, j] = median(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
+                                                                         anim.data$WHO_REGION == regions[j] & 
+                                                                         anim.data$Country != "")], na.rm = T)
+      Median_Y[i, j] = median(anim.data$Incidence[which(anim.data$Year == y[i] &
+                                                          anim.data$WHO_REGION == regions[j] & 
+                                                          anim.data$Country != "")], na.rm = T)
     }
     
-    
-    df <- data.frame(x = Median_X, y  = 100*Median_Y)
-    qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = arrow.size,
-                         arrow = arrow(), color = colors[1]) +
-        geom_path(data = df, aes(x.2, y.2, label = NULL ), size = arrow.size,
-                  arrow = arrow(), color = colors[2])  +
-        #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
-        #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
-        theme(axis.line.x = element_line(color="black", size = 0.5),
-              axis.line.y = element_line(color="black", size = 0.5))
-    return(qqq1)
+  }
+  
+  
+  df <- data.frame(x = Median_X, y  = 100*Median_Y)
+  qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = arrow.size,
+                       arrow = arrow(), color = colors[1]) +
+    geom_path(data = df, aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2])  +
+    #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
+    #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
+  return(qqq1)
 }
 
 
@@ -1572,88 +1552,88 @@ incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 20
 
 #' @examples
 awesome.mega.figure.scaled <- function(anim.data = anim.data, years = c(1990, 2014), 
-                                regions, shapes = c(1,2,16,17),
-                                countries.of.interest = c("Malawi", "United States", "Brazil",
-                                                          "Congo, Democratic Republic of the",
-                                                          "Zambia",
-                                                          "Colombia"),
-                                colors = c("deeppink", "royalblue1"), 
-                                text.size = 4,
-                                arrow.size = 3, xint = 1.7, yint = 7,
-                                line.color = 'grey2',
-                                breaks = c(1,5,10,20,40,80,120,160)){
-    
-    D = anim.data[which(anim.data$WHO_REGION %in% regions & 
-                            anim.data$Year %in% years & 
-                            anim.data$Country != ""), ]
-    D$colour = matrix(0, nrow(D), 1)
-    count = 1
-    for(i in 1 : length(years)){
-        for(j in 1 : length(regions)){
-            k = which(D$Year == years[i] & D$WHO_REGION == regions[j])
-            D$shape[k] = count
-            D$colour[k] = count
-            count = count + 1
-        }
+                                       regions, shapes = c(1,2,16,17),
+                                       countries.of.interest = c("Malawi", "United States", "Brazil",
+                                                                 "Congo, Democratic Republic of the",
+                                                                 "Zambia",
+                                                                 "Colombia"),
+                                       colors = c("deeppink", "royalblue1"), 
+                                       text.size = 4,
+                                       arrow.size = 3, xint = 1.7, yint = 7,
+                                       line.color = 'grey2',
+                                       breaks = c(1,5,10,20,40,80,120,160)){
+  
+  D = anim.data[which(anim.data$WHO_REGION %in% regions & 
+                        anim.data$Year %in% years & 
+                        anim.data$Country != ""), ]
+  D$colour = matrix(0, nrow(D), 1)
+  count = 1
+  for(i in 1 : length(years)){
+    for(j in 1 : length(regions)){
+      k = which(D$Year == years[i] & D$WHO_REGION == regions[j])
+      D$shape[k] = count
+      D$colour[k] = count
+      count = count + 1
     }
-    max.incidence = max(D$Incidence)
-    D$alpha[which(D$Country %in% countries.of.interest)] = 1
-    D = rbind(D, D[1, ])
-    D$alpha[nrow(D)] = 0
-    D$size = matrix(0, nrow(D), 1)
-    D$size[which(D$Country %in% countries.of.interest)] = text.size
-    if("Congo, Democratic Republic of the" %in% countries.of.interest){
-        D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
-    }
-    if("United States" %in% countries.of.interest){
-        D$Country[which(D$Country == "United States")] = "USA"
-    }
-    a <- ggplot(D, aes(x = Coefficient.of.Variation, y = Incidence, label = Country)) 
-    
-    
-    a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
-        scale_shape_manual(values=shapes, name  ="",
-                           breaks=c(1, 2, 3, 4),
-                           labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
-        scale_colour_manual(values = rep(colors, 2),name  ="",
-                            breaks=c(1, 2, 3, 4),
-                            labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
-        #scale_y_continuous(limits = c(0, round(max.incidence)), trans= 'sqrt' ,
-         #                  breaks = breaks) + 
-        theme_classic() + scale_alpha(guide = "none") +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-              axis.text=element_text(size=20), #, color = 'darkgrey'), 
-              axis.title=element_text(size=20), #, color = 'darkgrey'),
-              legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
-        labs(x = "scaled coefficient of variation",
-             y = paste("scaled incidence"), 
-             color = "% not vaccinated" )
-    
-    
-    y = seq(min(years), max(years))
-    Mean_X = matrix(0, length(y), length(regions))
-    Mean_Y = matrix(0, length(y), length(regions))
-    for ( i in 1:length(y)){
-        for(j in 1 : length(regions)){
-            Mean_X[i, j] = mean(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
-                                                                             anim.data$WHO_REGION == regions[j] & 
-                                                                             anim.data$Country != "")], na.rm = T)
-            Mean_Y[i, j] = mean(anim.data$Incidence[which(anim.data$Year == y[i] &
-                                                              anim.data$WHO_REGION == regions[j] & 
-                                                              anim.data$Country != "")], na.rm = T)
-        }
-        
+  }
+  max.incidence = max(D$Incidence)
+  D$alpha[which(D$Country %in% countries.of.interest)] = 1
+  D = rbind(D, D[1, ])
+  D$alpha[nrow(D)] = 0
+  D$size = matrix(0, nrow(D), 1)
+  D$size[which(D$Country %in% countries.of.interest)] = text.size
+  if("Congo, Democratic Republic of the" %in% countries.of.interest){
+    D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  if("United States" %in% countries.of.interest){
+    D$Country[which(D$Country == "United States")] = "USA"
+  }
+  a <- ggplot(D, aes(x = Coefficient.of.Variation, y = Incidence, label = Country)) 
+  
+  
+  a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
+    scale_shape_manual(values=shapes, name  ="",
+                       breaks=c(1, 2, 3, 4),
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+    scale_colour_manual(values = rep(colors, 2),name  ="",
+                        breaks=c(1, 2, 3, 4),
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+    #scale_y_continuous(limits = c(0, round(max.incidence)), trans= 'sqrt' ,
+    #                  breaks = breaks) + 
+    theme_classic() + scale_alpha(guide = "none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text=element_text(size=20), #, color = 'darkgrey'), 
+          axis.title=element_text(size=20), #, color = 'darkgrey'),
+          legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
+    labs(x = "scaled coefficient of variation",
+         y = paste("scaled incidence"), 
+         color = "% not vaccinated" )
+  
+  
+  y = seq(min(years), max(years))
+  Mean_X = matrix(0, length(y), length(regions))
+  Mean_Y = matrix(0, length(y), length(regions))
+  for ( i in 1:length(y)){
+    for(j in 1 : length(regions)){
+      Mean_X[i, j] = mean(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
+                                                                     anim.data$WHO_REGION == regions[j] & 
+                                                                     anim.data$Country != "")], na.rm = T)
+      Mean_Y[i, j] = mean(anim.data$Incidence[which(anim.data$Year == y[i] &
+                                                      anim.data$WHO_REGION == regions[j] & 
+                                                      anim.data$Country != "")], na.rm = T)
     }
     
-    
-    df <- data.frame(x = Mean_X, y  = Mean_Y)
-    qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = 2,
-                         arrow = arrow(), color = colors[1]) +
-        geom_path(data = df, aes(x.2, y.2, label = NULL ), size = 2,
-                  arrow = arrow(), color = colors[2])  +
-        theme(axis.line.x = element_line(color="black", size = 0.5),
-              axis.line.y = element_line(color="black", size = 0.5))
-    return(qqq1)
+  }
+  
+  
+  df <- data.frame(x = Mean_X, y  = Mean_Y)
+  qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = 2,
+                       arrow = arrow(), color = colors[1]) +
+    geom_path(data = df, aes(x.2, y.2, label = NULL ), size = 2,
+              arrow = arrow(), color = colors[2])  +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
+  return(qqq1)
 }
 
 
@@ -1672,32 +1652,32 @@ awesome.mega.figure.scaled <- function(anim.data = anim.data, years = c(1990, 20
 #' @examples
 sort.arrow.data <- function(d,
                             regions){
-    
-    years = seq(min(d$Year), max(d$Year))
-    data = d[which(d$Year %in% years & d$WHO_REGION %in% regions &
-                       d$Country != ""), ]
-    countries= unique(data$Country)
-    MCV2.year = data.frame(matrix(NA, length(countries), 4))
-    colnames(MCV2.year) = c("Country", "Intro.year", "BR", "Vacc")
-    MCV2.year[, 1] = countries
-    for(i in 1 : length(countries)){
-        g = data[which(data$Country == countries[i]), ]
-        if(length(which(g$MCV2 == 1)) > 0){
-            MCV2.year[i, 2] = g$Year[which(g$MCV2 == 1)][1]
-            MCV2.year[i, 3:4] = c(g$Mean.birth.rate[which(g$MCV2 == 1)][1], 
-                                  g$Mean.vaccination[which(g$MCV2 == 1)][1])
-        }
+  
+  years = seq(min(d$Year), max(d$Year))
+  data = d[which(d$Year %in% years & d$WHO_REGION %in% regions &
+                   d$Country != ""), ]
+  countries= unique(data$Country)
+  MCV2.year = data.frame(matrix(NA, length(countries), 4))
+  colnames(MCV2.year) = c("Country", "Intro.year", "BR", "Vacc")
+  MCV2.year[, 1] = countries
+  for(i in 1 : length(countries)){
+    g = data[which(data$Country == countries[i]), ]
+    if(length(which(g$MCV2 == 1)) > 0){
+      MCV2.year[i, 2] = g$Year[which(g$MCV2 == 1)][1]
+      MCV2.year[i, 3:4] = c(g$Mean.birth.rate[which(g$MCV2 == 1)][1], 
+                            g$Mean.vaccination[which(g$MCV2 == 1)][1])
     }
-    
-    
-    MCV2.countries = MCV2.year[which(!is.na(MCV2.year[,2])), ]
-    MCV2.countries = data.frame(MCV2.countries)
-    MCV2.countries[, 2] = as.numeric(as.character(MCV2.countries[, 2]))
-    MCV2.countries[, 3] = MCV2.countries[,2] - min(data$Year)
-    MCV2.countries[, 4] = max(data$Year) - MCV2.countries[,2]
-    
-    colnames(MCV2.countries) = c("Country", "Intro_Year", "Years_before_Intro", "Years_after_Intro")
-    return(list(MCV2.countries, MCV2.year, countries, data))
+  }
+  
+  
+  MCV2.countries = MCV2.year[which(!is.na(MCV2.year[,2])), ]
+  MCV2.countries = data.frame(MCV2.countries)
+  MCV2.countries[, 2] = as.numeric(as.character(MCV2.countries[, 2]))
+  MCV2.countries[, 3] = MCV2.countries[,2] - min(data$Year)
+  MCV2.countries[, 4] = max(data$Year) - MCV2.countries[,2]
+  
+  colnames(MCV2.countries) = c("Country", "Intro_Year", "Years_before_Intro", "Years_after_Intro")
+  return(list(MCV2.countries, MCV2.year, countries, data))
 }
 
 
@@ -1724,208 +1704,208 @@ back.only.method.state.space <- function(window.length, regions,
                                          gaussian.st.dev, cutoff = 50, 
                                          interp.resolution = 20,
                                          year.shift.inc = 3){
+  
+  require(stats)
+  list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = 
+    get.data.for.animation.state.space(regions)
+  
+  
+  x = seq(1981, 2012)
+  colnames(subset.data) = c(seq(1981, 2012),"Country", "WHO_REGION")
+  ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
+  list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = 
+    interp.datasets.state.space(subset.data, 
+                                subset.vaccination, 
+                                subset.birth.rates, 
+                                subset.pop.by.year,
+                                x,
+                                x)
+  
+  # list[mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac] = 
+  #     prepare.matrices.for.animation(interp.subset.data, subset.data)
+  
+  ##' number of unique years that we will have data for. The longer the window, the less unique years of data.
+  num.windows = length(x) - window.length + 1
+  
+  ##' first year of data
+  year = x[1]
+  
+  ##' setting up the datasets
+  coeff.var = matrix(0, length(subset.data[ , 1]), num.windows)
+  incidence.per.1000 = matrix(0, length(subset.data[ , 1]), num.windows)
+  mean.br = matrix(0, length(subset.data[ , 1]), num.windows)
+  mean.vac = matrix(0, length(subset.data[ , 1]), num.windows)
+  
+  ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
+  ##' mean vaccination rate over periods of length given by the window length.
+  for ( j in 1 : num.windows){
+    for ( i in 1 : length(subset.data[ , 1])){
+      coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
+        mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
+        if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
+          coeff.var[i, j]  =  0
+        } 
+      }
+      incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
+                                         as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
+      if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
+      if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
+    }
+    year = year + 1
+  }
+  
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(x))
+  for(i in 1 : nrow(subset.data)){
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(x)]) / 
+      as.numeric(interp.subset.pop[i, paste(x)])
     
-    require(stats)
-    list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = 
-        get.data.for.animation.state.space(regions)
+  }
+  
+  ##' we take the weighted average of the values that we have calculated for each year, where the weights are gaussian,
+  ##' with a specified number of years for the standard deviation
+  x1 = seq(1, length(coeff.var[1, ]) + 1)
+  w1 = matrix(0, length(x1), length(x1))
+  for (i in 1 : length(x1)){
+    ##' set up the gaussian weights for averaging
     
+    w.input = x1 - x1[i]
+    w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
     
-    x = seq(1981, 2012)
-    colnames(subset.data) = c(seq(1981, 2012),"Country", "WHO_REGION")
-    ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
-    list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = 
-        interp.datasets.state.space(subset.data, 
-                                    subset.vaccination, 
-                                    subset.birth.rates, 
-                                    subset.pop.by.year,
-                                    x,
-                                    x)
+    ##' make sure that the weights add up to 1 for each of the specific weightings
+    j = which(w.input == 0)
+    w1[i,j : length(w1[i,])] = 0
+    w1[i, ] = w1[i, ] / sum(w1[i, ])
+  }
+  
+  w1 = w1[-(1), ]
+  w1 = w1[, -(ncol(w1)) ]
+  
+  x2 = seq(1, length(incidence.per.1000.each.year[1, ]))
+  w2 = matrix(0, length(x2), length(x2))
+  for (i in 1 : length(x2)){
+    ##' set up the gaussian weights for averaging
     
-    # list[mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac] = 
-    #     prepare.matrices.for.animation(interp.subset.data, subset.data)
+    w.input = x2 - x2[i] + year.shift.inc
+    w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
     
-    ##' number of unique years that we will have data for. The longer the window, the less unique years of data.
-    num.windows = length(x) - window.length + 1
-    
-    ##' first year of data
-    year = x[1]
-    
-    ##' setting up the datasets
-    coeff.var = matrix(0, length(subset.data[ , 1]), num.windows)
-    incidence.per.1000 = matrix(0, length(subset.data[ , 1]), num.windows)
-    mean.br = matrix(0, length(subset.data[ , 1]), num.windows)
-    mean.vac = matrix(0, length(subset.data[ , 1]), num.windows)
-    
-    ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
-    ##' mean vaccination rate over periods of length given by the window length.
-    for ( j in 1 : num.windows){
-        for ( i in 1 : length(subset.data[ , 1])){
-            coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
-                mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
-                if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
-                    coeff.var[i, j]  =  0
-                } 
-            }
-            incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
-                                                 as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
-            if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-            if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-        }
-        year = year + 1
+    ##' make sure that the weights add up to 1 for each of the specific weightings
+    j = which(w.input == (year.shift.inc + 1))
+    if(length(j) > 0){
+      w2[i,j : length(w2[i,])] = 0
+      w2[i, ] = w2[i, ] / sum(w2[i, ])
     }
     
-    incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(x))
-    for(i in 1 : nrow(subset.data)){
-        incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(x)]) / 
-            as.numeric(interp.subset.pop[i, paste(x)])
-        
+  }
+  #w2 = w2[-(1), ]
+  #w2 = w2[, -(ncol(w2)) ]
+  w2 = w2[-(1:9), ]
+  
+  ##' make a set of matrices that are the same size as the matrices containing the data.
+  coeff.2 = coeff.var
+  incidence.2 = incidence.per.1000
+  mbr2 = mean.br
+  mvacc2 = mean.vac
+  for(i in 1 : length(coeff.var[1, ])){
+    for(j in 1 : length(coeff.var[, 1])){
+      ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
+      coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
+      incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
+      mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
+      mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T)
+      
+      ##' Should we do weighted average of birth rate and vaccination rate?
+      ##' If so uncomment the next two lines
+      
+      # mbr2[j, i] = sum(mean.br[j, ] * w1[i, ], na.rm = T)
+      # mvacc2[j, i] = sum(mean.vac[j, i] * w1[i, ], na.rm = T)
     }
-    
-    ##' we take the weighted average of the values that we have calculated for each year, where the weights are gaussian,
-    ##' with a specified number of years for the standard deviation
-    x1 = seq(1, length(coeff.var[1, ]) + 1)
-    w1 = matrix(0, length(x1), length(x1))
-    for (i in 1 : length(x1)){
-        ##' set up the gaussian weights for averaging
-        
-        w.input = x1 - x1[i]
-        w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-        
-        ##' make sure that the weights add up to 1 for each of the specific weightings
-        j = which(w.input == 0)
-        w1[i,j : length(w1[i,])] = 0
-        w1[i, ] = w1[i, ] / sum(w1[i, ])
-    }
-    
-    w1 = w1[-(1), ]
-    w1 = w1[, -(ncol(w1)) ]
-    
-    x2 = seq(1, length(incidence.per.1000.each.year[1, ]))
-    w2 = matrix(0, length(x2), length(x2))
-    for (i in 1 : length(x2)){
-        ##' set up the gaussian weights for averaging
-        
-        w.input = x2 - x2[i] + year.shift.inc
-        w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-        
-        ##' make sure that the weights add up to 1 for each of the specific weightings
-        j = which(w.input == (year.shift.inc + 1))
-        if(length(j) > 0){
-            w2[i,j : length(w2[i,])] = 0
-            w2[i, ] = w2[i, ] / sum(w2[i, ])
-        }
-        
-    }
-    #w2 = w2[-(1), ]
-    #w2 = w2[, -(ncol(w2)) ]
-    w2 = w2[-(1:9), ]
-    
-    ##' make a set of matrices that are the same size as the matrices containing the data.
-    coeff.2 = coeff.var
-    incidence.2 = incidence.per.1000
-    mbr2 = mean.br
-    mvacc2 = mean.vac
-    for(i in 1 : length(coeff.var[1, ])){
-        for(j in 1 : length(coeff.var[, 1])){
-            ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
-            coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
-            incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
-            mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
-            mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T)
-            
-            ##' Should we do weighted average of birth rate and vaccination rate?
-            ##' If so uncomment the next two lines
-            
-            # mbr2[j, i] = sum(mean.br[j, ] * w1[i, ], na.rm = T)
-            # mvacc2[j, i] = sum(mean.vac[j, i] * w1[i, ], na.rm = T)
-        }
-    }
-    
-    ##' set the original data to be equal to the weighted data
-    coeff.var.cases = coeff.2
-    incidence.per.1000 = incidence.2
-    mean.br = mbr2
-    mean.vac = mvacc2
-    
-    
-    ##' set up the timeline on which we do the interpolation. 
-    ##' The number of sections that the yearly data is split up to is given by interp.resolution  
-    x = seq(1981 + (window.length - 1), 2012)
-    xout = seq(1981+ (window.length - 1), 2012, 1/interp.resolution)
-    
-    ##' interpolate the data and add columns that contain the correspondin country and WHO region of each line
-    
-    coeff.var.cases = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(coeff.var.cases, x, xout))
-    incidence.per.1000 = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(incidence.per.1000, x, xout))
-    mean.br = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.br, x, xout))
-    mean.vac = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.vac, x, xout))
-    
-    ##' round the data to 2 decimal places for ease of reading.
-    mean.vac[, -(1:2)] = as.numeric(mean.vac[, -(1:2)])
-    mean.br[, -(1:2)] = as.numeric(mean.br[, -(1:2)])
-    incidence.per.1000[, -(1:2)] = as.numeric(incidence.per.1000[, -(1:2)])
-    coeff.var.cases[, -(1:2)] = as.numeric(coeff.var.cases[, -(1:2)])
-    
-    
-    ##' set up the output to be the appropriate size and add column labels.
-    ##' Additionally add enough room to include additional data for each year that will be used 
-    ##' to calibrate the data for each year, so that the minimum and maximum of vaccination rate is 0 and 100 each time.
-    ##' This ensures that the colour scale is constant
-    
-    output.data = matrix(0, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + (2 * length(regions) * length(xout)), 7)
-    output.data  =  data.frame(output.data)
-    colnames(output.data) = c("Country", "Coefficient.of.Variation", "Incidence", "Mean.vaccination", "Mean.birth.rate", "Year", "WHO_REGION")
-    
-    ##' input the appropriate data to the outputs 
-    output.data$Country[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 1], length(coeff.var.cases[1, -(1:2)]))
-    output.data$WHO_REGION[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 2], length(coeff.var.cases[1, -(1:2)]))
-    count = 1
-    for(i in 3 : length(coeff.var.cases[1, ])){
-        output.data$Coefficient.of.Variation[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = coeff.var.cases[, i]
-        output.data$Incidence[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = incidence.per.1000[, i]
-        output.data$Mean.vaccination[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.vac[, i]
-        output.data$Mean.birth.rate[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.br[, i]
-        output.data$Year[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = xout[i - 2]  
-        count = count + 1
-    }
-    
-    ##' add in the dummy data for each year to keep the scales constant.
-    year.mins = matrix(0, length(xout), 2)
-    
-    for(i in 1 : length(xout)){
-        t  =  subset(output.data, output.data$Year ==  unique(xout)[i])
-        year.mins[i, 1] = xout[i]
-        year.mins[i, 2] = as.numeric(min(t$Mean.birth.rate,na.rm = T)  )
-    }
-    
-    l =  expand.grid("", -1, 0, c(0,100), 0, xout, regions)
-    
-    for(i in 1 : (2 * length(regions) * length(xout))){
-        y = l[i, 6]
-        j = which(year.mins[, 1] == y)
-        l[i, 5]  =  year.mins[j, 2]
-    }
-    
-    output.data[((length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + 1 ): length(output.data[, 1]), ]  =  l
-    
-    for( i in 1 : (2 * length(regions) * length(xout))){
-        output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] = regions[as.numeric(output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] )]
-        output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)])  + i, 1] = ""
-    }
-    
-    ##' make sure that each column that should be numeric is numeric.
-    output.data$Coefficient.of.Variation = as.numeric(output.data$Coefficient.of.Variation)
-    output.data$Incidence  =  as.numeric(output.data$Incidence)
-    output.data$Mean.vaccination  =  as.numeric(output.data$Mean.vaccination)
-    output.data$Mean.birth.rate  =  as.numeric(output.data$Mean.birth.rate)
-    output.data$Year   =  as.numeric(output.data$Year)
-    output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
-    return(output.data)
+  }
+  
+  ##' set the original data to be equal to the weighted data
+  coeff.var.cases = coeff.2
+  incidence.per.1000 = incidence.2
+  mean.br = mbr2
+  mean.vac = mvacc2
+  
+  
+  ##' set up the timeline on which we do the interpolation. 
+  ##' The number of sections that the yearly data is split up to is given by interp.resolution  
+  x = seq(1981 + (window.length - 1), 2012)
+  xout = seq(1981+ (window.length - 1), 2012, 1/interp.resolution)
+  
+  ##' interpolate the data and add columns that contain the correspondin country and WHO region of each line
+  
+  coeff.var.cases = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(coeff.var.cases, x, xout))
+  incidence.per.1000 = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(incidence.per.1000, x, xout))
+  mean.br = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.br, x, xout))
+  mean.vac = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.vac, x, xout))
+  
+  ##' round the data to 2 decimal places for ease of reading.
+  mean.vac[, -(1:2)] = as.numeric(mean.vac[, -(1:2)])
+  mean.br[, -(1:2)] = as.numeric(mean.br[, -(1:2)])
+  incidence.per.1000[, -(1:2)] = as.numeric(incidence.per.1000[, -(1:2)])
+  coeff.var.cases[, -(1:2)] = as.numeric(coeff.var.cases[, -(1:2)])
+  
+  
+  ##' set up the output to be the appropriate size and add column labels.
+  ##' Additionally add enough room to include additional data for each year that will be used 
+  ##' to calibrate the data for each year, so that the minimum and maximum of vaccination rate is 0 and 100 each time.
+  ##' This ensures that the colour scale is constant
+  
+  output.data = matrix(0, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + (2 * length(regions) * length(xout)), 7)
+  output.data  =  data.frame(output.data)
+  colnames(output.data) = c("Country", "Coefficient.of.Variation", "Incidence", "Mean.vaccination", "Mean.birth.rate", "Year", "WHO_REGION")
+  
+  ##' input the appropriate data to the outputs 
+  output.data$Country[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 1], length(coeff.var.cases[1, -(1:2)]))
+  output.data$WHO_REGION[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 2], length(coeff.var.cases[1, -(1:2)]))
+  count = 1
+  for(i in 3 : length(coeff.var.cases[1, ])){
+    output.data$Coefficient.of.Variation[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = coeff.var.cases[, i]
+    output.data$Incidence[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = incidence.per.1000[, i]
+    output.data$Mean.vaccination[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.vac[, i]
+    output.data$Mean.birth.rate[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.br[, i]
+    output.data$Year[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = xout[i - 2]  
+    count = count + 1
+  }
+  
+  ##' add in the dummy data for each year to keep the scales constant.
+  year.mins = matrix(0, length(xout), 2)
+  
+  for(i in 1 : length(xout)){
+    t  =  subset(output.data, output.data$Year ==  unique(xout)[i])
+    year.mins[i, 1] = xout[i]
+    year.mins[i, 2] = as.numeric(min(t$Mean.birth.rate,na.rm = T)  )
+  }
+  
+  l =  expand.grid("", -1, 0, c(0,100), 0, xout, regions)
+  
+  for(i in 1 : (2 * length(regions) * length(xout))){
+    y = l[i, 6]
+    j = which(year.mins[, 1] == y)
+    l[i, 5]  =  year.mins[j, 2]
+  }
+  
+  output.data[((length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + 1 ): length(output.data[, 1]), ]  =  l
+  
+  for( i in 1 : (2 * length(regions) * length(xout))){
+    output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] = regions[as.numeric(output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] )]
+    output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)])  + i, 1] = ""
+  }
+  
+  ##' make sure that each column that should be numeric is numeric.
+  output.data$Coefficient.of.Variation = as.numeric(output.data$Coefficient.of.Variation)
+  output.data$Incidence  =  as.numeric(output.data$Incidence)
+  output.data$Mean.vaccination  =  as.numeric(output.data$Mean.vaccination)
+  output.data$Mean.birth.rate  =  as.numeric(output.data$Mean.birth.rate)
+  output.data$Year   =  as.numeric(output.data$Year)
+  output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
+  return(output.data)
 }
 
 
@@ -1945,16 +1925,16 @@ find.mean.path <- function(d,
                            regions, 
                            inc.transform = F,
                            make.inc.cv.scale.same = F){
-    
+  
   years = unique(d$Year)
   mean.x = data.frame(matrix(0, length(years), length(regions) + 2))
   mean.y = data.frame(matrix(0, length(years), length(regions) + 2))
   mean.x[, 1] = years
   mean.y[, 1] = years
   if(make.inc.cv.scale.same == T ){
-      d$Incidence = d$Incidence %>% 
-          multiply_by(max(d$Coefficient.of.Variation) - min(d$Coefficient.of.Variation)) %>%
-          divide_by(max(d$Incidence) - min(d$Incidence))
+    d$Incidence = d$Incidence %>% 
+      multiply_by(max(d$Coefficient.of.Variation) - min(d$Coefficient.of.Variation)) %>%
+      divide_by(max(d$Incidence) - min(d$Incidence))
   }
   if(inc.transform == 'sqrt' & make.inc.cv.scale.same == F){
     d$Incidence <-  d$Incidence %>% sqrt
@@ -1962,19 +1942,19 @@ find.mean.path <- function(d,
   
   for(j in 1 : length(regions)){
     mean.x[, j + 1] = d %>%
-                                  filter(WHO_REGION == regions[j]) %>%
-                                  group_by(Year) %>%
-                                  dplyr::summarise(pos = mean(Coefficient.of.Variation)) %>%
-        as.data.frame %>%
-                                  dplyr::select(pos) 
-        
+      filter(WHO_REGION == regions[j]) %>%
+      group_by(Year) %>%
+      dplyr::summarise(pos = mean(Coefficient.of.Variation)) %>%
+      as.data.frame %>%
+      dplyr::select(pos) 
+    
     
     mean.y[, j + 1] = d %>%
-                                  filter(WHO_REGION == regions[j]) %>%
-                                  group_by(Year) %>%
-                                  dplyr::summarise(pos = mean(Incidence)) %>%
-                                    as.data.frame %>%
-                                  dplyr::select(pos)
+      filter(WHO_REGION == regions[j]) %>%
+      group_by(Year) %>%
+      dplyr::summarise(pos = mean(Incidence)) %>%
+      as.data.frame %>%
+      dplyr::select(pos)
   }
   mean.x[, j + 2] = as.matrix(d %>%
                                 group_by(Year) %>%
@@ -1983,7 +1963,7 @@ find.mean.path <- function(d,
   
   mean.y[, j + 2] = as.matrix(d %>%
                                 group_by(Year) %>%
-                                  dplyr::summarise(pos = mean(Incidence)) %>%
+                                dplyr::summarise(pos = mean(Incidence)) %>%
                                 dplyr::select(pos))
   colnames(mean.x) = c("year", regions, 'all')
   colnames(mean.y) = c("year", regions, 'all')
@@ -2016,127 +1996,127 @@ closest.path.point <- function(d, regions, years, use.rep.cases = 1,
                                make.inc.cv.scale.same = TRUE,inc.transform = 'sqrt',
                                connect.canonical.path.to.zero = 0, log.incidence = F,
                                make.figure.plot = F){
+  
+  ##' filter the data to only include the regions, and years required, along with only
+  ##' entries which have incidence greater than 0.
+  d = d %>% filter(., Year %in% years, WHO_REGION %in% regions, Incidence > 0,
+                   Country != "")
+  
+  ##' remove years where the coefficient of variation is 0, and the year is before 1995,
+  ##' as before this time, no countries had reached elimination, so the only way to 
+  ##' have a 0 here, is if there is no data before this time (unless a country reported
+  ##' the exact same non-zero number of cases for every year, which didn't happen)
+  j = which(d$Year < 1995 & d$Coefficient.of.Variation == 0)
+  if(length(j) > 0){
+    d = d[-(j), ]
+  }
+  
+  ##' if we want to log the incidence before assigning countries to their location
+  ##' on the path, then we do that here. Along with adding a small non-zero value to each of the
+  ##' incidences, so that there are no -Inf values created.
+  if(log.incidence == T){
+    d$Incidence = log(d$Incidence+0.000001)
+  }
+  
+  ##' if wanted scale the incidence and coefficient of variation so that they are both in the 0-1 range
+  
+  if(make.inc.cv.scale.same == T){
+    d$Incidence = scl(d$Incidence)
+    d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
+  }
+  
+  ##' if make.figure.plot = T then we will produce the plot that is seen in the paper, which is 
+  ##' make by putting the incidence data onto the same range as the coefficient of variation data.
+  if(make.figure.plot == T){
+    d$Incidence = d$Incidence* max(d$Coefficient.of.Variation)/ max(d$Incidence)
+  }
+  
+  
+  
+  # 
+  ##' input d with non-square rooted incidence values. Then we take the square root of the 
+  ##' incidence to match the path calculation
+  ##' 
+  # if(use.rep.cases == 1 & make.inc.cv.scale.same == F){
+  #     d$Incidence = sqrt(d$Incidence)  
+  # }
+  
+  ##' 
+  
+  # d$Incidence = scl(d$Incidence)
+  # d$Coefficient.of.Variation = scl (d$Coefficient.of.Variation)
+  # 
+  ##' find the mean path for each region by averaging positions in each year
+  list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions,
+                                        inc.transform = inc.transform,
+                                        make.inc.cv.scale.same = make.inc.cv.scale.same)
+  
+  
+  
+  
+  if(use.rep.cases ==  1){
+    ##' If we are considering the reported cases to locate the countries, then
+    ##' Africa and the Americas mean paths converge at roughly 2007 in Africa and 
+    ##' 1993 for the Americas. Join the paths at this point, and use it as the canonical
+    ##' path 
+    k = which(years == 2008)
+    k1 = which(years == 1995)
+    #zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
+    #zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
+    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
+                           cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
+      data.frame()
     
-    ##' filter the data to only include the regions, and years required, along with only
-    ##' entries which have incidence greater than 0.
-    d = d %>% filter(., Year %in% years, WHO_REGION %in% regions, Incidence > 0,
-                     Country != "")
     
-    ##' remove years where the coefficient of variation is 0, and the year is before 1995,
-    ##' as before this time, no countries had reached elimination, so the only way to 
-    ##' have a 0 here, is if there is no data before this time (unless a country reported
-    ##' the exact same non-zero number of cases for every year, which didn't happen)
-    j = which(d$Year < 1995 & d$Coefficient.of.Variation == 0)
-    if(length(j) > 0){
-        d = d[-(j), ]
-    }
+  }else{
+    ##' If we are considering the state space cases to locate the countries, then
+    ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
+    ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
+    ##' and use it as the canonical path
+    k = which(years == 2010)
+    k1 = which(years == 1998)
+    # zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
+    #    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
+    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
+                           cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
+      data.frame()
+    # canonical.path = canonical.path[-(33:35),]
     
-    ##' if we want to log the incidence before assigning countries to their location
-    ##' on the path, then we do that here. Along with adding a small non-zero value to each of the
-    ##' incidences, so that there are no -Inf values created.
-    if(log.incidence == T){
-        d$Incidence = log(d$Incidence+0.000001)
-    }
+  }
+  colnames(canonical.path) = c('x', 'y')
+  last.canonical = c(tail(canonical.path$x, 1), tail(canonical.path$y, 1))
+  
+  end.canonical =c(0,0)
+  
+  if(connect.canonical.path.to.zero == 1){
+    l = cbind(seq(last.canonical[1], end.canonical[1], -last.canonical[1] / 3),
+              seq(last.canonical[2], end.canonical[2], -last.canonical[2] / 3))
     
-    ##' if wanted scale the incidence and coefficient of variation so that they are both in the 0-1 range
+    colnames(l) = colnames(canonical.path)
+    canonical.path = rbind(canonical.path, l)
+  }
+  
+  # canonical.path$x = scl(canonical.path$x)
+  # canonical.path$y = scl(canonical.path$y)
+  ##' add a column to hold the closest position on the mean trajectory
+  d$closest = 0
+  
+  ##' we only need to calculate the closest position for each country once a year, 
+  ##' therefore we restrict to only yearly data
+  y1 = unique(round(d$Year))
+  d = filter(d, Year %in% y1)
+  
+  ##' for each entry, then calculate which point is the closest on the trajectory
+  for(i in 1 : nrow(d)){
+    q = c(d$Coefficient.of.Variation[i], d$Incidence[i]) %>%
+      rbind( cbind(canonical.path$x, canonical.path$y)) %>%
+      dist() %>% as.matrix()
+    d$closest[i] = which(q[1, -(1)] == min(q[1, -(1)])) %>% as.matrix() %>% tail(1)
     
-     if(make.inc.cv.scale.same == T){
-         d$Incidence = scl(d$Incidence)
-         d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
-     }
-    
-    ##' if make.figure.plot = T then we will produce the plot that is seen in the paper, which is 
-    ##' make by putting the incidence data onto the same range as the coefficient of variation data.
-    if(make.figure.plot == T){
-        d$Incidence = d$Incidence* max(d$Coefficient.of.Variation)/ max(d$Incidence)
-    }
-    
-    
-    
-    # 
-    ##' input d with non-square rooted incidence values. Then we take the square root of the 
-    ##' incidence to match the path calculation
-    ##' 
-    # if(use.rep.cases == 1 & make.inc.cv.scale.same == F){
-    #     d$Incidence = sqrt(d$Incidence)  
-    # }
-    
-    ##' 
-    
-    # d$Incidence = scl(d$Incidence)
-    # d$Coefficient.of.Variation = scl (d$Coefficient.of.Variation)
-    # 
-    ##' find the mean path for each region by averaging positions in each year
-    list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions,
-                                          inc.transform = inc.transform,
-                                          make.inc.cv.scale.same = make.inc.cv.scale.same)
-    
-    
-    
-    
-    if(use.rep.cases ==  1){
-        ##' If we are considering the reported cases to locate the countries, then
-        ##' Africa and the Americas mean paths converge at roughly 2007 in Africa and 
-        ##' 1993 for the Americas. Join the paths at this point, and use it as the canonical
-        ##' path 
-        k = which(years == 2008)
-        k1 = which(years == 1995)
-        #zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
-        #zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
-        canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
-                               cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
-            data.frame()
-        
-        
-    }else{
-        ##' If we are considering the state space cases to locate the countries, then
-        ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
-        ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
-        ##' and use it as the canonical path
-        k = which(years == 2010)
-        k1 = which(years == 1998)
-        # zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
-        #    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
-        canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
-                               cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
-            data.frame()
-        # canonical.path = canonical.path[-(33:35),]
-        
-    }
-    colnames(canonical.path) = c('x', 'y')
-    last.canonical = c(tail(canonical.path$x, 1), tail(canonical.path$y, 1))
-    
-    end.canonical =c(0,0)
-    
-    if(connect.canonical.path.to.zero == 1){
-        l = cbind(seq(last.canonical[1], end.canonical[1], -last.canonical[1] / 3),
-                  seq(last.canonical[2], end.canonical[2], -last.canonical[2] / 3))
-        
-        colnames(l) = colnames(canonical.path)
-        canonical.path = rbind(canonical.path, l)
-    }
-    
-    # canonical.path$x = scl(canonical.path$x)
-    # canonical.path$y = scl(canonical.path$y)
-    ##' add a column to hold the closest position on the mean trajectory
-    d$closest = 0
-    
-    ##' we only need to calculate the closest position for each country once a year, 
-    ##' therefore we restrict to only yearly data
-    y1 = unique(round(d$Year))
-    d = filter(d, Year %in% y1)
-    
-    ##' for each entry, then calculate which point is the closest on the trajectory
-    for(i in 1 : nrow(d)){
-        q = c(d$Coefficient.of.Variation[i], d$Incidence[i]) %>%
-            rbind( cbind(canonical.path$x, canonical.path$y)) %>%
-            dist() %>% as.matrix()
-        d$closest[i] = which(q[1, -(1)] == min(q[1, -(1)])) %>% as.matrix() %>% tail(1)
-        
-    }
-    d$canonical.x = canonical.path$x[d$closest]
-    d$canonical.y = canonical.path$y[d$closest]
-    return(list(d, canonical.path))
+  }
+  d$canonical.x = canonical.path$x[d$closest]
+  d$canonical.y = canonical.path$y[d$closest]
+  return(list(d, canonical.path))
 }
 
 
@@ -2158,26 +2138,26 @@ closest.path.point <- function(d, regions, years, use.rep.cases = 1,
 #'
 #' @return - w1, a set of weights
 generate.cv.weights <- function(coeff.var, gaussian.st.dev, cutoff){
-    x1 = seq(1, length(coeff.var[1, ]) + 1)
-    w1 = matrix(0, length(x1), length(x1))
-    for (i in 1 : length(x1)){
-        ##' set up the gaussian weights for averaging
-        
-        w.input = x1 - x1[i]
-        w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-        
-        ##' find the position in the time input at which we are at, and make all weights 0
-        ##' for any time after that, so that we are only using past values for the weigthing
-        j = which(w.input == 0)
-        w1[i,j : length(w1[i,])] = 0
-        ##' make sure that the weights add up to 1 for each of the specific weightings
-        w1[i, ] = w1[i, ] / sum(w1[i, ])
-    }
-    ##' remove the first row, as this is all NA
-    w1 = w1[-(1), ]
-    ##' remove the final column, as this is always all 0, due to only including previoulsy observed values.
-    w1 = w1[, -(ncol(w1)) ]    
-    return(w1)
+  x1 = seq(1, length(coeff.var[1, ]) + 1)
+  w1 = matrix(0, length(x1), length(x1))
+  for (i in 1 : length(x1)){
+    ##' set up the gaussian weights for averaging
+    
+    w.input = x1 - x1[i]
+    w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
+    
+    ##' find the position in the time input at which we are at, and make all weights 0
+    ##' for any time after that, so that we are only using past values for the weigthing
+    j = which(w.input == 0)
+    w1[i,j : length(w1[i,])] = 0
+    ##' make sure that the weights add up to 1 for each of the specific weightings
+    w1[i, ] = w1[i, ] / sum(w1[i, ])
+  }
+  ##' remove the first row, as this is all NA
+  w1 = w1[-(1), ]
+  ##' remove the final column, as this is always all 0, due to only including previoulsy observed values.
+  w1 = w1[, -(ncol(w1)) ]    
+  return(w1)
 }
 
 
@@ -2198,28 +2178,28 @@ generate.other.weights <- function(d,
                                    gaussian.st.dev, 
                                    cutoff,
                                    year.shift.inc){
-    x2 = seq(1, length(d[1, ]))
-    w2 = matrix(0, length(x2), length(x2))
-    for (i in 1 : length(x2)){
-        ##' set up the gaussian weights for averaging
-        
-        w.input = x2 - x2[i] + year.shift.inc
-        w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-        
-        ##' make sure that the weights add up to 1 for each of the specific weightings
-        j = which(w.input == (year.shift.inc + 1))
-        if(length(j) > 0){
-            w2[i,j : length(w2[i,])] = 0
-            w2[i, ] = w2[i, ] / sum(w2[i, ])
-        }
-        
-    }
-    ##' we only begin weighting the data sets at the point at which we have at least the number of years
-    ##' of data as we include each windowed data set. 
-    ##' therefore, we delete the entries before this number of years 
-    w2 = w2[-(1:(window.length - 1)), ]
+  x2 = seq(1, length(d[1, ]))
+  w2 = matrix(0, length(x2), length(x2))
+  for (i in 1 : length(x2)){
+    ##' set up the gaussian weights for averaging
     
-    return(w2)
+    w.input = x2 - x2[i] + year.shift.inc
+    w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
+    
+    ##' make sure that the weights add up to 1 for each of the specific weightings
+    j = which(w.input == (year.shift.inc + 1))
+    if(length(j) > 0){
+      w2[i,j : length(w2[i,])] = 0
+      w2[i, ] = w2[i, ] / sum(w2[i, ])
+    }
+    
+  }
+  ##' we only begin weighting the data sets at the point at which we have at least the number of years
+  ##' of data as we include each windowed data set. 
+  ##' therefore, we delete the entries before this number of years 
+  w2 = w2[-(1:(window.length - 1)), ]
+  
+  return(w2)
 }
 
 
@@ -2279,32 +2259,32 @@ make.weighted.data <- function(coeff.var,
                                mean.vac,
                                w1,
                                w2){
-    
-    coeff.2 = coeff.var
-    incidence.2 = incidence.per.1000.each.year
-    mbr2 = mean.br
-    mvacc2 = mean.vac
-    for(i in 1 : length(coeff.var[1, ])){
-        for(j in 1 : length(coeff.var[, 1])){
-            ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
-            coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
-            incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
-            mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
-            mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T) 
-            
-            
-            
-            
-        }
+  
+  coeff.2 = coeff.var
+  incidence.2 = incidence.per.1000.each.year
+  mbr2 = mean.br
+  mvacc2 = mean.vac
+  for(i in 1 : length(coeff.var[1, ])){
+    for(j in 1 : length(coeff.var[, 1])){
+      ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
+      coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
+      incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
+      mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
+      mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T) 
+      
+      
+      
+      
     }
-    
-    ##' set the original data to be equal to the weighted data
-    coeff.var.cases = coeff.2
-    incidence.per.1000 = incidence.2
-    mean.br = mbr2
-    mean.vac = mvacc2
-    
-    return(list(coeff.2, incidence.2, mbr2, mvacc2))
+  }
+  
+  ##' set the original data to be equal to the weighted data
+  coeff.var.cases = coeff.2
+  incidence.per.1000 = incidence.2
+  mean.br = mbr2
+  mean.vac = mvacc2
+  
+  return(list(coeff.2, incidence.2, mbr2, mvacc2))
 }
 
 
@@ -2334,46 +2314,46 @@ prepare.data.for.weighting <- function(year, window.length, num.windows,
                                        interp.subset.br,
                                        interp.subset.vacc,
                                        subset.data){
-    
-    ##' set up data sets that will contain the desired data
-    coeff.var = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    incidence.per.1000 = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    mean.br = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    mean.vac = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    
-    
-    ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
-    ##' mean vaccination rate over periods of length given by the window length.
-    for ( j in 1 : num.windows){
-        for ( i in 1 : length(subset.data[ , 1])){
-            coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
-                mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
-                if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
-                    coeff.var[i, j]  =  0
-                } 
-            }
-            incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
-                                                 as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
-            if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-            if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-        }
-        year = year + 1
+  
+  ##' set up data sets that will contain the desired data
+  coeff.var = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  incidence.per.1000 = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  mean.br = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  mean.vac = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  
+  
+  ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
+  ##' mean vaccination rate over periods of length given by the window length.
+  for ( j in 1 : num.windows){
+    for ( i in 1 : length(subset.data[ , 1])){
+      coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
+        mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
+        if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
+          coeff.var[i, j]  =  0
+        } 
+      }
+      incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
+                                         as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
+      if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
+      if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
     }
+    year = year + 1
+  }
+  
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
+  for(i in 1 : nrow(subset.data)){
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
+      as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
     
-    incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
-    for(i in 1 : nrow(subset.data)){
-        incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
-            as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
-        
-    }
-    
-    
-    return(list(coeff.var, incidence.per.1000.each.year, mean.br, mean.vac))
+  }
+  
+  
+  return(list(coeff.var, incidence.per.1000.each.year, mean.br, mean.vac))
 }
 
 
@@ -2397,50 +2377,50 @@ calc.variables.by.window.length <- function(year, window.length, num.windows,
                                             interp.subset.pop,
                                             interp.subset.br,
                                             interp.subset.vacc){
-    
-    ##' set up data sets that will contain the desired data
-    coeff.var = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    incidence.per.1000 = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    mean.br = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    mean.vac = matrix(0, length(interp.subset.data[ , 1]), num.windows)
-    
-    
-    ##' entry paste(seq(year, year + window.length - 1)) specifies which years of data we are considering
-    ##' at each position
-    for ( j in 1 : num.windows){
-        for ( i in 1 : nrow(interp.subset.data)){
-            ##' coefficient of variation is the standard deviation of the cases divided by the mean number of cases
-            coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
-                mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            ##' if cases are missing over a period, then report 0 as the coefficient of variation
-            if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
-                if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
-                    coeff.var[i, j]  =  0
-                } 
-            }
-            ##' calculate the 
-            # incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
-            #                                      as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
-            # if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-            #     mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            # }
-            # if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-            #     mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            # }
-        }
-        ##' increment the year so that we are stepping our analysis forward one year at a time
-        year = year + 1
+  
+  ##' set up data sets that will contain the desired data
+  coeff.var = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  incidence.per.1000 = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  mean.br = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  mean.vac = matrix(0, length(interp.subset.data[ , 1]), num.windows)
+  
+  
+  ##' entry paste(seq(year, year + window.length - 1)) specifies which years of data we are considering
+  ##' at each position
+  for ( j in 1 : num.windows){
+    for ( i in 1 : nrow(interp.subset.data)){
+      ##' coefficient of variation is the standard deviation of the cases divided by the mean number of cases
+      coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
+        mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      ##' if cases are missing over a period, then report 0 as the coefficient of variation
+      if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
+        if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
+          coeff.var[i, j]  =  0
+        } 
+      }
+      ##' calculate the 
+      # incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
+      #                                      as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
+      # if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+      #     mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      # }
+      # if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+      #     mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      # }
     }
-    
-    mean.vac = data.frame(interp.subset.vacc[, -(1:2)])
-    mean.br = data.frame(interp.subset.br[, -(1:2)]) 
-    for(i in 1 : ncol(mean.vac)){
-        mean.vac[, i] = mean.vac[, i] %>% as.character %>% as.numeric
-        mean.br[, i] = mean.br[, i] %>% as.character %>% as.numeric
-    }
-    
-    
-    return(list(coeff.var, incidence.per.1000, mean.br, mean.vac))
+    ##' increment the year so that we are stepping our analysis forward one year at a time
+    year = year + 1
+  }
+  
+  mean.vac = data.frame(interp.subset.vacc[, -(1:2)])
+  mean.br = data.frame(interp.subset.br[, -(1:2)]) 
+  for(i in 1 : ncol(mean.vac)){
+    mean.vac[, i] = mean.vac[, i] %>% as.character %>% as.numeric
+    mean.br[, i] = mean.br[, i] %>% as.character %>% as.numeric
+  }
+  
+  
+  return(list(coeff.var, incidence.per.1000, mean.br, mean.vac))
 }
 
 
@@ -2451,6 +2431,7 @@ calc.variables.by.window.length <- function(year, window.length, num.windows,
 #'
 #' @param d1 - incidence and cv data
 #' @param d2 - estimated number of susceptibles by country and by year
+#' @param d3 - estimated number of individuals by age and country and year
 #' @param rep.cases - are we using the reported or estimated cases
 #' @param regions - the WHO regions we are considering
 #' @param make.inc.cv.scale.same - if 1, then we scale both the incidence and cv data to be on 0-1 range
@@ -2463,108 +2444,142 @@ calc.variables.by.window.length <- function(year, window.length, num.windows,
 #' @export
 #'
 #' @examples
-plots.for.sus.dist.by.canonical.path <- function(d1, d2, rep.cases,
+plots.for.sus.dist.by.canonical.path <- function(d1, d2, d3, rep.cases,
                                                  regions,
                                                  make.inc.cv.scale.same,
                                                  inc.transform,
                                                  connect.canonical.path.to.zero,
                                                  log.incidence,
                                                  make.figure.plot = F){
-    
-    ##' use the incidence and cv data to create the canonical path
-    list[d1, canonical.path] = closest.path.point(d = d1, 
-                                                  use.rep.cases = rep.cases,
-                                                  regions = regions, 
-                                                  years = seq(1990, 2016),
-                                                  make.inc.cv.scale.same = make.inc.cv.scale.same,
-                                                  inc.transform = inc.transform,
-                                                  connect.canonical.path.to.zero,
-                                                  log.incidence = log.incidence,
-                                                  make.figure.plot = make.figure.plot)
-    
-    list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
-    d2$closest = NA
-    d2$population = NA
-    for(i in 1 : nrow(d2)){
-        c = d2$Country[i]
-        y = d2$Year[i]
-        k = which(d1$Country == c & d1$Year == y )
-        k2 = which(subset.pop.by.year$Country.Name == c)
-        if(length(k) > 0){
-            d2$closest[i] = d1$closest[k]
-            if(y == 2014){
-                d2$population[i] = d2$population[i-1]
-            }else{
-                d2$population[i] = subset.pop.by.year[k2, paste("X", y, sep = "")]
-            }
-            
-        }
-        
+  
+  ##' use the incidence and cv data to create the canonical path
+  list[d1, canonical.path] = closest.path.point(d = d1, 
+                                                use.rep.cases = rep.cases,
+                                                regions = regions, 
+                                                years = seq(1990, 2016),
+                                                make.inc.cv.scale.same = make.inc.cv.scale.same,
+                                                inc.transform = inc.transform,
+                                                connect.canonical.path.to.zero,
+                                                log.incidence = log.incidence,
+                                                make.figure.plot = make.figure.plot)
+  
+  d3 <- d3[3:ncol(d3)]
+  colnames(d3) <- paste("pop", 0:59, sep = "")
+  d4 <- cbind(d2, d3) #data.frame for age profile of susceptiblity
+  
+  list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
+  d2$closest = NA
+  d2$population = NA
+  for(i in 1 : nrow(d2)){
+    c = d2$Country[i]
+    y = d2$Year[i]
+    k = which(d1$Country == c & d1$Year == y )
+    k2 = which(subset.pop.by.year$Country.Name == c)
+    if(length(k) > 0){
+      d2$closest[i] = d1$closest[k]
+      if(y == 2014){
+        d2$population[i] = d2$population[i-1]
+      }else{
+        d2$population[i] = subset.pop.by.year[k2, paste("X", y, sep = "")]
+      }
+      
     }
     
-    sample.size = 100000
-    for(i in 0:59){
-        d2[, paste("X", i, sep = "")] = as.numeric(as.character(d2[, paste("X", i, sep = "")]))
+  }
+  
+  sample.size = 100000
+  for(i in 0:59){
+    d2[, paste("X", i, sep = "")] = as.numeric(as.character(d2[, paste("X", i, sep = "")]))
+  }
+  
+  d2$population = d2$population %>% as.character %>% as.numeric
+  for(i in 1 : max(d2$closest, na.rm = T)){
+    qq = d2 %>%
+      filter(closest == i) 
+    if(nrow(qq)>0){
+      qq = qq[, paste("X", 0:59, sep = "")]
+      qq = qq %>% colSums(na.rm = T)
+      qq = qq %>% divide_by(max(1,min(qq))) %>%
+        multiply_by(20) %>%
+        round
+      
+      pp = matrix(0, sum(qq), 1)
+      count = 1
+      for(j in 1 : length(qq)){
+        pp[count:(count + qq[j] - 1)] = j-1
+        count = count + qq[j]
+      }
+      if(i==1){
+        dist.by.age = cbind(1, sample(pp, sample.size, replace = T))
+      }
+      if(i > 1){
+        dist.by.age = rbind(dist.by.age, cbind(i, sample(pp, sample.size, replace = T)))
+      }
+      head(dist.by.age)
     }
-    
-    d2$population = d2$population %>% as.character %>% as.numeric
-    for(i in 1 : max(d2$closest, na.rm = T)){
-        qq = d2 %>%
-            filter(closest == i) 
-        if(nrow(qq)>0){
-            qq = qq[, paste("X", 0:59, sep = "")]
-            qq = qq %>% colSums(na.rm = T)
-            qq = qq %>% divide_by(max(1,min(qq))) %>%
-                multiply_by(20) %>%
-                round
-            
-            pp = matrix(0, sum(qq), 1)
-            count = 1
-            for(j in 1 : length(qq)){
-                pp[count:(count + qq[j] - 1)] = j-1
-                count = count + qq[j]
-            }
-            if(i==1){
-                dist.by.age = cbind(1, sample(pp, sample.size, replace = T))
-            }
-            if(i > 1){
-                dist.by.age = rbind(dist.by.age, cbind(i, sample(pp, sample.size, replace = T)))
-            }
-            head(dist.by.age)
-        }
+  }
+  prop.sus <- data.frame(matrix(NA, max(d2$closest, na.rm = T), 2))
+  prop.sus[, 1] = seq(1, max(d2$closest, na.rm = T))
+  
+  for(i in 1 : max(prop.sus[, 1])){
+    qq = d2 %>%
+      filter(closest == i) %>%
+      na.omit
+    if(nrow(qq) >0){
+      num.sus = qq[ paste("X", 0:59, sep = "")] %>% sum
+      total.pop = qq$population %>% sum
+      prop.sus[i, 2] = num.sus / total.pop
     }
-    prop.sus <- data.frame(matrix(NA, max(d2$closest, na.rm = T), 2))
-    prop.sus[, 1] = seq(1, max(d2$closest, na.rm = T))
+  }
+  #prop.sus %<>% na.omit
+  colnames(prop.sus) = c("x", "y")
+  
+  
+  
+  dist.by.age = data.frame(dist.by.age)
+  colnames(dist.by.age) = c("point", "age")
+  num.points = nrow(canonical.path)
+  missing.points = setdiff(1:num.points, unique(dist.by.age$point))
+  if(length(missing.points) > 0){
+    missing.boxes = data.frame(cbind(missing.points, -5))   
+    colnames(missing.boxes) = c("point", "age")
+    dist.by.age = rbind(dist.by.age, missing.boxes)
     
-    for(i in 1 : max(prop.sus[, 1])){
-        qq = d2 %>%
-            filter(closest == i) %>%
-            na.omit
-        if(nrow(qq) >0){
-            num.sus = qq[ paste("X", 0:59, sep = "")] %>% sum
-            total.pop = qq$population %>% sum
-            prop.sus[i, 2] = num.sus / total.pop
-        }
+  }
+  
+  #age profile of susceptiblity
+  d4$closest = NA
+  for(i in 1 : nrow(d4)){
+    c = d4$Country[i]
+    y = d4$Year[i]
+    k = which(d1$Country == c & d1$Year == y )
+    if(length(k) > 0){
+      d4$closest[i] = d1$closest[k]
     }
-    #prop.sus %<>% na.omit
-    colnames(prop.sus) = c("x", "y")
-    
-    
-    
-    dist.by.age = data.frame(dist.by.age)
-    colnames(dist.by.age) = c("point", "age")
-    num.points = nrow(canonical.path)
-    missing.points = setdiff(1:num.points, unique(dist.by.age$point))
-    if(length(missing.points) > 0){
-        missing.boxes = data.frame(cbind(missing.points, -5))   
-        colnames(missing.boxes) = c("point", "age")
-        dist.by.age = rbind(dist.by.age, missing.boxes)
-        
+  } #this adds the point of the canonial path for each country and year in d2 (i.e., row)
+  
+  for(i in 0:59){
+    d4[, paste("X", i, sep = "")] = as.numeric(as.character(d4[, paste("X", i, sep = "")]))
+    d4[, paste("pop", i, sep = "")] = as.numeric(as.character(d4[, paste("pop", i, sep = "")]))
+  } #just changing numbers to numeric
+  
+  prop.sus.by.age <- data.frame(matrix(NA, max(d4$closest, na.rm = T), 61))
+  prop.sus.by.age[, 1] = seq(1, max(d4$closest, na.rm = T)) #matrix of nrow= 38, all positions, and 2 columns
+  for(i in 1 : max(prop.sus.by.age[, 1])){ #for each position
+    qq = d4 %>%
+      filter(closest == i) %>%
+      na.omit  #rows with this canonical point
+    if(nrow(qq) >0){
+      num.sus = qq[ paste("X", 0:59, sep = "")] %>% colSums
+      total.pop = qq[ paste("pop", 0:59, sep = "")] %>% colSums
+      prop.sus.by.age[i, 2:61] = num.sus / total.pop
     }
-    
-    return(list( dist.by.age, canonical.path, prop.sus, d1))
+  }
+  colnames(prop.sus.by.age) = c("X", paste("prop.sus", 0:59, sep = ""))
+  
+  
+  return(list( dist.by.age, canonical.path, prop.sus, d1, prop.sus.by.age))
 }
-
 
 
 
@@ -2581,83 +2596,83 @@ plots.for.sus.dist.by.canonical.path <- function(d1, d2, rep.cases,
 produce.gams.plot <- function(data, 
                               ticks = c(0,sqrt(10), sqrt(50), 10, sqrt(200)), 
                               tick.labels = c(0,10,50,100,200)){
-    
-    ##' fit a GAM to the incidence and the coefficient of variation with the independent variable being birth rate
-    A <- gam(sqrt(Incidence) ~ s(Mean.birth.rate), data = data )
-    A2 <- gam(Coefficient.of.Variation ~s(Mean.birth.rate) , data = data )
-    
-    ##' find all the (integer) values of birth rate that are in the data set
-    brs = unique(c(floor(data$Mean.birth.rate), ceiling(data$Mean.birth.rate)))
-    
-    ##' order all of these birth rates to be used in prediction
-    brs = brs[order(brs)]
-    
-    ##' predict the incidence, given the birth rate
-    g1 = predict.gam(A, newdata = data.frame(Mean.birth.rate = brs))
-    
-    ##' predict the coefficient of variation given the birth rate
-    g2 = predict.gam(A2, newdata = data.frame(Mean.birth.rate = brs))
-    
-    ##' collect these two predictions, along with the independent variable in a data frame
-    h = data.frame(cbind(as.matrix(as.numeric(g2)),as.matrix(as.numeric( g1)), brs))
-    colnames(h) = c("x", "y", "num")
-    
-    ##' fit a GAM to the incidence and the coefficient of variation with the independent variable being vaccination 
-    C <- gam(sqrt(Incidence) ~s(Mean.vaccination), data = data )
-    C2 <- gam(Coefficient.of.Variation ~s(Mean.vaccination), data = data )
-    
-    ##' find the minimum and maximum values of the vaccination
-    vac.min = min(data$Mean.vaccination, na.rm = T)
-    vac.max = max(data$Mean.vaccination, na.rm = T)
-    
-    ##' predict the incidence, given the vaccination proportion
-    s1 = predict.gam(C, newdata = data.frame(Mean.vaccination = vac.min:vac.max))
-    
-    ##' predict the coefficient of variation given the vaccination proportion
-    s2 = predict.gam(C2, newdata = data.frame(Mean.vaccination = vac.min:vac.max))
-    
-    ##' collect these two predictions, along with the independent variable in a data frame
-    z = data.frame(cbind(as.matrix(as.numeric(s2)),as.matrix(as.numeric( s1)), vac.min:vac.max))
-    colnames(z) = c("x", "y", "num")
-    
-    ##' fit a GAM to the incidence and the coefficient of variation with the independent variable being (birth rate)*(1-vacc proportion)
-    D <- gam(sqrt(Incidence) ~s(br.vacc), data = data )
-    D2 <- gam(Coefficient.of.Variation ~s(br.vacc), data = data )
-    
-    ##' find the minimum and maximum values of this independent variable
-    br.vac.min = min(data$br.vacc, na.rm = T)
-    br.vac.max = max(data$br.vacc, na.rm = T)
-    
-    ##' predict the incidence given the independent variable
-    f1 = predict.gam(D, newdata = data.frame(br.vacc = br.vac.min:br.vac.max))
-    
-    ##' predict the coefficient of variation given the independent variable
-    f2 = predict.gam(D2, newdata = data.frame(br.vacc = br.vac.min:br.vac.max))
-    
-    ##' collect these two predictions, along with the independent variable in a data frame
-    j = data.frame(cbind(as.matrix(as.numeric(f2)),as.matrix(as.numeric( f1)), br.vac.min:br.vac.max))
-    colnames(j) = c("x", "y", "num")
-    
-    ##' add a column to each of the prediction data sets we have created to label what the independent variable was
-    h = cbind(h, 'br')
-    colnames(h) = c("x", "y", "num", 'type')
-    z = cbind(z, 'vacc')
-    colnames(z) = c("x", "y", "num", "type")
-    j = cbind(j, 'br.vacc')
-    colnames(j) = c("x", "y", "num", "type")
-    
-    ##' combine these 3 data sets into 1 for plotting
-    z1 = rbind(z, h, j)
-    
-    ##' generate colors
-    colfunc.br <- colorRampPalette(c("mediumaquamarine", "darkgreen"))
-    colfunc.vacc = colorRampPalette(c("lightblue", "navyblue"))
-    colfunc.br.vacc = colorRampPalette(c("pink", "firebrick"))
-    
-    
-    
-    return(list(h, z, j, z1, colfunc.br, colfunc.vacc, colfunc.br.vacc))
-    
+  
+  ##' fit a GAM to the incidence and the coefficient of variation with the independent variable being birth rate
+  A <- gam(sqrt(Incidence) ~ s(Mean.birth.rate), data = data )
+  A2 <- gam(Coefficient.of.Variation ~s(Mean.birth.rate) , data = data )
+  
+  ##' find all the (integer) values of birth rate that are in the data set
+  brs = unique(c(floor(data$Mean.birth.rate), ceiling(data$Mean.birth.rate)))
+  
+  ##' order all of these birth rates to be used in prediction
+  brs = brs[order(brs)]
+  
+  ##' predict the incidence, given the birth rate
+  g1 = predict.gam(A, newdata = data.frame(Mean.birth.rate = brs))
+  
+  ##' predict the coefficient of variation given the birth rate
+  g2 = predict.gam(A2, newdata = data.frame(Mean.birth.rate = brs))
+  
+  ##' collect these two predictions, along with the independent variable in a data frame
+  h = data.frame(cbind(as.matrix(as.numeric(g2)),as.matrix(as.numeric( g1)), brs))
+  colnames(h) = c("x", "y", "num")
+  
+  ##' fit a GAM to the incidence and the coefficient of variation with the independent variable being vaccination 
+  C <- gam(sqrt(Incidence) ~s(Mean.vaccination), data = data )
+  C2 <- gam(Coefficient.of.Variation ~s(Mean.vaccination), data = data )
+  
+  ##' find the minimum and maximum values of the vaccination
+  vac.min = min(data$Mean.vaccination, na.rm = T)
+  vac.max = max(data$Mean.vaccination, na.rm = T)
+  
+  ##' predict the incidence, given the vaccination proportion
+  s1 = predict.gam(C, newdata = data.frame(Mean.vaccination = vac.min:vac.max))
+  
+  ##' predict the coefficient of variation given the vaccination proportion
+  s2 = predict.gam(C2, newdata = data.frame(Mean.vaccination = vac.min:vac.max))
+  
+  ##' collect these two predictions, along with the independent variable in a data frame
+  z = data.frame(cbind(as.matrix(as.numeric(s2)),as.matrix(as.numeric( s1)), vac.min:vac.max))
+  colnames(z) = c("x", "y", "num")
+  
+  ##' fit a GAM to the incidence and the coefficient of variation with the independent variable being (birth rate)*(1-vacc proportion)
+  D <- gam(sqrt(Incidence) ~s(br.vacc), data = data )
+  D2 <- gam(Coefficient.of.Variation ~s(br.vacc), data = data )
+  
+  ##' find the minimum and maximum values of this independent variable
+  br.vac.min = min(data$br.vacc, na.rm = T)
+  br.vac.max = max(data$br.vacc, na.rm = T)
+  
+  ##' predict the incidence given the independent variable
+  f1 = predict.gam(D, newdata = data.frame(br.vacc = br.vac.min:br.vac.max))
+  
+  ##' predict the coefficient of variation given the independent variable
+  f2 = predict.gam(D2, newdata = data.frame(br.vacc = br.vac.min:br.vac.max))
+  
+  ##' collect these two predictions, along with the independent variable in a data frame
+  j = data.frame(cbind(as.matrix(as.numeric(f2)),as.matrix(as.numeric( f1)), br.vac.min:br.vac.max))
+  colnames(j) = c("x", "y", "num")
+  
+  ##' add a column to each of the prediction data sets we have created to label what the independent variable was
+  h = cbind(h, 'br')
+  colnames(h) = c("x", "y", "num", 'type')
+  z = cbind(z, 'vacc')
+  colnames(z) = c("x", "y", "num", "type")
+  j = cbind(j, 'br.vacc')
+  colnames(j) = c("x", "y", "num", "type")
+  
+  ##' combine these 3 data sets into 1 for plotting
+  z1 = rbind(z, h, j)
+  
+  ##' generate colors
+  colfunc.br <- colorRampPalette(c("mediumaquamarine", "darkgreen"))
+  colfunc.vacc = colorRampPalette(c("lightblue", "navyblue"))
+  colfunc.br.vacc = colorRampPalette(c("pink", "firebrick"))
+  
+  
+  
+  return(list(h, z, j, z1, colfunc.br, colfunc.vacc, colfunc.br.vacc))
+  
 }
 
 
@@ -2668,44 +2683,44 @@ produce.gams.plot <- function(data,
 #' @param mcv2.alpha - tranparency score for countries which have introduced mcv2
 
 add.mcv2.data.to.anim.data <- function(input.data, non.mcv2.alpha = 0.4, mcv2.alpha = 0.6){
-    ##' read in the MCV2 data. this data set gives the year of introduction of second measles routine vaccination
-    mcv2 = read.csv("data/MCV2_introduction.csv", stringsAsFactors = F)
-    ##' change entries for the year introduction of second measles routine vaccination which are n/a to NA
-    j = which(mcv2$MCV2_Intro_Year == "n/a")
-    mcv2$MCV2_Intro_Year[j] = NA
-    mcv2$MCV2_Intro_Year = as.numeric(as.character(mcv2$MCV2_Intro_Year))
-    ##' change entries for the part of the country mcv2 was introduced in from n/a to NA
-    j = which(mcv2$MCV2_Intro_part_of_country == "n/a" |
-                  mcv2$MCV2_Intro_part_of_country == "n/d")
-    mcv2$MCV2_Intro_part_of_country[j] = NA
-    mcv2$MCV2_Intro_part_of_country = as.numeric(as.character(mcv2$MCV2_Intro_part_of_country))
-    
-    ##' set the data set which will be output from this function to be the same as the input data set
-    output.data = input.data
-    ##' add a column which will hold the year of introduction of the MCV2 for each country
-    output.data$MCV2 = as.numeric(matrix(0, nrow(output.data), 1))
-    
-    ##' which countries are in the MCV2 data set
-    aa = unique(mcv2$Country)
-    ##' loop over these countries adding the year of introduction of MCV2 by country to the output data 
-    for(i in 1 : length(aa)){
-        year = mcv2$MCV2_Intro_Year[i]
-        if(!is.na(year)){
-            j = which(output.data$Country == aa[i])
-            k = which(output.data$Year[j] >= year)
-            output.data$MCV2[j[k]] = 1
-        }
+  ##' read in the MCV2 data. this data set gives the year of introduction of second measles routine vaccination
+  mcv2 = read.csv("data/MCV2_introduction.csv", stringsAsFactors = F)
+  ##' change entries for the year introduction of second measles routine vaccination which are n/a to NA
+  j = which(mcv2$MCV2_Intro_Year == "n/a")
+  mcv2$MCV2_Intro_Year[j] = NA
+  mcv2$MCV2_Intro_Year = as.numeric(as.character(mcv2$MCV2_Intro_Year))
+  ##' change entries for the part of the country mcv2 was introduced in from n/a to NA
+  j = which(mcv2$MCV2_Intro_part_of_country == "n/a" |
+              mcv2$MCV2_Intro_part_of_country == "n/d")
+  mcv2$MCV2_Intro_part_of_country[j] = NA
+  mcv2$MCV2_Intro_part_of_country = as.numeric(as.character(mcv2$MCV2_Intro_part_of_country))
+  
+  ##' set the data set which will be output from this function to be the same as the input data set
+  output.data = input.data
+  ##' add a column which will hold the year of introduction of the MCV2 for each country
+  output.data$MCV2 = as.numeric(matrix(0, nrow(output.data), 1))
+  
+  ##' which countries are in the MCV2 data set
+  aa = unique(mcv2$Country)
+  ##' loop over these countries adding the year of introduction of MCV2 by country to the output data 
+  for(i in 1 : length(aa)){
+    year = mcv2$MCV2_Intro_Year[i]
+    if(!is.na(year)){
+      j = which(output.data$Country == aa[i])
+      k = which(output.data$Year[j] >= year)
+      output.data$MCV2[j[k]] = 1
     }
-    
-    
-    
-    output.data$alpha = as.numeric(matrix(non.mcv2.alpha, nrow(output.data), 1))
-    output.data$shape = as.numeric(matrix(1, nrow(output.data), 1))
-    j = which(output.data$MCV2 == 1)
-    output.data$alpha[j] = mcv2.alpha
-    output.data$shape[j] = 2
-    output.data$alpha = as.numeric(as.character(output.data$alpha))
-    return(output.data)
+  }
+  
+  
+  
+  output.data$alpha = as.numeric(matrix(non.mcv2.alpha, nrow(output.data), 1))
+  output.data$shape = as.numeric(matrix(1, nrow(output.data), 1))
+  j = which(output.data$MCV2 == 1)
+  output.data$alpha[j] = mcv2.alpha
+  output.data$shape[j] = 2
+  output.data$alpha = as.numeric(as.character(output.data$alpha))
+  return(output.data)
 }
 
 
@@ -2723,125 +2738,125 @@ plot.world.map <- function(d,
                            connect.canonical.path.to.zero,
                            log.incidence,
                            with.text =1){
-    
-    list[d1, canonical.path] = closest.path.point(d = d, 
-                                                  use.rep.cases = use.rep.cases,
-                                                  regions = regions, 
-                                                  years = seq(1990, 2016),
-                                                  make.inc.cv.scale.same = make.inc.cv.scale.same,
-                                                  inc.transform = inc.transform,
-                                                  connect.canonical.path.to.zero,
-                                                  log.incidence = log.incidence)
-    
-    
-    A = d1%>%filter(Year == year)    
-    data(World)
-    World$pos = NA
-    for(i in 1 : nrow(A)){
-        if(A$Country[i] %in% missing.countries){
-            k = which(missing.countries == A$Country[i])
-            A$Country[i] = replace.countries[k]
-        }
-        j = which(World$name == A$Country[i])
-        if(length(j) > 0){
-            World$pos[j] = A$closest[i]
-        }
+  
+  list[d1, canonical.path] = closest.path.point(d = d, 
+                                                use.rep.cases = use.rep.cases,
+                                                regions = regions, 
+                                                years = seq(1990, 2016),
+                                                make.inc.cv.scale.same = make.inc.cv.scale.same,
+                                                inc.transform = inc.transform,
+                                                connect.canonical.path.to.zero,
+                                                log.incidence = log.incidence)
+  
+  
+  A = d1%>%filter(Year == year)    
+  data(World)
+  World$pos = NA
+  for(i in 1 : nrow(A)){
+    if(A$Country[i] %in% missing.countries){
+      k = which(missing.countries == A$Country[i])
+      A$Country[i] = replace.countries[k]
     }
-    
-    cols.1 <- colorRampPalette(c("red", "white", "blue"))(nrow(canonical.path))
-    
-    kk = which(World$iso_a3 == "ATA" | World$iso_a3 == "GRL")
-    World$cols = cols.1[World$pos]
-    
-    if(with.text==1){
-        p<-tm_shape(World[-(kk),]) +
-            tm_polygons("cols", textNA="No Data", 
-                        title="Well-Being Index") +
-            tm_text("iso_a3", size="area", root=5) 
-    }else{p<-tm_shape(World[-(kk),]) +
-        tm_polygons("cols", textNA="No Data", 
-                    title="Well-Being Index")  }
-    
-    #print(p)
-    return(list(p, A, canonical.path))
+    j = which(World$name == A$Country[i])
+    if(length(j) > 0){
+      World$pos[j] = A$closest[i]
+    }
+  }
+  
+  cols.1 <- colorRampPalette(c("red", "white", "blue"))(nrow(canonical.path))
+  
+  kk = which(World$iso_a3 == "ATA" | World$iso_a3 == "GRL")
+  World$cols = cols.1[World$pos]
+  
+  if(with.text==1){
+    p<-tm_shape(World[-(kk),]) +
+      tm_polygons("cols", textNA="No Data", 
+                  title="Well-Being Index") +
+      tm_text("iso_a3", size="area", root=5) 
+  }else{p<-tm_shape(World[-(kk),]) +
+    tm_polygons("cols", textNA="No Data", 
+                title="Well-Being Index")  }
+  
+  #print(p)
+  return(list(p, A, canonical.path))
 }
 
 
 
 
 get.data.for.animation.state.space <- function(regions){
-    
-    
-    cases.by.country.by.year = read.csv("data/Measles_cases_by_year2.csv", stringsAsFactors = FALSE)
-    subset.data = read.csv("data/State_space_cases.csv")
-    Birth.rates = read.csv("data/Birth_rates.csv", stringsAsFactors = FALSE)
-    pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE)
-    vacc.rates = read.csv("data/Measles_vac_all.csv", stringsAsFactors = FALSE)
-    
-    subset.pop.by.year = subset(pop.by.year, pop.by.year$WHO_REGION %in% regions)
-    subset.vaccination = subset(vacc.rates, vacc.rates$WHO_REGION %in% regions)
-    subset.birth.rates = subset(Birth.rates, Birth.rates$WHO_REGION %in% regions)
-    # 
-    # for(i in 1 : nrow(subset.data)){
-    #     subset.data$Country[i] = cases.by.country.by.year$Cname[which(cases.by.country.by.year$Cname == subset.data$Country[i])]
-    #     subset.data$WHO_REGION[i] = cases.by.country.by.year$WHO_REGION[which(cases.by.country.by.year$Cname == subset.data$Country[i])]
-    # }
-    # 
-    subset.data = subset(subset.data, subset.data$WHO_REGION %in% regions)
-    
-    missing3 = setdiff(subset.vaccination$Country, subset.data$Country)
-    if(length(missing3) > 0){
-        j = which(subset.vaccination$Country %in% missing3)
-        subset.vaccination = subset.vaccination[-j, ]
-    }
-    
-    missing1 = setdiff(subset.vaccination$Country, subset.pop.by.year$Country.Name)
-    if(length(missing1) > 0){
-        j = which(subset.vaccination$Country %in% missing1)
-        subset.vaccination = subset.vaccination[-j, ]
-    }
-    missing2 = setdiff(subset.birth.rates$Country, subset.vaccination$Country)
-    if(length(missing2) > 0){
-        j = which(subset.birth.rates$Country %in% missing2)
-        subset.birth.rates = subset.birth.rates[-j, ]
-    }
-    missing3 = setdiff(subset.data$Country, subset.vaccination$Country)
-    if(length(missing3) > 0){
-        j = which(subset.data$Country %in% missing3)
-        subset.data = subset.data[-j, ]
-    }
-    
-    missing3 = setdiff(subset.pop.by.year$Country.Name, subset.data$Country)
-    if(length(missing3) > 0){
-        j = which(subset.pop.by.year$Country.Name %in% missing3)
-        subset.pop.by.year = subset.pop.by.year[-j, ]
-    }
-    p1  =  subset.pop.by.year
-    p2  =  subset.vaccination
-    p3  =  subset.birth.rates
-    p4  =  subset.data
-    
-    
-    for ( i in 1 : length(subset.vaccination[, 1])){
-        C  =  subset.vaccination$Country[i]
-        p2[i, ]  =  subset.vaccination[i, ]
-        j = which(subset.pop.by.year$Country.Name == C)
-        p1[i, ]  =  subset.pop.by.year[j, ]
-        j = which(subset.birth.rates$Country == C)
-        p3[i, ]  =  subset.birth.rates[j, ]
-        j = which(subset.data$Country == C)
-        p4[i, ]  =  subset.data[j, ]
-    }
-    subset.pop.by.year = p1
-    subset.vaccination = p2
-    subset.birth.rates = p3
-    subset.data = p4
-    
-    x = colnames(subset.data)[which(grepl("X", colnames(subset.data)))]
-    x = min(gsub("X", "", x)):max(gsub("X", "", x))
-    colnames(subset.data) = c(x,"Country", "WHO_REGION")
-    
-    return(list(subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data, x))
+  
+  
+  cases.by.country.by.year = read.csv("data/Measles_cases_by_year2.csv", stringsAsFactors = FALSE)
+  subset.data = read.csv("data/State_space_cases.csv")
+  Birth.rates = read.csv("data/Birth_rates.csv", stringsAsFactors = FALSE)
+  pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE)
+  vacc.rates = read.csv("data/Measles_vac_all.csv", stringsAsFactors = FALSE)
+  
+  subset.pop.by.year = subset(pop.by.year, pop.by.year$WHO_REGION %in% regions)
+  subset.vaccination = subset(vacc.rates, vacc.rates$WHO_REGION %in% regions)
+  subset.birth.rates = subset(Birth.rates, Birth.rates$WHO_REGION %in% regions)
+  # 
+  # for(i in 1 : nrow(subset.data)){
+  #     subset.data$Country[i] = cases.by.country.by.year$Cname[which(cases.by.country.by.year$Cname == subset.data$Country[i])]
+  #     subset.data$WHO_REGION[i] = cases.by.country.by.year$WHO_REGION[which(cases.by.country.by.year$Cname == subset.data$Country[i])]
+  # }
+  # 
+  subset.data = subset(subset.data, subset.data$WHO_REGION %in% regions)
+  
+  missing3 = setdiff(subset.vaccination$Country, subset.data$Country)
+  if(length(missing3) > 0){
+    j = which(subset.vaccination$Country %in% missing3)
+    subset.vaccination = subset.vaccination[-j, ]
+  }
+  
+  missing1 = setdiff(subset.vaccination$Country, subset.pop.by.year$Country.Name)
+  if(length(missing1) > 0){
+    j = which(subset.vaccination$Country %in% missing1)
+    subset.vaccination = subset.vaccination[-j, ]
+  }
+  missing2 = setdiff(subset.birth.rates$Country, subset.vaccination$Country)
+  if(length(missing2) > 0){
+    j = which(subset.birth.rates$Country %in% missing2)
+    subset.birth.rates = subset.birth.rates[-j, ]
+  }
+  missing3 = setdiff(subset.data$Country, subset.vaccination$Country)
+  if(length(missing3) > 0){
+    j = which(subset.data$Country %in% missing3)
+    subset.data = subset.data[-j, ]
+  }
+  
+  missing3 = setdiff(subset.pop.by.year$Country.Name, subset.data$Country)
+  if(length(missing3) > 0){
+    j = which(subset.pop.by.year$Country.Name %in% missing3)
+    subset.pop.by.year = subset.pop.by.year[-j, ]
+  }
+  p1  =  subset.pop.by.year
+  p2  =  subset.vaccination
+  p3  =  subset.birth.rates
+  p4  =  subset.data
+  
+  
+  for ( i in 1 : length(subset.vaccination[, 1])){
+    C  =  subset.vaccination$Country[i]
+    p2[i, ]  =  subset.vaccination[i, ]
+    j = which(subset.pop.by.year$Country.Name == C)
+    p1[i, ]  =  subset.pop.by.year[j, ]
+    j = which(subset.birth.rates$Country == C)
+    p3[i, ]  =  subset.birth.rates[j, ]
+    j = which(subset.data$Country == C)
+    p4[i, ]  =  subset.data[j, ]
+  }
+  subset.pop.by.year = p1
+  subset.vaccination = p2
+  subset.birth.rates = p3
+  subset.data = p4
+  
+  x = colnames(subset.data)[which(grepl("X", colnames(subset.data)))]
+  x = min(gsub("X", "", x)):max(gsub("X", "", x))
+  colnames(subset.data) = c(x,"Country", "WHO_REGION")
+  
+  return(list(subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data, x))
 }
 
 
@@ -2849,209 +2864,209 @@ get.data.for.animation.state.space <- function(regions){
 #############################################################################################################
 
 generate.state.space.data <- function(window.length, regions, 
-                                         gaussian.st.dev, cutoff = 50, 
-                                         interp.resolution = 20,
-                                         year.shift.inc = 3){
+                                      gaussian.st.dev, cutoff = 50, 
+                                      interp.resolution = 20,
+                                      year.shift.inc = 3){
+  
+  require(stats)
+  list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data, x] =
+    get.data.for.animation.state.space(regions)
+  
+  
+  ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
+  list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = 
+    interp.datasets.state.space(subset.data, 
+                                subset.vaccination, 
+                                subset.birth.rates, 
+                                subset.pop.by.year,
+                                x,
+                                xout = x)
+  
+  # list[mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac] = 
+  #     prepare.matrices.for.animation(interp.subset.data, subset.data)
+  
+  ##' number of unique years that we will have data for. The longer the window, the less unique years of data.
+  num.windows = length(x) - window.length + 1
+  
+  ##' first year of data
+  year = x[1]
+  
+  ##' setting up the datasets
+  coeff.var = matrix(0, length(subset.data[ , 1]), num.windows)
+  incidence.per.1000 = matrix(0, length(subset.data[ , 1]), num.windows)
+  mean.br = matrix(0, length(subset.data[ , 1]), num.windows)
+  mean.vac = matrix(0, length(subset.data[ , 1]), num.windows)
+  
+  ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
+  ##' mean vaccination rate over periods of length given by the window length.
+  for ( j in 1 : num.windows){
+    for ( i in 1 : length(subset.data[ , 1])){
+      coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
+        mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
+        if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
+          coeff.var[i, j]  =  0
+        } 
+      }
+      incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
+                                         as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
+      if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
+      if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
+        mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
+      }
+    }
+    year = year + 1
+  }
+  
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(x))
+  for(i in 1 : nrow(subset.data)){
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(x)]) / 
+      as.numeric(interp.subset.pop[i, paste(x)])
     
-    require(stats)
-    list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data, x] =
-        get.data.for.animation.state.space(regions)
+  }
+  
+  ##' we take the weighted average of the values that we have calculated for each year, where the weights are gaussian,
+  ##' with a specified number of years for the standard deviation
+  x1 = seq(1, length(coeff.var[1, ]) + 1)
+  w1 = matrix(0, length(x1), length(x1))
+  for (i in 1 : length(x1)){
+    ##' set up the gaussian weights for averaging
     
+    w.input = x1 - x1[i]
+    w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
     
-    ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
-    list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = 
-        interp.datasets.state.space(subset.data, 
-                                    subset.vaccination, 
-                                    subset.birth.rates, 
-                                    subset.pop.by.year,
-                                    x,
-                                    xout = x)
+    ##' make sure that the weights add up to 1 for each of the specific weightings
+    j = which(w.input == 0)
+    w1[i,j : length(w1[i,])] = 0
+    w1[i, ] = w1[i, ] / sum(w1[i, ])
+  }
+  
+  w1 = w1[-(1), ]
+  w1 = w1[, -(ncol(w1)) ]
+  
+  x2 = seq(1, length(incidence.per.1000.each.year[1, ]))
+  w2 = matrix(0, length(x2), length(x2))
+  for (i in 1 : length(x2)){
+    ##' set up the gaussian weights for averaging
     
-    # list[mean.cases, coeff.var.cases, incidence.per.1000, mean.br, mean.vac] = 
-    #     prepare.matrices.for.animation(interp.subset.data, subset.data)
+    w.input = x2 - x2[i] + year.shift.inc
+    w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
     
-    ##' number of unique years that we will have data for. The longer the window, the less unique years of data.
-    num.windows = length(x) - window.length + 1
-    
-    ##' first year of data
-    year = x[1]
-    
-    ##' setting up the datasets
-    coeff.var = matrix(0, length(subset.data[ , 1]), num.windows)
-    incidence.per.1000 = matrix(0, length(subset.data[ , 1]), num.windows)
-    mean.br = matrix(0, length(subset.data[ , 1]), num.windows)
-    mean.vac = matrix(0, length(subset.data[ , 1]), num.windows)
-    
-    ##' do calculations that calculate the coefficient of variation, incidence per 100, mean birth rate and
-    ##' mean vaccination rate over periods of length given by the window length.
-    for ( j in 1 : num.windows){
-        for ( i in 1 : length(subset.data[ , 1])){
-            coeff.var[i, j]  =  sd(interp.subset.data[i, paste(seq(year, year + window.length - 1))], na.rm = TRUE) /  
-                mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            if(is.na( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)) == FALSE ){
-                if( mean(as.numeric(interp.subset.data[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) == 0) {
-                    coeff.var[i, j]  =  0
-                } 
-            }
-            incidence.per.1000[i, j]  =  sum(as.numeric(interp.subset.data[i,  paste(seq(year, year + window.length - 1))]) / 
-                                                 as.numeric(interp.subset.pop[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE) * 1000
-            if(length(which(is.na(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.br[i, j]  =  mean(as.numeric(interp.subset.br[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-            if(length(which(is.na(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))])))) < window.length){
-                mean.vac[i, j]  =  mean(as.numeric(interp.subset.vacc[i, paste(seq(year, year + window.length - 1))]), na.rm = TRUE)
-            }
-        }
-        year = year + 1
+    ##' make sure that the weights add up to 1 for each of the specific weightings
+    j = which(w.input == (year.shift.inc + 1))
+    if(length(j) > 0){
+      w2[i,j : length(w2[i,])] = 0
+      w2[i, ] = w2[i, ] / sum(w2[i, ])
     }
     
-    incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(x))
-    for(i in 1 : nrow(subset.data)){
-        incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(x)]) / 
-            as.numeric(interp.subset.pop[i, paste(x)])
-        
+  }
+  #w2 = w2[-(1), ]
+  #w2 = w2[, -(ncol(w2)) ]
+  w2 = w2[-(1:9), ]
+  
+  ##' make a set of matrices that are the same size as the matrices containing the data.
+  coeff.2 = coeff.var
+  incidence.2 = incidence.per.1000
+  mbr2 = mean.br
+  mvacc2 = mean.vac
+  for(i in 1 : length(coeff.var[1, ])){
+    for(j in 1 : length(coeff.var[, 1])){
+      ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
+      coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
+      incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
+      mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
+      mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T)
+      
+      ##' Should we do weighted average of birth rate and vaccination rate?
+      ##' If so uncomment the next two lines
+      
+      # mbr2[j, i] = sum(mean.br[j, ] * w1[i, ], na.rm = T)
+      # mvacc2[j, i] = sum(mean.vac[j, i] * w1[i, ], na.rm = T)
     }
-    
-    ##' we take the weighted average of the values that we have calculated for each year, where the weights are gaussian,
-    ##' with a specified number of years for the standard deviation
-    x1 = seq(1, length(coeff.var[1, ]) + 1)
-    w1 = matrix(0, length(x1), length(x1))
-    for (i in 1 : length(x1)){
-        ##' set up the gaussian weights for averaging
-        
-        w.input = x1 - x1[i]
-        w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-        
-        ##' make sure that the weights add up to 1 for each of the specific weightings
-        j = which(w.input == 0)
-        w1[i,j : length(w1[i,])] = 0
-        w1[i, ] = w1[i, ] / sum(w1[i, ])
-    }
-    
-    w1 = w1[-(1), ]
-    w1 = w1[, -(ncol(w1)) ]
-    
-    x2 = seq(1, length(incidence.per.1000.each.year[1, ]))
-    w2 = matrix(0, length(x2), length(x2))
-    for (i in 1 : length(x2)){
-        ##' set up the gaussian weights for averaging
-        
-        w.input = x2 - x2[i] + year.shift.inc
-        w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-        
-        ##' make sure that the weights add up to 1 for each of the specific weightings
-        j = which(w.input == (year.shift.inc + 1))
-        if(length(j) > 0){
-            w2[i,j : length(w2[i,])] = 0
-            w2[i, ] = w2[i, ] / sum(w2[i, ])
-        }
-        
-    }
-    #w2 = w2[-(1), ]
-    #w2 = w2[, -(ncol(w2)) ]
-    w2 = w2[-(1:9), ]
-    
-    ##' make a set of matrices that are the same size as the matrices containing the data.
-    coeff.2 = coeff.var
-    incidence.2 = incidence.per.1000
-    mbr2 = mean.br
-    mvacc2 = mean.vac
-    for(i in 1 : length(coeff.var[1, ])){
-        for(j in 1 : length(coeff.var[, 1])){
-            ##' make the entries of these newly created matrices to be the weighted averages of the originally calculated datasets
-            coeff.2[j, i] = sum(coeff.var[j, ] * w1[i, ], na.rm = T)
-            incidence.2[j, i] = sum(incidence.per.1000.each.year[j, ] * w2[i, ], na.rm = T)
-            mbr2[j, i] =  sum(mean.br[j, i] * w2[i, ], na.rm = T)
-            mvacc2[j, i] = sum(mean.vac[j, i]* w2[i, ], na.rm = T)
-            
-            ##' Should we do weighted average of birth rate and vaccination rate?
-            ##' If so uncomment the next two lines
-            
-            # mbr2[j, i] = sum(mean.br[j, ] * w1[i, ], na.rm = T)
-            # mvacc2[j, i] = sum(mean.vac[j, i] * w1[i, ], na.rm = T)
-        }
-    }
-    
-    ##' set the original data to be equal to the weighted data
-    coeff.var.cases = coeff.2
-    incidence.per.1000 = incidence.2
-    mean.br = mbr2
-    mean.vac = mvacc2
-    
-    
-    ##' set up the timeline on which we do the interpolation. 
-    ##' The number of sections that the yearly data is split up to is given by interp.resolution  
-    x = seq(1981 + (window.length - 1), 2014)
-    xout = seq(1981+ (window.length - 1), 2014, 1/interp.resolution)
-    
-    ##' interpolate the data and add columns that contain the correspondin country and WHO region of each line
-    
-    coeff.var.cases = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(coeff.var.cases, x, xout))
-    incidence.per.1000 = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(incidence.per.1000, x, xout))
-    mean.br = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.br, x, xout))
-    mean.vac = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.vac, x, xout))
-    
-    ##' round the data to 2 decimal places for ease of reading.
-    mean.vac[, -(1:2)] = as.numeric(mean.vac[, -(1:2)])
-    mean.br[, -(1:2)] = as.numeric(mean.br[, -(1:2)])
-    incidence.per.1000[, -(1:2)] = as.numeric(incidence.per.1000[, -(1:2)])
-    coeff.var.cases[, -(1:2)] = as.numeric(coeff.var.cases[, -(1:2)])
-    
-    
-    ##' set up the output to be the appropriate size and add column labels.
-    ##' Additionally add enough room to include additional data for each year that will be used 
-    ##' to calibrate the data for each year, so that the minimum and maximum of vaccination rate is 0 and 100 each time.
-    ##' This ensures that the colour scale is constant
-    
-    output.data = matrix(0, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + (2 * length(regions) * length(xout)), 7)
-    output.data  =  data.frame(output.data)
-    colnames(output.data) = c("Country", "Coefficient.of.Variation", "Incidence", "Mean.vaccination", "Mean.birth.rate", "Year", "WHO_REGION")
-    
-    ##' input the appropriate data to the outputs 
-    output.data$Country[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 1], length(coeff.var.cases[1, -(1:2)]))
-    output.data$WHO_REGION[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 2], length(coeff.var.cases[1, -(1:2)]))
-    count = 1
-    for(i in 3 : length(coeff.var.cases[1, ])){
-        output.data$Coefficient.of.Variation[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = coeff.var.cases[, i]
-        output.data$Incidence[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = incidence.per.1000[, i]
-        output.data$Mean.vaccination[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.vac[, i]
-        output.data$Mean.birth.rate[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.br[, i]
-        output.data$Year[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = xout[i - 2]  
-        count = count + 1
-    }
-    
-    ##' add in the dummy data for each year to keep the scales constant.
-    year.mins = matrix(0, length(xout), 2)
-    
-    for(i in 1 : length(xout)){
-        t  =  subset(output.data, output.data$Year ==  unique(xout)[i])
-        year.mins[i, 1] = xout[i]
-        year.mins[i, 2] = as.numeric(min(t$Mean.birth.rate,na.rm = T)  )
-    }
-    
-    l =  expand.grid("", -1, 0, c(0,100), 0, xout, regions)
-    
-    for(i in 1 : (2 * length(regions) * length(xout))){
-        y = l[i, 6]
-        j = which(year.mins[, 1] == y)
-        l[i, 5]  =  year.mins[j, 2]
-    }
-    
-    output.data[((length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + 1 ): length(output.data[, 1]), ]  =  l
-    
-    for( i in 1 : (2 * length(regions) * length(xout))){
-        output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] = regions[as.numeric(output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] )]
-        output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)])  + i, 1] = ""
-    }
-    
-    ##' make sure that each column that should be numeric is numeric.
-    output.data$Coefficient.of.Variation = as.numeric(output.data$Coefficient.of.Variation)
-    output.data$Incidence  =  as.numeric(output.data$Incidence)
-    output.data$Mean.vaccination  =  as.numeric(output.data$Mean.vaccination)
-    output.data$Mean.birth.rate  =  as.numeric(output.data$Mean.birth.rate)
-    output.data$Year   =  as.numeric(output.data$Year)
-    output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
-    return(output.data)
+  }
+  
+  ##' set the original data to be equal to the weighted data
+  coeff.var.cases = coeff.2
+  incidence.per.1000 = incidence.2
+  mean.br = mbr2
+  mean.vac = mvacc2
+  
+  
+  ##' set up the timeline on which we do the interpolation. 
+  ##' The number of sections that the yearly data is split up to is given by interp.resolution  
+  x = seq(1981 + (window.length - 1), 2014)
+  xout = seq(1981+ (window.length - 1), 2014, 1/interp.resolution)
+  
+  ##' interpolate the data and add columns that contain the correspondin country and WHO region of each line
+  
+  coeff.var.cases = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(coeff.var.cases, x, xout))
+  incidence.per.1000 = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(incidence.per.1000, x, xout))
+  mean.br = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.br, x, xout))
+  mean.vac = cbind(interp.subset.data[,(1:2)], interpolate.give.dataset(mean.vac, x, xout))
+  
+  ##' round the data to 2 decimal places for ease of reading.
+  mean.vac[, -(1:2)] = as.numeric(mean.vac[, -(1:2)])
+  mean.br[, -(1:2)] = as.numeric(mean.br[, -(1:2)])
+  incidence.per.1000[, -(1:2)] = as.numeric(incidence.per.1000[, -(1:2)])
+  coeff.var.cases[, -(1:2)] = as.numeric(coeff.var.cases[, -(1:2)])
+  
+  
+  ##' set up the output to be the appropriate size and add column labels.
+  ##' Additionally add enough room to include additional data for each year that will be used 
+  ##' to calibrate the data for each year, so that the minimum and maximum of vaccination rate is 0 and 100 each time.
+  ##' This ensures that the colour scale is constant
+  
+  output.data = matrix(0, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + (2 * length(regions) * length(xout)), 7)
+  output.data  =  data.frame(output.data)
+  colnames(output.data) = c("Country", "Coefficient.of.Variation", "Incidence", "Mean.vaccination", "Mean.birth.rate", "Year", "WHO_REGION")
+  
+  ##' input the appropriate data to the outputs 
+  output.data$Country[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 1], length(coeff.var.cases[1, -(1:2)]))
+  output.data$WHO_REGION[seq(1, (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]))] = rep(interp.subset.data[, 2], length(coeff.var.cases[1, -(1:2)]))
+  count = 1
+  for(i in 3 : length(coeff.var.cases[1, ])){
+    output.data$Coefficient.of.Variation[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = coeff.var.cases[, i]
+    output.data$Incidence[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = incidence.per.1000[, i]
+    output.data$Mean.vaccination[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.vac[, i]
+    output.data$Mean.birth.rate[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = mean.br[, i]
+    output.data$Year[seq(((count - 1) * (length(coeff.var.cases[, 1]))) + 1, count * (length(coeff.var.cases[, 1])))] = xout[i - 2]  
+    count = count + 1
+  }
+  
+  ##' add in the dummy data for each year to keep the scales constant.
+  year.mins = matrix(0, length(xout), 2)
+  
+  for(i in 1 : length(xout)){
+    t  =  subset(output.data, output.data$Year ==  unique(xout)[i])
+    year.mins[i, 1] = xout[i]
+    year.mins[i, 2] = as.numeric(min(t$Mean.birth.rate,na.rm = T)  )
+  }
+  
+  l =  expand.grid("", -1, 0, c(0,100), 0, xout, regions)
+  
+  for(i in 1 : (2 * length(regions) * length(xout))){
+    y = l[i, 6]
+    j = which(year.mins[, 1] == y)
+    l[i, 5]  =  year.mins[j, 2]
+  }
+  
+  output.data[((length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + 1 ): length(output.data[, 1]), ]  =  l
+  
+  for( i in 1 : (2 * length(regions) * length(xout))){
+    output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] = regions[as.numeric(output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)]) + i, 7] )]
+    output.data[ (length(coeff.var.cases[, 1])) * length(coeff.var.cases[1, -(1:2)])  + i, 1] = ""
+  }
+  
+  ##' make sure that each column that should be numeric is numeric.
+  output.data$Coefficient.of.Variation = as.numeric(output.data$Coefficient.of.Variation)
+  output.data$Incidence  =  as.numeric(output.data$Incidence)
+  output.data$Mean.vaccination  =  as.numeric(output.data$Mean.vaccination)
+  output.data$Mean.birth.rate  =  as.numeric(output.data$Mean.birth.rate)
+  output.data$Year   =  as.numeric(output.data$Year)
+  output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
+  return(output.data)
 }
 
 
@@ -3065,94 +3080,94 @@ generate.state.space.data <- function(window.length, regions,
 #'
 #' @return list(incs.all, coeff.all)
 return.cv.inc.from.ss <- function(df){
-    gaussian.st.dev = 3
-    cutoff = 50
+  gaussian.st.dev = 3
+  cutoff = 50
+  
+  output.weights.gaussian.with.cutoff <- function(x, st.dev, cutoff, neg.only = F){
     
-    output.weights.gaussian.with.cutoff <- function(x, st.dev, cutoff, neg.only = F){
-        
-        weights = dnorm(x, mean = 0, sd = st.dev)
-        if(neg.only == T){
-            weights[which(x > cutoff)] = 0
-        } else{
-            weights[which(abs(x) > cutoff)] = 0
-        }
-        return(weights)
+    weights = dnorm(x, mean = 0, sd = st.dev)
+    if(neg.only == T){
+      weights[which(x > cutoff)] = 0
+    } else{
+      weights[which(abs(x) > cutoff)] = 0
+    }
+    return(weights)
+  }
+  
+  coeff.all <- incs.all <- matrix(NA, nrow(df), 25)
+  for (c in 1:nrow(df)){
+    
+    infs.by.year <- as.numeric(df[c,-1])
+    
+    cv.inc = matrix(NA, length(10:length(infs.by.year)), 1)
+    count = 1
+    for(i in 10:length(infs.by.year)){
+      cv.inc[count, 1] = sd(infs.by.year[(i-9):i])/mean(infs.by.year[(i-9):i])
+      count = count + 1
     }
     
-    coeff.all <- incs.all <- matrix(NA, nrow(df), 25)
-    for (c in 1:nrow(df)){
-        
-        infs.by.year <- as.numeric(df[c,-1])
-        
-        cv.inc = matrix(NA, length(10:length(infs.by.year)), 1)
-        count = 1
-        for(i in 10:length(infs.by.year)){
-            cv.inc[count, 1] = sd(infs.by.year[(i-9):i])/mean(infs.by.year[(i-9):i])
-            count = count + 1
-        }
-        
-        x1 = seq(1, length(cv.inc[, 1]) + 1)
-        w1 = matrix(0, length(x1), length(x1))
-        for (i in 1 : length(x1)){
-            ##' set up the gaussian weights for averaging
-            
-            w.input = x1 - x1[i]
-            w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-            
-            ##' make sure that the weights add up to 1 for each of the specific weightings
-            j = which(w.input == 0)
-            w1[i,j : length(w1[i,])] = 0
-            w1[i, ] = w1[i, ] / sum(w1[i, ])
-        }
-        
-        w1 = w1[-(1), ]
-        w1 = w1[, -(ncol(w1)) ]
-        
-        
-        x2 = seq(1, length(infs.by.year) + 1)
-        w2 = matrix(0, length(x2), length(x2))
-        for (i in 1 : length(x2)){
-            ##' set up the gaussian weights for averaging
-            
-            w.input = x2 - x2[i]
-            w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
-            
-            ##' make sure that the weights add up to 1 for each of the specific weightings
-            j = which(w.input == 1)
-            if(length(j) > 0){
-                w2[i,j : length(w2[i,])] = 0
-            }
-            w2[i, ] = w2[i, ] / sum(w2[i, ])
-        }
-        w2 = w2[-(1), ]
-        #w2 = w2[, -(ncol(w2)) ]
-        w2 = w2[-(1:9), ]
-        
-        #colfunc = colorRampPalette(c("grey","red"))
-        
-        coeff.2 = cv.inc
-        incidence.2 = cv.inc
-        for(i in 1 : length(coeff.2)){
-            ##' make the entries of these newly created matrices to be the weighted averages
-            ##'  of the originally calculated datasets
-            w.input = seq(-9-(i-1), 0, 1)
-            k1 = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)/
-                sum(output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff))
-            
-            w.input = seq(-(i-1), 0, 1)
-            k2 = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)/
-                sum(output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff))
-            
-            coeff.2[i] = sum(cv.inc[1:length(k2)] * k2, na.rm = T)
-            incidence.2[i] = sum(infs.by.year[1:length(k1)] * k1, na.rm = T)
-            
-        }
-        
-        coeff.all[c,] <- coeff.2
-        incs.all[c,] <- incidence.2
+    x1 = seq(1, length(cv.inc[, 1]) + 1)
+    w1 = matrix(0, length(x1), length(x1))
+    for (i in 1 : length(x1)){
+      ##' set up the gaussian weights for averaging
+      
+      w.input = x1 - x1[i]
+      w1[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
+      
+      ##' make sure that the weights add up to 1 for each of the specific weightings
+      j = which(w.input == 0)
+      w1[i,j : length(w1[i,])] = 0
+      w1[i, ] = w1[i, ] / sum(w1[i, ])
     }
     
-    return(list(incs.all, coeff.all))
+    w1 = w1[-(1), ]
+    w1 = w1[, -(ncol(w1)) ]
+    
+    
+    x2 = seq(1, length(infs.by.year) + 1)
+    w2 = matrix(0, length(x2), length(x2))
+    for (i in 1 : length(x2)){
+      ##' set up the gaussian weights for averaging
+      
+      w.input = x2 - x2[i]
+      w2[i, ] = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)
+      
+      ##' make sure that the weights add up to 1 for each of the specific weightings
+      j = which(w.input == 1)
+      if(length(j) > 0){
+        w2[i,j : length(w2[i,])] = 0
+      }
+      w2[i, ] = w2[i, ] / sum(w2[i, ])
+    }
+    w2 = w2[-(1), ]
+    #w2 = w2[, -(ncol(w2)) ]
+    w2 = w2[-(1:9), ]
+    
+    #colfunc = colorRampPalette(c("grey","red"))
+    
+    coeff.2 = cv.inc
+    incidence.2 = cv.inc
+    for(i in 1 : length(coeff.2)){
+      ##' make the entries of these newly created matrices to be the weighted averages
+      ##'  of the originally calculated datasets
+      w.input = seq(-9-(i-1), 0, 1)
+      k1 = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)/
+        sum(output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff))
+      
+      w.input = seq(-(i-1), 0, 1)
+      k2 = output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff)/
+        sum(output.weights.gaussian.with.cutoff(w.input, gaussian.st.dev, cutoff))
+      
+      coeff.2[i] = sum(cv.inc[1:length(k2)] * k2, na.rm = T)
+      incidence.2[i] = sum(infs.by.year[1:length(k1)] * k1, na.rm = T)
+      
+    }
+    
+    coeff.all[c,] <- coeff.2
+    incs.all[c,] <- incidence.2
+  }
+  
+  return(list(incs.all, coeff.all))
 }
 
 
@@ -3169,268 +3184,268 @@ LEGEND <- function (x, y = NULL, legend, fill = NULL,
                     ncol = 1, horiz = FALSE, title = NULL, inset = 0, xpd, title.col = text.col,
                     title.adj = 0.5, seg.len = 2)
 {
-    if (missing(legend) && !missing(y) && (is.character(y) ||
-                                           is.expression(y))) {
-        legend <- y
-        y <- NULL
+  if (missing(legend) && !missing(y) && (is.character(y) ||
+                                         is.expression(y))) {
+    legend <- y
+    y <- NULL
+  }
+  mfill <- !missing(fill) || !missing(density)
+  if (!missing(xpd)) {
+    op <- par("xpd")
+    on.exit(par(xpd = op))
+    par(xpd = xpd)
+  }
+  title <- as.graphicsAnnot(title)
+  if (length(title) > 1)
+    stop("invalid 'title'")
+  legend <- as.graphicsAnnot(legend)
+  n.leg <- if (is.call(legend))
+    1
+  else length(legend)
+  if (n.leg == 0)
+    stop("'legend' is of length 0")
+  auto <- if (is.character(x))
+    match.arg(x, c("bottomright", "bottom", "bottomleft",
+                   "left", "topleft", "top", "topright", "right", "center"))
+  else NA
+  if (is.na(auto)) {
+    xy <- xy.coords(x, y)
+    x <- xy$x
+    y <- xy$y
+    nx <- length(x)
+    if (nx < 1 || nx > 2)
+      stop("invalid coordinate lengths")
+  }
+  else nx <- 0
+  xlog <- par("xlog")
+  ylog <- par("ylog")
+  rect2 <- function(left, top, dx, dy, density = NULL, angle,
+                    ...) {
+    r <- left + dx
+    if (xlog) {
+      left <- 10^left
+      r <- 10^r
     }
-    mfill <- !missing(fill) || !missing(density)
-    if (!missing(xpd)) {
-        op <- par("xpd")
-        on.exit(par(xpd = op))
-        par(xpd = xpd)
+    b <- top - dy
+    if (ylog) {
+      top <- 10^top
+      b <- 10^b
     }
-    title <- as.graphicsAnnot(title)
-    if (length(title) > 1)
-        stop("invalid 'title'")
-    legend <- as.graphicsAnnot(legend)
-    n.leg <- if (is.call(legend))
-        1
-    else length(legend)
-    if (n.leg == 0)
-        stop("'legend' is of length 0")
-    auto <- if (is.character(x))
-        match.arg(x, c("bottomright", "bottom", "bottomleft",
-                       "left", "topleft", "top", "topright", "right", "center"))
-    else NA
+    rect(left, top, r, b, angle = angle, density = density,
+         ...)
+  }
+  segments2 <- function(x1, y1, dx, dy, ...) {
+    x2 <- x1 + dx
+    if (xlog) {
+      x1 <- 10^x1
+      x2 <- 10^x2
+    }
+    y2 <- y1 + dy
+    if (ylog) {
+      y1 <- 10^y1
+      y2 <- 10^y2
+    }
+    segments(x1, y1, x2, y2, ...)
+  }
+  points2 <- function(x, y, ...) {
+    if (xlog)
+      x <- 10^x
+    if (ylog)
+      y <- 10^y
+    points(x, y, ...)
+  }
+  text2 <- function(x, y, ...) {
+    if (xlog)
+      x <- 10^x
+    if (ylog)
+      y <- 10^y
+    text(x, y, ...)
+  }
+  if (trace)
+    catn <- function(...) do.call("cat", c(lapply(list(...),
+                                                  formatC), list("\n")))
+  cin <- par("cin")
+  Cex <- cex * par("cex")
+  if (is.null(text.width))
+    text.width <- max(abs(strwidth(legend, units = "user",
+                                   cex = cex, font = text.font)))
+  else if (!is.numeric(text.width) || text.width < 0)
+    stop("'text.width' must be numeric, >= 0")
+  xc <- Cex * xinch(cin[1L], warn.log = FALSE)
+  yc <- Cex * yinch(cin[2L], warn.log = FALSE)
+  if (xc < 0)
+    text.width <- -text.width
+  xchar <- xc
+  xextra <- 0
+  yextra <- yc * (y.intersp - 1)
+  ymax <- yc * max(1, strheight(legend, units = "user", cex = cex)/yc)
+  ychar <- yextra + ymax
+  if (trace)
+    catn("  xchar=", xchar, "; (yextra,ychar)=", c(yextra,
+                                                   ychar))
+  if (mfill) {
+    xbox <- xc * 0.8
+    ybox <- yc * 0.5
+    dx.fill <- xbox
+  }
+  do.lines <- (!missing(lty) && (is.character(lty) || any(lty >
+                                                            0))) || !missing(lwd)
+  n.legpercol <- if (horiz) {
+    if (ncol != 1)
+      warning(gettextf("horizontal specification overrides: Number of columns := %d",
+                       n.leg), domain = NA)
+    ncol <- n.leg
+    1
+  }
+  else ceiling(n.leg/ncol)
+  has.pch <- !missing(pch) && length(pch) > 0
+  if (do.lines) {
+    x.off <- if (merge)
+      -0.7
+    else 0
+  }
+  else if (merge)
+    warning("'merge = TRUE' has no effect when no line segments are drawn")
+  if (has.pch) {
+    if (is.character(pch) && !is.na(pch[1L]) && nchar(pch[1L],
+                                                      type = "c") > 1) {
+      if (length(pch) > 1)
+        warning("not using pch[2..] since pch[1L] has multiple chars")
+      np <- nchar(pch[1L], type = "c")
+      pch <- substr(rep.int(pch[1L], np), 1L:np, 1L:np)
+    }
+    if (!is.character(pch))
+      pch <- as.integer(pch)
+  }
+  if (is.na(auto)) {
+    if (xlog)
+      x <- log10(x)
+    if (ylog)
+      y <- log10(y)
+  }
+  if (nx == 2) {
+    x <- sort(x)
+    y <- sort(y)
+    left <- x[1L]
+    top <- y[2L]
+    w <- diff(x)
+    h <- diff(y)
+    w0 <- w/ncol
+    x <- mean(x)
+    y <- mean(y)
+    if (missing(xjust))
+      xjust <- 0.5
+    if (missing(yjust))
+      yjust <- 0.5
+  }
+  else {
+    h <- (n.legpercol + (!is.null(title))) * ychar + yc
+    w0 <- text.width + (x.intersp + 1) * xchar
+    if (mfill)
+      w0 <- w0 + dx.fill
+    if (do.lines)
+      w0 <- w0 + (seg.len + x.off) * xchar
+    w <- ncol * w0 + 0.5 * xchar
+    if (!is.null(title) && (abs(tw <- strwidth(title, units = "user",
+                                               cex = cex) + 0.5 * xchar)) > abs(w)) {
+      xextra <- (tw - w)/2
+      w <- tw
+    }
     if (is.na(auto)) {
-        xy <- xy.coords(x, y)
-        x <- xy$x
-        y <- xy$y
-        nx <- length(x)
-        if (nx < 1 || nx > 2)
-            stop("invalid coordinate lengths")
-    }
-    else nx <- 0
-    xlog <- par("xlog")
-    ylog <- par("ylog")
-    rect2 <- function(left, top, dx, dy, density = NULL, angle,
-                      ...) {
-        r <- left + dx
-        if (xlog) {
-            left <- 10^left
-            r <- 10^r
-        }
-        b <- top - dy
-        if (ylog) {
-            top <- 10^top
-            b <- 10^b
-        }
-        rect(left, top, r, b, angle = angle, density = density,
-             ...)
-    }
-    segments2 <- function(x1, y1, dx, dy, ...) {
-        x2 <- x1 + dx
-        if (xlog) {
-            x1 <- 10^x1
-            x2 <- 10^x2
-        }
-        y2 <- y1 + dy
-        if (ylog) {
-            y1 <- 10^y1
-            y2 <- 10^y2
-        }
-        segments(x1, y1, x2, y2, ...)
-    }
-    points2 <- function(x, y, ...) {
-        if (xlog)
-            x <- 10^x
-        if (ylog)
-            y <- 10^y
-        points(x, y, ...)
-    }
-    text2 <- function(x, y, ...) {
-        if (xlog)
-            x <- 10^x
-        if (ylog)
-            y <- 10^y
-        text(x, y, ...)
-    }
-    if (trace)
-        catn <- function(...) do.call("cat", c(lapply(list(...),
-                                                      formatC), list("\n")))
-    cin <- par("cin")
-    Cex <- cex * par("cex")
-    if (is.null(text.width))
-        text.width <- max(abs(strwidth(legend, units = "user",
-                                       cex = cex, font = text.font)))
-    else if (!is.numeric(text.width) || text.width < 0)
-        stop("'text.width' must be numeric, >= 0")
-    xc <- Cex * xinch(cin[1L], warn.log = FALSE)
-    yc <- Cex * yinch(cin[2L], warn.log = FALSE)
-    if (xc < 0)
-        text.width <- -text.width
-    xchar <- xc
-    xextra <- 0
-    yextra <- yc * (y.intersp - 1)
-    ymax <- yc * max(1, strheight(legend, units = "user", cex = cex)/yc)
-    ychar <- yextra + ymax
-    if (trace)
-        catn("  xchar=", xchar, "; (yextra,ychar)=", c(yextra,
-                                                       ychar))
-    if (mfill) {
-        xbox <- xc * 0.8
-        ybox <- yc * 0.5
-        dx.fill <- xbox
-    }
-    do.lines <- (!missing(lty) && (is.character(lty) || any(lty >
-                                                                0))) || !missing(lwd)
-    n.legpercol <- if (horiz) {
-        if (ncol != 1)
-            warning(gettextf("horizontal specification overrides: Number of columns := %d",
-                             n.leg), domain = NA)
-        ncol <- n.leg
-        1
-    }
-    else ceiling(n.leg/ncol)
-    has.pch <- !missing(pch) && length(pch) > 0
-    if (do.lines) {
-        x.off <- if (merge)
-            -0.7
-        else 0
-    }
-    else if (merge)
-        warning("'merge = TRUE' has no effect when no line segments are drawn")
-    if (has.pch) {
-        if (is.character(pch) && !is.na(pch[1L]) && nchar(pch[1L],
-                                                          type = "c") > 1) {
-            if (length(pch) > 1)
-                warning("not using pch[2..] since pch[1L] has multiple chars")
-            np <- nchar(pch[1L], type = "c")
-            pch <- substr(rep.int(pch[1L], np), 1L:np, 1L:np)
-        }
-        if (!is.character(pch))
-            pch <- as.integer(pch)
-    }
-    if (is.na(auto)) {
-        if (xlog)
-            x <- log10(x)
-        if (ylog)
-            y <- log10(y)
-    }
-    if (nx == 2) {
-        x <- sort(x)
-        y <- sort(y)
-        left <- x[1L]
-        top <- y[2L]
-        w <- diff(x)
-        h <- diff(y)
-        w0 <- w/ncol
-        x <- mean(x)
-        y <- mean(y)
-        if (missing(xjust))
-            xjust <- 0.5
-        if (missing(yjust))
-            yjust <- 0.5
+      left <- x - xjust * w
+      top <- y + (1 - yjust) * h
     }
     else {
-        h <- (n.legpercol + (!is.null(title))) * ychar + yc
-        w0 <- text.width + (x.intersp + 1) * xchar
-        if (mfill)
-            w0 <- w0 + dx.fill
-        if (do.lines)
-            w0 <- w0 + (seg.len + x.off) * xchar
-        w <- ncol * w0 + 0.5 * xchar
-        if (!is.null(title) && (abs(tw <- strwidth(title, units = "user",
-                                                   cex = cex) + 0.5 * xchar)) > abs(w)) {
-            xextra <- (tw - w)/2
-            w <- tw
-        }
-        if (is.na(auto)) {
-            left <- x - xjust * w
-            top <- y + (1 - yjust) * h
-        }
-        else {
-            usr <- par("usr")
-            inset <- rep_len(inset, 2)
-            insetx <- inset[1L] * (usr[2L] - usr[1L])
-            left <- switch(auto, bottomright = , topright = ,
-                           right = usr[2L] - w - insetx, bottomleft = ,
-                           left = , topleft = usr[1L] + insetx, bottom = ,
-                           top = , center = (usr[1L] + usr[2L] - w)/2)
-            insety <- inset[2L] * (usr[4L] - usr[3L])
-            top <- switch(auto, bottomright = , bottom = , bottomleft = usr[3L] +
-                              h + insety, topleft = , top = , topright = usr[4L] -
-                              insety, left = , right = , center = (usr[3L] +
-                                                                       usr[4L] + h)/2)
-        }
+      usr <- par("usr")
+      inset <- rep_len(inset, 2)
+      insetx <- inset[1L] * (usr[2L] - usr[1L])
+      left <- switch(auto, bottomright = , topright = ,
+                     right = usr[2L] - w - insetx, bottomleft = ,
+                     left = , topleft = usr[1L] + insetx, bottom = ,
+                     top = , center = (usr[1L] + usr[2L] - w)/2)
+      insety <- inset[2L] * (usr[4L] - usr[3L])
+      top <- switch(auto, bottomright = , bottom = , bottomleft = usr[3L] +
+                      h + insety, topleft = , top = , topright = usr[4L] -
+                      insety, left = , right = , center = (usr[3L] +
+                                                             usr[4L] + h)/2)
     }
-    if (plot && bty != "n") {
-        if (trace)
-            catn("  rect2(", left, ",", top, ", w=", w, ", h=",
-                 h, ", ...)", sep = "")
-        rect2(left, top, dx = w, dy = h, col = bg, density = NULL,
-              lwd = box.lwd, lty = box.lty, border = box.col)
-    }
-    xt <- left + xchar + xextra + (w0 * rep.int(0:(ncol - 1),
-                                                rep.int(n.legpercol, ncol)))[1L:n.leg]
-    yt <- top - 0.5 * yextra - ymax - (rep.int(1L:n.legpercol,
-                                               ncol)[1L:n.leg] - 1 + (!is.null(title))) * ychar
-    if (mfill) {
-        if (plot) {
-            if (!is.null(fill))
-                fill <- rep_len(fill, n.leg)
-            rect2(left = xt, top = yt + ybox/2, dx = xbox, dy = ybox,
-                  col = fill, density = density, angle = angle,
-                  border = border)
-        }
-        xt <- xt + dx.fill
-    }
-    if (plot && (has.pch || do.lines)) {
-        pt.COL <- rep_len(pt.col, n.leg)
-        line.COL <- rep_len(line.col, n.leg)
-    }
-    if (missing(lwd) || is.null(lwd))
-        lwd <- par("lwd")
-    if (do.lines) {
-        if (missing(lty) || is.null(lty))
-            lty <- 1
-        lty <- rep_len(lty, n.leg)
-        lwd <- rep_len(lwd, n.leg)
-        ok.l <- !is.na(lty) & (is.character(lty) | lty > 0) &
-            !is.na(lwd)
-        if (trace)
-            catn("  segments2(", xt[ok.l] + x.off * xchar, ",",
-                 yt[ok.l], ", dx=", seg.len * xchar, ", dy=0, ...)")
-        if (plot)
-            segments2(xt[ok.l] + x.off * xchar, yt[ok.l], dx = seg.len *
-                          xchar, dy = 0, lty = lty[ok.l], lwd = lwd[ok.l],
-                      col = line.COL[ok.l])
-        xt <- xt + (seg.len + x.off) * xchar
-    }
-    if (has.pch) {
-        pch <- rep_len(pch, n.leg)
-        pt.bg <- rep_len(pt.bg, n.leg)
-        pt.cex <- rep_len(pt.cex, n.leg)
-        pt.lwd <- rep_len(pt.lwd, n.leg)
-        ok <- !is.na(pch)
-        if (!is.character(pch)) {
-            ok <- ok & (pch >= 0 | pch <= -32)
-        }
-        else {
-            ok <- ok & nzchar(pch)
-        }
-        x1 <- (if (merge && do.lines)
-            xt - (seg.len/2) * xchar
-            else xt)[ok]
-        y1 <- yt[ok]
-        if (trace)
-            catn("  points2(", x1, ",", y1, ", pch=", pch[ok],
-                 ", ...)")
-        if (plot)
-            points2(x1, y1, pch = pch[ok], col = pt.COL[ok], cex = pt.cex[ok],
-                    bg = pt.bg[ok], lwd = pt.lwd[ok])
-    }
-    xt <- xt + x.intersp * xchar
+  }
+  if (plot && bty != "n") {
+    if (trace)
+      catn("  rect2(", left, ",", top, ", w=", w, ", h=",
+           h, ", ...)", sep = "")
+    rect2(left, top, dx = w, dy = h, col = bg, density = NULL,
+          lwd = box.lwd, lty = box.lty, border = box.col)
+  }
+  xt <- left + xchar + xextra + (w0 * rep.int(0:(ncol - 1),
+                                              rep.int(n.legpercol, ncol)))[1L:n.leg]
+  yt <- top - 0.5 * yextra - ymax - (rep.int(1L:n.legpercol,
+                                             ncol)[1L:n.leg] - 1 + (!is.null(title))) * ychar
+  if (mfill) {
     if (plot) {
-        if (!is.null(title))
-            text2(left + w * title.adj, top - ymax, labels = title,
-                  adj = c(title.adj, 0), cex = cex, col = title.col)
-        text2(xt, yt, labels = legend, adj = adj, cex = cex,
-              col = text.col, font = text.font)
+      if (!is.null(fill))
+        fill <- rep_len(fill, n.leg)
+      rect2(left = xt, top = yt + ybox/2, dx = xbox, dy = ybox,
+            col = fill, density = density, angle = angle,
+            border = border)
     }
-    invisible(list(rect = list(w = w, h = h, left = left, top = top),
-                   text = list(x = xt, y = yt)))
+    xt <- xt + dx.fill
+  }
+  if (plot && (has.pch || do.lines)) {
+    pt.COL <- rep_len(pt.col, n.leg)
+    line.COL <- rep_len(line.col, n.leg)
+  }
+  if (missing(lwd) || is.null(lwd))
+    lwd <- par("lwd")
+  if (do.lines) {
+    if (missing(lty) || is.null(lty))
+      lty <- 1
+    lty <- rep_len(lty, n.leg)
+    lwd <- rep_len(lwd, n.leg)
+    ok.l <- !is.na(lty) & (is.character(lty) | lty > 0) &
+      !is.na(lwd)
+    if (trace)
+      catn("  segments2(", xt[ok.l] + x.off * xchar, ",",
+           yt[ok.l], ", dx=", seg.len * xchar, ", dy=0, ...)")
+    if (plot)
+      segments2(xt[ok.l] + x.off * xchar, yt[ok.l], dx = seg.len *
+                  xchar, dy = 0, lty = lty[ok.l], lwd = lwd[ok.l],
+                col = line.COL[ok.l])
+    xt <- xt + (seg.len + x.off) * xchar
+  }
+  if (has.pch) {
+    pch <- rep_len(pch, n.leg)
+    pt.bg <- rep_len(pt.bg, n.leg)
+    pt.cex <- rep_len(pt.cex, n.leg)
+    pt.lwd <- rep_len(pt.lwd, n.leg)
+    ok <- !is.na(pch)
+    if (!is.character(pch)) {
+      ok <- ok & (pch >= 0 | pch <= -32)
+    }
+    else {
+      ok <- ok & nzchar(pch)
+    }
+    x1 <- (if (merge && do.lines)
+      xt - (seg.len/2) * xchar
+      else xt)[ok]
+    y1 <- yt[ok]
+    if (trace)
+      catn("  points2(", x1, ",", y1, ", pch=", pch[ok],
+           ", ...)")
+    if (plot)
+      points2(x1, y1, pch = pch[ok], col = pt.COL[ok], cex = pt.cex[ok],
+              bg = pt.bg[ok], lwd = pt.lwd[ok])
+  }
+  xt <- xt + x.intersp * xchar
+  if (plot) {
+    if (!is.null(title))
+      text2(left + w * title.adj, top - ymax, labels = title,
+            adj = c(title.adj, 0), cex = cex, col = title.col)
+    text2(xt, yt, labels = legend, adj = adj, cex = cex,
+          col = text.col, font = text.font)
+  }
+  invisible(list(rect = list(w = w, h = h, left = left, top = top),
+                 text = list(x = xt, y = yt)))
 }
 
 
@@ -3439,39 +3454,39 @@ LEGEND <- function (x, y = NULL, legend, fill = NULL,
 ##' Function to plot boxplots in Figure S9 of paper, of the age of cases in Malawi and Angola.
 
 plot.case.boxplots <- function(Cases, country, col = 'cornflowerblue', alpha = 1){
-    
-    Cases = filter(Cases, Country == country, !is.na(Cases$AgeInyears))
-    
-    
-    cases.plot <- bwplot(AgeInyears ~ factor(YrOnset), data = Cases, ylim = c(-0.5,42.5))
-    #cases.plot <- bwplot(AgeInyears ~ factor(YrOnset), data = Cases)
-    
-    bw.theme <- trellis.par.get()
-    bw.theme$box.dot$pch <- "|"
-    bw.theme$box.rectangle$col <- "black"
-    bw.theme$box.rectangle$lwd <- 4
-    bw.theme$box.rectangle$fill <- "grey90"
-    bw.theme$box.rectangle$alpha <- 1
-    bw.theme$box.umbrella$lty <- 1
-    bw.theme$box.umbrella$col <- "black"
-    bw.theme$plot.symbol$col <- "grey40"
-    bw.theme$plot.symbol$pch <- "*"
-    bw.theme$plot.symbol$cex <- 2
-    bw.theme$strip.background$col <- "grey80"
-    bw.theme$par.main.text$lineheight = 3
-    bw.theme$add.text$cex = 5
-    bw.theme$par.ylab.text$cex = 2
-    bw.theme$par.xlab.text$cex = 2
-    bw.theme$par.main.text$cex = 2
-    bw.theme$axis.text$cex=2
-    l.bw <- update(cases.plot, par.settings = bw.theme, 
-                   xlab = "year", ylab = "age", main = country)
-    
-    l.bw
-    #Cases = filter(Cases, AgeInyears<21)
-    cases.plot <- boxplot(AgeInyears~factor(YrOnset), data = Cases, 
-                          col = alpha('mediumaquamarine',0.75), ylab = "Age", 
-                          boxwex = 0.6, xlab = 'year', main = country, pch = 16, cex = 0.2,
-                          frame.plot = FALSE, ylim = c(-0.5,20.5))
-    
+  
+  Cases = filter(Cases, Country == country, !is.na(Cases$AgeInyears))
+  
+  
+  cases.plot <- bwplot(AgeInyears ~ factor(YrOnset), data = Cases, ylim = c(-0.5,42.5))
+  #cases.plot <- bwplot(AgeInyears ~ factor(YrOnset), data = Cases)
+  
+  bw.theme <- trellis.par.get()
+  bw.theme$box.dot$pch <- "|"
+  bw.theme$box.rectangle$col <- "black"
+  bw.theme$box.rectangle$lwd <- 4
+  bw.theme$box.rectangle$fill <- "grey90"
+  bw.theme$box.rectangle$alpha <- 1
+  bw.theme$box.umbrella$lty <- 1
+  bw.theme$box.umbrella$col <- "black"
+  bw.theme$plot.symbol$col <- "grey40"
+  bw.theme$plot.symbol$pch <- "*"
+  bw.theme$plot.symbol$cex <- 2
+  bw.theme$strip.background$col <- "grey80"
+  bw.theme$par.main.text$lineheight = 3
+  bw.theme$add.text$cex = 5
+  bw.theme$par.ylab.text$cex = 2
+  bw.theme$par.xlab.text$cex = 2
+  bw.theme$par.main.text$cex = 2
+  bw.theme$axis.text$cex=2
+  l.bw <- update(cases.plot, par.settings = bw.theme, 
+                 xlab = "year", ylab = "age", main = country)
+  
+  l.bw
+  #Cases = filter(Cases, AgeInyears<21)
+  cases.plot <- boxplot(AgeInyears~factor(YrOnset), data = Cases, 
+                        col = alpha('mediumaquamarine',0.75), ylab = "Age", 
+                        boxwex = 0.6, xlab = 'year', main = country, pch = 16, cex = 0.2,
+                        frame.plot = FALSE, ylim = c(-0.5,20.5))
+  
 }
