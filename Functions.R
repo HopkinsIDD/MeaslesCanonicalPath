@@ -37,7 +37,7 @@ generate.data <- function(window.length, regions,
   
   list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
   
-  x = seq(1980, 2014) 
+  x = seq(1980, 2017) 
   
   ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
   list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = interp.datasets(subset.data, 
@@ -86,10 +86,10 @@ generate.data <- function(window.length, regions,
     year = year + 1
   }
   
-  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2017)))
   for(i in 1 : nrow(subset.data)){
-    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
-      as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2017))]) / 
+      as.numeric(interp.subset.pop[i, paste(seq(1980, 2017))])
     
   }
   ##' for calculating the weighted coefficient of variation, we need to take the weighted
@@ -142,8 +142,8 @@ generate.data <- function(window.length, regions,
   
   ##' set up the timeline on which we do the interpolation. 
   ##' The number of sections that the yearly data is split up to is given by interp.resolution  
-  x = seq(1980 + (window.length - 1), 2014)
-  xout = seq(1980 + (window.length - 1), 2014, 1/interp.resolution)
+  x = seq(1980 + (window.length - 1), 2017)
+  xout = seq(1980 + (window.length - 1), 2017, 1/interp.resolution)
   
   ##' interpolate the data and add columns that contain the corresponding country and WHO region of each line
   
@@ -219,6 +219,7 @@ generate.data <- function(window.length, regions,
 ### interpolate datasets for state space model shiny animation
 ########################
 
+
 interp.datasets.state.space <- function(subset.data, 
                                         subset.vaccination, 
                                         subset.birth.rates, 
@@ -243,20 +244,20 @@ interp.datasets.state.space <- function(subset.data,
   interp.subset.pop[, 2] = as.character(subset.data$WHO_REGION)
   
   for ( i in 1 : length(subset.pop.by.year[, 1])){
-    y = subset.data[i, paste(x)]
-    if(length(which(is.na(y) == FALSE)) < 2) {
-      interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
-        list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
-        interp.subset.data[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
-        colnames(interp.subset.data) = c("Country", "WHO_REGION", paste(x))
-      }
+    y = as.numeric(as.character(subset.data[i, paste(x)]))
+    list[qq,ww] =  approx (as.numeric(x), as.numeric(y),  method = "linear", xout )
+    interp.subset.data[i, 3: length(interp.subset.data[1, ])]  =  round(ww, 2)
+    colnames(interp.subset.data) = c("Country", "WHO_REGION", paste(x))
     
-    y1 = subset.vaccination[i, paste("X", x, sep = "")]
+    y1 = as.numeric(as.character(subset.vaccination[i, paste("X", x, sep = "")]))
     list[qq,ww] =  approx (as.numeric(x), as.numeric(y1),  method = "linear", xout )
     interp.subset.vacc[i, 3: length(interp.subset.vacc[1, ])]  =  round(ww, 2)
     colnames(interp.subset.vacc) = c("Country", "WHO_REGION", x)
     
     y2 =as.numeric( c(subset.birth.rates[i, paste("X", x, sep = "")]))
+    if(length(y2) < length(y1)){
+      y2 =as.numeric( c(subset.birth.rates[i, paste("X", x, sep = "")], subset.birth.rates[i, paste("X", 2012, sep = "")]))
+    }
     if(length(which(is.na(y2) == FALSE)) < 2) 
     {interp.subset.br[i, 3: length(interp.subset.data[1, ])]  = 0} else{
       list[qq,ww] =  approx (as.numeric(x), as.numeric(y2),  method = "linear", xout )
@@ -652,10 +653,15 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
   # if(country == "Micronesia, Federated States of"){country2 = "Micronesia (Fed. States of)"}
   # if(country == "Burma"){country2 = "Myanmar"}
   pop.struct.past = p[which(p$Region == country2 & p$Data == z1), 4:ncol(p)] * 1000
+  if(z>2015){
+    z=2015
+  }
   pop.struct.future = p[which(p$Region == country2 & p$Data == z), 4:ncol(p)] * 1000
   
   fraction = year - z1
-  
+  if(fraction > 5){
+    fraction = 5
+  }
   pop.struct = (5 - fraction)/5 * pop.struct.past + fraction / 5 * pop.struct.future
   pop.struct[14] = sum(pop.struct[14:length(pop.struct)])
   pop.struct = pop.struct[1:14]
@@ -1357,7 +1363,7 @@ plot.arrow.with.labels <- function(arrow.data, output.plot.points, pos.mcv2, pos
 #' @export
 #'
 #' @examples
-incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2014), 
+incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2017), 
                                 state.space = 0,
                                 regions, shapes = c(1,2,16,17),
                                 countries.of.interest = c("Malawi", "United States", "Brazil",
@@ -1407,10 +1413,10 @@ incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2014),
   a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
     scale_shape_manual(values=shapes, name  ="",
                        breaks=c(1, 2, 3, 4),
-                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2017","Americas 2017"))+
     scale_colour_manual(values = rep(colors, 2),name  ="",
                         breaks=c(1, 2, 3, 4),
-                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2017","Americas 2017")) + 
     scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
                        breaks = 100*breaks) + 
     theme_classic() + scale_alpha(guide = "none") +
@@ -1455,7 +1461,7 @@ incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2014),
 
 
 
-incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 2014), 
+incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 2017), 
                                        regions, shapes = c(1,2,16,17),
                                        countries.of.interest = c("Malawi", "United States", "Brazil",
                                                                  "Congo, Democratic Republic of the",
@@ -1498,10 +1504,10 @@ incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 20
   a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
     scale_shape_manual(values=shapes, name  ="",
                        breaks=c(1, 2, 3, 4),
-                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2017","Americas 2017"))+
     scale_colour_manual(values = rep(colors, 2),name  ="",
                         breaks=c(1, 2, 3, 4),
-                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2017","Americas 2017")) + 
     scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
                        breaks = 100*breaks) + 
     theme_classic() + scale_alpha(guide = "none") +
@@ -1551,7 +1557,7 @@ incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 20
 
 
 #' @examples
-awesome.mega.figure.scaled <- function(anim.data = anim.data, years = c(1990, 2014), 
+awesome.mega.figure.scaled <- function(anim.data = anim.data, years = c(1990, 2017), 
                                        regions, shapes = c(1,2,16,17),
                                        countries.of.interest = c("Malawi", "United States", "Brazil",
                                                                  "Congo, Democratic Republic of the",
@@ -1594,10 +1600,10 @@ awesome.mega.figure.scaled <- function(anim.data = anim.data, years = c(1990, 20
   a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
     scale_shape_manual(values=shapes, name  ="",
                        breaks=c(1, 2, 3, 4),
-                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2017","Americas 2017"))+
     scale_colour_manual(values = rep(colors, 2),name  ="",
                         breaks=c(1, 2, 3, 4),
-                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2017","Americas 2017")) + 
     #scale_y_continuous(limits = c(0, round(max.incidence)), trans= 'sqrt' ,
     #                  breaks = breaks) + 
     theme_classic() + scale_alpha(guide = "none") +
@@ -2345,10 +2351,10 @@ prepare.data.for.weighting <- function(year, window.length, num.windows,
     year = year + 1
   }
   
-  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2017)))
   for(i in 1 : nrow(subset.data)){
-    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
-      as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2017))]) / 
+      as.numeric(interp.subset.pop[i, paste(seq(1980, 2017))])
     
   }
   
@@ -2456,7 +2462,7 @@ plots.for.sus.dist.by.canonical.path <- function(d1, d2, d3, rep.cases,
   list[d1, canonical.path] = closest.path.point(d = d1, 
                                                 use.rep.cases = rep.cases,
                                                 regions = regions, 
-                                                years = seq(1990, 2016),
+                                                years = seq(1990, 2017),
                                                 make.inc.cv.scale.same = make.inc.cv.scale.same,
                                                 inc.transform = inc.transform,
                                                 connect.canonical.path.to.zero,
@@ -2742,7 +2748,7 @@ plot.world.map <- function(d,
   list[d1, canonical.path] = closest.path.point(d = d, 
                                                 use.rep.cases = use.rep.cases,
                                                 regions = regions, 
-                                                years = seq(1990, 2016),
+                                                years = seq(1990, 2017),
                                                 make.inc.cv.scale.same = make.inc.cv.scale.same,
                                                 inc.transform = inc.transform,
                                                 connect.canonical.path.to.zero,
@@ -2788,10 +2794,21 @@ get.data.for.animation.state.space <- function(regions){
   
   
   cases.by.country.by.year = read.csv("data/Measles_cases_by_year2.csv", stringsAsFactors = FALSE)
-  subset.data = read.csv("data/State_space_cases.csv")
+  subset.data = read.csv("data/State_space_cases_new.csv")
   Birth.rates = read.csv("data/Birth_rates.csv", stringsAsFactors = FALSE)
   pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE)
   vacc.rates = read.csv("data/Measles_vac_all.csv", stringsAsFactors = FALSE)
+  
+  subset.data$Country = NA
+  subset.data$WHO_REGION = NA
+  for(i in 1 : nrow(subset.data)){
+    iso = subset.data$iso[i]
+    k = which(cases.by.country.by.year$ISO_code == iso)
+    if(length(k) > 0){
+      subset.data$Country[i] = cases.by.country.by.year$Cname[k]
+      subset.data$WHO_REGION[i] = cases.by.country.by.year$WHO_REGION[k]
+    }
+  }
   
   subset.pop.by.year = subset(pop.by.year, pop.by.year$WHO_REGION %in% regions)
   subset.vaccination = subset(vacc.rates, vacc.rates$WHO_REGION %in% regions)
@@ -2851,7 +2868,7 @@ get.data.for.animation.state.space <- function(regions){
   subset.vaccination = p2
   subset.birth.rates = p3
   subset.data = p4
-  
+  subset.data = subset.data[, -(1)]
   x = colnames(subset.data)[which(grepl("X", colnames(subset.data)))]
   x = min(gsub("X", "", x)):max(gsub("X", "", x))
   colnames(subset.data) = c(x,"Country", "WHO_REGION")
@@ -2996,8 +3013,8 @@ generate.state.space.data <- function(window.length, regions,
   
   ##' set up the timeline on which we do the interpolation. 
   ##' The number of sections that the yearly data is split up to is given by interp.resolution  
-  x = seq(1981 + (window.length - 1), 2014)
-  xout = seq(1981+ (window.length - 1), 2014, 1/interp.resolution)
+  x = seq(1981 + (window.length - 1), max(x))
+  xout = seq(1981+ (window.length - 1), max(x), 1/interp.resolution)
   
   ##' interpolate the data and add columns that contain the correspondin country and WHO region of each line
   
@@ -3068,6 +3085,7 @@ generate.state.space.data <- function(window.length, regions,
   output.data$Coefficient.of.Variation[which(output.data$Coefficient.of.Variation == "Inf")] = 0
   return(output.data)
 }
+
 
 
 

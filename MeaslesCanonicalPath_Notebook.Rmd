@@ -59,7 +59,7 @@ figure below, with the green line being for Africa and the purple one for the Am
 ```{r, echo = include.code, include=FALSE}
 
 
-taxonomy.fig1 = incidence.space.fig(anim.data = canonical.path.data, years = c(1990, 2013), 
+taxonomy.fig1 = incidence.space.fig(anim.data = canonical.path.data, years = c(1990, 2017), 
                                      regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                      countries.of.interest = c("Malawi", "United States", 
                                                                "Brazil", "Argentina",
@@ -329,7 +329,7 @@ This can be repeated for all countries, and hence for a given year a map can be 
 
 ```{r, fig.height = 6, fig.width = 10, echo = include.code}
 
-plot.year = 2014
+plot.year = 2017
 
 missing.countries = c("Bosnia and Herzegovina", "Central African Republic",
                        "Congo, Republic of The", "Czech Republic", "Korea, North",
@@ -360,20 +360,20 @@ w.plot
 
 Along with this analysis, we used a method for estimating the susceptibility in each year of age which was developed by @tak2015. Each age cohort's susceptiblity is estimated based on its opportunity for immunization (via routine and supplmentary activities) and risk of natural infection. The probabliity of immunization was estimated per WHO reported administrative vaccination coverage estimates (@who). The probability of natural infection by age was estimated by assuming a constant hazard of infection over age that scaled each year relative to the proportional decline in estimated measles incidence corrected for under-reporting. Measles incidence, corrected for under-reporting, was estimated using a state space model per @statespace and @simons2012. The following chunks of code first uses the state-space model to estimate the number of measles cases (corrected for under-reporting) by year and country, then goes on to infer susceptibilty by age for each country and each year.
 
-```{r, eval=F, include=F}
+```{r, eval=F, include=F, eval = FALSE}
 ##' this chunk of code runs the state space model that estimates measles incidence as "output-estimated_incidence.csv"
 source("state.space.model/run_state_space_model.R")
 
 ```
 
-```{r, eval=F, include=F}
+```{r, eval=F, include=F, eval = FALSE}
 ##' this chunk of code infers susceptiblity from the estimated measles incidence, birth rates, and vaccination rates
 All.countries = as.character(unique(canonical.path.data$Country))
 All.countries = All.countries[-(which(All.countries %in% c("","Andorra","Monaco", "Tuvalu", "Dominica", 
                                                            "Saint Kitts and Nevis", "Palau", "Marshall Islands",
                                                            "San Marino")))]
 All.countries= All.countries[order(All.countries)]
-years = seq(1990,2015)
+years = seq(1990,2017)
 
 number.of.susceptibles = number.of.individuals = data.frame(matrix(0, length(years) * length(All.countries), 62))
 colnames(number.of.susceptibles) = colnames(number.of.individuals) = c("Country", "Year", paste("X",0:59, sep = ""))
@@ -422,7 +422,8 @@ estimated.age.dist.by.year = read.csv("data/est_age_dist_by_year.csv", stringsAs
 We can then use the dataset of the number of susceptibles by country, year, and age, to link each country and year to the canonical path and determine the estimated total proporiton of susceptibles, and age-specific proportion susceptibles at each canonical path point. 
 
 ```{r, echo = include.code, include=F}
-
+estimated.susceptibles.by.year = estimated.susceptibles.by.year[, -(1)]
+estimated.age.dist.by.year = estimated.age.dist.by.year[, -(1)]
 ##' run code to generate the number of susceptibles by age by canonical path point
 list[dist.by.age, canonical.path, prop.sus, d1, prop.sus.by.age] = 
     plots.for.sus.dist.by.canonical.path (d1 = canonical.path.data, 
@@ -620,22 +621,21 @@ Here we reproduce the figures seen in the supplement of the paper.  The followin
 ```{r, echo = F}
 
 list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
-nigeria.pop = subset.pop.by.year %>% filter(Country.Name== "Nigeria") %>% data.frame %>% t
-j = which(rownames(nigeria.pop) %in%paste("X", 1981:2014, sep = ""))
-nigeria.pop = nigeria.pop[j] %>% data.frame 
+nigeria.pop = subset.pop.by.year %>% filter(Country.Name== "Nigeria") %>% data.frame 
+j = which(colnames(nigeria.pop) %in%paste("X", 1981:2014, sep = ""))
+nigeria.pop = nigeria.pop[j] %>% t %>% data.frame
 colnames(nigeria.pop) = "pop"
 nigeria.pop$pop = nigeria.pop$pop %>% as.character %>% as.numeric
 
 cases.by.country.by.year = read.csv("data/Measles_cases_by_year.csv", stringsAsFactors = FALSE)
 
 nigeria.cases = cases.by.country.by.year %>%
-    filter(Cname == "Nigeria") %>%
-    select(rev(seq(7, ncol(cases.by.country.by.year)-1))) %>%
-    as.numeric %>%
-    cbind(seq(1981, 2014), .) %>%
-    data.frame
+    filter(Cname == "Nigeria") 
 
+j = which(colnames(nigeria.cases) %in% paste("X", 1981:2014, sep = ""))
 
+nigeria.cases = nigeria.cases[rev(j)] %>% as.character %>% as.numeric %>% data.frame 
+nigeria.cases = cbind(seq(1981, 2014), nigeria.cases)
 colnames(nigeria.cases) = c("year", "cases")
 nigeria.inc = data.frame(cbind(1981:2014, 100000 * nigeria.cases$cases / nigeria.pop$pop))
 colnames(nigeria.inc) = c("year", "inc")
@@ -681,7 +681,7 @@ k$year = as.numeric(as.character(k$year))
 ggplot(k, aes(x = year, y = weight, col = factor(w))) + geom_point(cex = 3) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-    scale_colour_manual(values=wes_palette("Darjeeling1")[c(1,5)])
+    scale_colour_manual(values=wes_palette("Darjeeling")[c(1,5)])
 
 
 ```
@@ -706,7 +706,7 @@ p <- ggplot(weighted.mean.inc, aes(x = year, y = mean.inc))
 p + geom_point(cex = 3, aes(col = factor(type))) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-        scale_color_manual(values = c("grey",wes_palette("Darjeeling1")[c(1,5)]) ) + 
+        scale_color_manual(values = c("grey",wes_palette("Darjeeling")[c(1,5)]) ) + 
         ylab("mean incidence per 100,000") + xlim(c(1990, 2014))
 
 
@@ -928,7 +928,7 @@ Figure S3 of the supplement has the location of countries in the WHO Africa and 
 
 d = canonical.path.data 
 
-years = 1990:2014
+years = 1990:2017
 
 d = d %>% filter(., Year %in% years, WHO_REGION %in% regions, Incidence > 0,
                  Country != "")
@@ -948,7 +948,7 @@ d$Incidence = log(d$Incidence+0.000001)
 d$Incidence = scl(d$Incidence)
 d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
 
-logged.scaled.path = awesome.mega.figure.scaled (anim.data = d, years = c(1990, 2013), 
+logged.scaled.path = awesome.mega.figure.scaled (anim.data = d, years = c(1990, 2017), 
                                      regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                      countries.of.interest = c("Malawi", "United States", 
                                                                "Brazil", "Argentina",
@@ -1133,7 +1133,7 @@ Figure S5 shows the trajectory of the Americas and Africa when we take the media
 
 ```{r, echo = F, include = F}
 
-taxonomy.fig.median = incidence.space.fig.median(anim.data = canonical.path.data, years = c(1990, 2013), 
+taxonomy.fig.median = incidence.space.fig.median(anim.data = canonical.path.data, years = c(1990, 2017), 
                                                  regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                                  countries.of.interest = c("Malawi", "United States", 
                                                                            "Brazil", "Argentina",
@@ -1178,7 +1178,7 @@ list[state.space.data, Af.data.state.space, Amr.data.state.space, Rest.data.stat
                                    mean.age.sus = mean.age.sus)
 
 
-state.space.fig = incidence.space.fig(anim.data = state.space.data, years = c(1990, 2014), 
+state.space.fig = incidence.space.fig(anim.data = state.space.data, years = c(1990, 2017), 
                                       state.space = 1,
                                      regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                      countries.of.interest = c("Malawi", "United States", 

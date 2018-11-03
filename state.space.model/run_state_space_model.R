@@ -24,6 +24,7 @@ allcases<-read.csv("state.space.model/input-cases.csv",header=T,row.names=1)
 allbirths<-read.csv("state.space.model/input-births.csv",header=T,row.names=1)
 alldeaths<-read.csv("state.space.model/input-deaths_5.csv",header=T,row.names=1)
 allpop<-read.csv("state.space.model/input-populations.csv",header=T,row.names=1)
+allpop$X2017= as.numeric(as.character(allpop$X2017))
 allmcv1<-read.csv("state.space.model/input-mcv1.csv",header=T,row.names=1)
 mcv1.12mo<-read.csv("state.space.model/input-mcv1vaxeff.csv",header=T,row.names=1)
 allmcv2<-read.csv("state.space.model/input-mcv2.csv",header=T,row.names=1)
@@ -35,6 +36,7 @@ outbreaks<-read.csv("state.space.model/output-outbreaks.csv",header=T,row.names=
 ###################################################
 ignore.codes<-read.csv("state.space.model/input-ignore.indices.csv",header=T)
 ignore.indices<-match(ignore.codes$iso,rownames(allcases))
+ignore.indices = c(ignore.indices,165)
 incidence_estimate(binary.file="state.space.model/output-incidence.Rdat", allcases, allbirths, alldeaths,
 allpop, allmcv1, mcv1.12mo, allmcv2, allsia, first.surveillance, outbreaks, ignore.indices,
 display=TRUE)
@@ -93,6 +95,7 @@ allcases<-read.csv("state.space.model/input-cases.csv",header=T,row.names=1)
 allbirths<-read.csv("state.space.model/input-births.csv",header=T,row.names=1)
 alldeaths<-read.csv("state.space.model/input-deaths_5.csv",header=T,row.names=1)
 allpop<-read.csv("state.space.model/input-populations.csv",header=T,row.names=1)
+allpop$X2017= as.numeric(as.character(allpop$X2017))
 allmcv1<-read.csv("state.space.model/input-mcv1.csv",header=T,row.names=1)
 mcv1.12mo<-read.csv("state.space.model/input-mcv1vaxeff.csv",header=T,row.names=1)
 allmcv2<-read.csv("state.space.model/input-mcv2.csv",header=T,row.names=1)
@@ -104,6 +107,7 @@ outbreaks<-read.csv("state.space.model/output-outbreaks-new.csv",header=T,row.na
 ###################################################
 ignore.codes<-read.csv("state.space.model/input-ignore.indices.csv",header=T)
 ignore.indices<-match(ignore.codes$iso,rownames(allcases))
+ignore.indices = c(ignore.indices,165)
 incidence_estimate(binary.file="state.space.model/output-incidence.Rdat", allcases, allbirths, alldeaths,
 allpop, allmcv1, mcv1.12mo, allmcv2, allsia, first.surveillance, outbreaks, ignore.indices,
 display=TRUE)
@@ -161,6 +165,7 @@ allcases<-read.csv("state.space.model/input-cases.csv",header=T,row.names=1)
 allbirths<-read.csv("state.space.model/input-births.csv",header=T,row.names=1)
 alldeaths<-read.csv("state.space.model/input-deaths_5.csv",header=T,row.names=1)
 allpop<-read.csv("state.space.model/input-populations.csv",header=T,row.names=1)
+allpop$X2017= as.numeric(as.character(allpop$X2017))
 allmcv1<-read.csv("state.space.model/input-mcv1.csv",header=T,row.names=1)
 mcv1.12mo<-read.csv("state.space.model/input-mcv1vaxeff.csv",header=T,row.names=1)
 allmcv2<-read.csv("state.space.model/input-mcv2.csv",header=T,row.names=1)
@@ -172,6 +177,7 @@ outbreaks<-read.csv("state.space.model/output-outbreaks-new.csv",header=T,row.na
 ###################################################
 ignore.codes<-read.csv("state.space.model/input-ignore.indices.csv",header=T)
 ignore.indices<-match(ignore.codes$iso,rownames(allcases))
+ignore.indices = c(ignore.indices,165)
 incidence_estimate(binary.file="state.space.model/output-incidence.Rdat", allcases, allbirths, alldeaths,
 allpop, allmcv1, mcv1.12mo, allmcv2, allsia, first.surveillance, outbreaks, ignore.indices,
 display=TRUE)

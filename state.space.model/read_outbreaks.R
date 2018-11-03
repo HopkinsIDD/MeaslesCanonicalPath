@@ -15,4 +15,5 @@ for(i in 1:dim(outbreak.data)[1]){
 # Post-hoc changes to outbreaks coverage
 ##########################################################################################
 
-write.table(outbreaks,file="state.space.model/output-outbreaks.csv",sep=",",row.names=rownames(cases),col.names=1980:(1979+dim(sia.coverage)[2]))
+write.table(outbreaks,file="state.space.model/output-outbreaks.csv",sep=",",
+            row.names=rownames(cases),col.names=1980:(1979+dim(sia.coverage)[2]))
