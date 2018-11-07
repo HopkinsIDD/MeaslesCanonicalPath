@@ -3094,7 +3094,7 @@ generate.state.space.data <- function(window.length, regions,
 
 #' Return Gaussian weighted mean and cv from state-space model estimates
 #'
-#' @param df - data frame incidene per 100000 from 1981 to 2014 in columns and countries in rows
+#' @param df - data frame incidene per 100000 from 1981 to 2017 in columns and countries in rows
 #'
 #' @return list(incs.all, coeff.all)
 return.cv.inc.from.ss <- function(df){
@@ -3112,7 +3112,7 @@ return.cv.inc.from.ss <- function(df){
     return(weights)
   }
   
-  coeff.all <- incs.all <- matrix(NA, nrow(df), 25)
+  coeff.all <- incs.all <- matrix(NA, nrow(df), 28)
   for (c in 1:nrow(df)){
     
     infs.by.year <- as.numeric(df[c,-1])

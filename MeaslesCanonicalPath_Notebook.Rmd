@@ -441,12 +441,12 @@ cols.1 <- colorRampPalette(c("red", "white", "blue"))(length(canonical.path$x))
 
 Here we plot the proportion of susceptible individuals by canonical path point (Fig. 2C in the paper). The horizontal dashed lines display the critical level of immunity if the basic reproduction number of measles is 15 or 20 (critical level = 1-(1 / basic reproductive number)).
 
-```{r, echo = include.code, fig.height = 5, fig.width = 8}
+```{r, echo = include.code, fig.height = 6, fig.width = 9}
 
     plot( prop.sus[, 2]*100, pch = 21, cex = 2,
           xlab = '', ylab= '% susceptible', bty="n",
           xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black')
-    smoo <- with(prop.sus[!is.na(prop.sus$y),],smooth.spline(x,y*100))
+    smoo <- with(prop.sus[!is.na(prop.sus$y),],smooth.spline(x,y*100, df=4))
     result <- with(prop.sus, predict(smoo,x[is.na(y)]))
     prop.sus[is.na(prop.sus$y),] <- result
     lines(smoo, col='black', lwd=2)
@@ -520,17 +520,18 @@ melt.mean.measles.age = rbind(melt.mean.measles.age, X)
 
 Again, these data can be linked to canonical path point. Here we make a boxplot of the esimated distribution of ages against the mean age of measles cases, to see how they compare (Fig. 2F). The estimates are colored the same colors as the canonical path points, and the case data is transparent yellow and green. 
 
-```{r, echo = include.code, fig.height = 5, fig.width = 8}
+```{r, echo = include.code, fig.height = 6, fig.width = 9}
 
-boxplot(age ~ point, data = dist.by.age, col = cols.1, outline = F, bty = "n",
+boxplot(age ~ point, data = dist.by.age, outline = F, bty = "n",
         ylim = c(0, 60), xaxt = "n", frame.plot = F, xlab = "position on canonical path",
         cex.axis = 1.5, cex.lab = 1.5)
 
 boxplot(value/12 ~ closest, 
-        data = melt.mean.measles.age, 
-        ylim = c(0,700/12), border = rgb(red = 32/255, green = 147/255, blue = 97/255, alpha = 0.6),
-        col = rgb(red = 130/255, green = 132/255, blue = 29/255, alpha = 0.4),
-        ylab ="age",xaxt = "n", frame.plot = F,
+        data = melt.mean.measles.age, boxlwd=0.01, whisklwd=2, staplelwd=2.5,
+        ylim = c(0,700/12), border = rgb(red = 10/255, green = 10/255, blue = 100/255, alpha = 0.55),
+        col = rgb(red = 1/255, green = 10/255, blue = 100/255, alpha = 0.4),
+        ylab ="age", xaxt = "n", frame.plot = F,
+        pars = list(boxwex = 0.38, staplewex = 0.5, outwex = 0),
         cex.axis = 1.5, cex.lab = 1.5, outline = F, add= T)
 
 axis(1, at = c(1,length(unique(dist.by.age$point))),labels = c("",""))
@@ -542,13 +543,6 @@ axis(1, at = c(1,length(unique(dist.by.age$point))),labels = c("",""))
 The figures below show the estimated proportion of susceptibles who are under 5 (Fig. 2D), and the age at which an SIA would have to go up to in order to cover 90% of all susceptibles (Fig. 2E).
 
 ```{r, echo = include.code, include = F}
-#average across five year age groups
-prop.sus.by.age <- prop.sus.by.age[,-1]
-a = 1:59
-n = 5
-min = seq.int(from=1, to=length(a), by=n)
-max = c((min-1)[2:length(min)], length(a))
-prop.sus.by.age.group = apply(prop.sus.by.age, 1, function(x) sapply(1:length(min), function(i) mean(x[min[i]:max[i]])))
 
 dist.by.age.rep = dist.by.age
 points = unique(dist.by.age.rep$point)
@@ -581,19 +575,17 @@ perc.by.age.sia.rep$pos = 1:nrow(perc.by.age.sia.rep)
 ```
 
 
-```{r, echo = include.code, fig.height = 5, fig.width = 8}
+```{r, echo = include.code, fig.height = 6, fig.width = 9}
 
-levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)", 
-          xlab="position on canonical path",
-          col.regions=colorRampPalette(brewer.pal(9,"Greys")), main="Age-Specific Proportion
-          Susceptible for each Position on the Canonical Path", scales=list(y=list(at=1:12,
-          labels=c("<5","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49",
-                   "50-54","55-59"))))
+prop.sus.by.age <- prop.sus.by.age[,-1]
+levelplot(as.matrix(prop.sus.by.age), ylab="age (years)", xlab="position on canonical path", 
+          col.regions=colorRampPalette(brewer.pal(9,"Greys")), aspect=1/2, 
+          scales=list(y=list(at=seq(2,60,2), labels=seq(1,59,2))))
 
 
 plot( perc.by.age.sia.rep$pos, perc.by.age.sia.rep$perc.to.5, pch = 21, cex = 2,
       xlab = '', ylab= '% of susceptibles 5 or under', bty="n",
-      xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black',ylim = c(15,60))
+      xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black',ylim = c(10,60))
 smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5))
 result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$perc.to.5)]))
 perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$perc.to.5),2] <- result$y
@@ -604,9 +596,9 @@ abline(h = 2/30, lwd = 2, lty = 2)
 
 
 plot(perc.by.age.sia.rep$pos, perc.by.age.sia.rep$age.for.90.perc, pch = 21, cex = 2,
-     xlab = '', ylab= 'oldest SIA age to reach 90% of susceptibles', bty="n",ylim = c(15,35),
+     xlab = '', ylab= 'oldest SIA age to reach 90% of susceptibles', bty="n",ylim = c(15,42),
      xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black')
-smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$age.for.90.perc),], smooth.spline(pos,age.for.90.perc))
+smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$age.for.90.perc),], smooth.spline(pos,age.for.90.perc, df=6))
 result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$age.for.90.perc)]))
 perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$age.for.90.perc),5] <- result$y
 lines(smoo, col='black', lwd=2)
@@ -622,7 +614,7 @@ Here we reproduce the figures seen in the supplement of the paper.  The followin
 
 list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
 nigeria.pop = subset.pop.by.year %>% filter(Country.Name== "Nigeria") %>% data.frame 
-j = which(colnames(nigeria.pop) %in%paste("X", 1981:2014, sep = ""))
+j = which(colnames(nigeria.pop) %in%paste("X", 1981:2017, sep = ""))
 nigeria.pop = nigeria.pop[j] %>% t %>% data.frame
 colnames(nigeria.pop) = "pop"
 nigeria.pop$pop = nigeria.pop$pop %>% as.character %>% as.numeric
@@ -632,12 +624,12 @@ cases.by.country.by.year = read.csv("data/Measles_cases_by_year.csv", stringsAsF
 nigeria.cases = cases.by.country.by.year %>%
     filter(Cname == "Nigeria") 
 
-j = which(colnames(nigeria.cases) %in% paste("X", 1981:2014, sep = ""))
+j = which(colnames(nigeria.cases) %in% paste("X", 1981:2017, sep = ""))
 
 nigeria.cases = nigeria.cases[rev(j)] %>% as.character %>% as.numeric %>% data.frame 
-nigeria.cases = cbind(seq(1981, 2014), nigeria.cases)
+nigeria.cases = cbind(seq(1981, 2017), nigeria.cases)
 colnames(nigeria.cases) = c("year", "cases")
-nigeria.inc = data.frame(cbind(1981:2014, 100000 * nigeria.cases$cases / nigeria.pop$pop))
+nigeria.inc = data.frame(cbind(1981:2017, 100000 * nigeria.cases$cases / nigeria.pop$pop))
 colnames(nigeria.inc) = c("year", "inc")
 
 ggplot(nigeria.inc, aes(x = year, y = inc)) + geom_point(cex = 3, col = 'grey') +
@@ -650,7 +642,7 @@ ggplot(nigeria.inc, aes(x = year, y = inc)) + geom_point(cex = 3, col = 'grey') 
 year.shift.inc = 2
 cutoff = 50
 w2 = matrix(0, nrow(nigeria.inc), nrow(nigeria.inc))
-x2 = 1981:2014
+x2 = 1981:2017
 for (i in 10 : length(x2)){
     ##' set up the gaussian weights for averaging
     
@@ -669,8 +661,8 @@ for (i in 10 : length(x2)){
     
 }
 
-k = cbind(w2[10,], 1981:2014, "1990")
-k = rbind(k, cbind(w2[30, ],1981:2014, "2010"))
+k = cbind(w2[10,], 1981:2017, "1990")
+k = rbind(k, cbind(w2[30, ],1981:2017, "2010"))
 k = data.frame(k)
 colnames(k) = c("weight", "year", "w")
 k$weight[which(k$weight == 0)] = NA
@@ -681,14 +673,14 @@ k$year = as.numeric(as.character(k$year))
 ggplot(k, aes(x = year, y = weight, col = factor(w))) + geom_point(cex = 3) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-    scale_colour_manual(values=wes_palette("Darjeeling")[c(1,5)])
+    scale_colour_manual(values=wes_palette("Darjeeling1")[c(1,5)]) #potentially Darjeeling without the 1 pending R version
 
 
 ```
 
 
 ```{r, echo = F}
-weighted.mean.inc = data.frame(cbind(1981:2014, NA, "A"))
+weighted.mean.inc = data.frame(cbind(1981:2017, NA, "A"))
 colnames(weighted.mean.inc) = c("year", "mean.inc", "type")
 weighted.mean.inc$mean.inc = as.numeric(as.character(weighted.mean.inc$mean.inc))
 weighted.mean.inc$type = as.character(weighted.mean.inc$type)
@@ -706,8 +698,8 @@ p <- ggplot(weighted.mean.inc, aes(x = year, y = mean.inc))
 p + geom_point(cex = 3, aes(col = factor(type))) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-        scale_color_manual(values = c("grey",wes_palette("Darjeeling")[c(1,5)]) ) + 
-        ylab("mean incidence per 100,000") + xlim(c(1990, 2014))
+        scale_color_manual(values = c("grey",wes_palette("Darjeeling1")[c(1,5)]) ) + 
+        ylab("mean incidence per 100,000") + xlim(c(1990, 2017))
 
 
 ```
@@ -721,11 +713,11 @@ wt.cv <- function(x, wt){
 }
 cases.by.country.by.year = subset.data
 bolivia.cases = filter(cases.by.country.by.year, Country == "Bolivia")
-bolivia.cases = bolivia.cases[paste("X", 1981:2014, sep = "")]
+bolivia.cases = bolivia.cases[paste("X", 1981:2017, sep = "")]
 
 
-bolivia.cv = matrix(0, 34, 2)
-for(i in 1 : 34){
+bolivia.cv = matrix(0, 37, 2)
+for(i in 1 : 37){
     bolivia.cv[i, 1] = wt.cv(as.numeric(as.character(bolivia.cases)), w2[i, ])
     if(i > 9){
         if(mean(as.numeric(as.character(bolivia.cases[paste("X", (i+1980-9):(i+1989-9),sep = "")])), na.rm = T) >0){
@@ -737,11 +729,11 @@ for(i in 1 : 34){
 
 
 
-weighted.cv = data.frame(cbind(1990:2014, bolivia.cv[10:34, 1]))
+weighted.cv = data.frame(cbind(1990:2017, bolivia.cv[10:37, 1]))
 colnames(weighted.cv) = c("year", "cv")
-unweighted.cv = data.frame(cbind(1990:2014, bolivia.cv[10:34, 2]))
+unweighted.cv = data.frame(cbind(1990:2017, bolivia.cv[10:37, 2]))
 colnames(unweighted.cv) = c("year", "cv")
-bolivia.cases = data.frame(cbind(1981:2014, as.numeric(as.character(bolivia.cases))))
+bolivia.cases = data.frame(cbind(1981:2017, as.numeric(as.character(bolivia.cases))))
 colnames(bolivia.cases)  = c("year", "cases")
 
 
@@ -771,7 +763,7 @@ multiplot(bol.cases, weight.cv, unweight.cv, cols = 1)
    year.shift.inc = 2
    list[subset.pop.by.year, subset.vaccination, subset.birth.rates, subset.data] = get.data.for.animation(regions)
   
-  x = seq(1980, 2014) 
+  x = seq(1980, 2017) 
   
   ##' interpolate the datasets to have entries for all points in time once the interpolation is done.
   list[interp.subset.data, interp.subset.vacc, interp.subset.br, interp.subset.pop] = interp.datasets(subset.data, 
@@ -820,10 +812,10 @@ multiplot(bol.cases, weight.cv, unweight.cv, cols = 1)
     year = year + 1
   }
   
-  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2014)))
+  incidence.per.1000.each.year = matrix(0, nrow(subset.data), length(seq(1980, 2017)))
   for(i in 1 : nrow(subset.data)){
-    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2014))]) / 
-      as.numeric(interp.subset.pop[i, paste(seq(1980, 2014))])
+    incidence.per.1000.each.year[i, ] = 1000 * as.numeric(interp.subset.data[i,  paste(seq(1980, 2017))]) / 
+      as.numeric(interp.subset.pop[i, paste(seq(1980, 2017))])
     
   }
   ##' for calculating the weighted coefficient of variation, we need to take the weighted
@@ -884,13 +876,13 @@ multiplot(bol.cases, weight.cv, unweight.cv, cols = 1)
   
     coeff.var = cbind(cbind(subset.data$Country, subset.data$WHO_REGION), coeff.var)
     coeff.var = data.frame(coeff.var)
-    colnames(coeff.var) = c("Country", "WHO_REGION", paste("X", 1989:2014, sep = ""))
+    colnames(coeff.var) = c("Country", "WHO_REGION", paste("X", 1989:2017, sep = ""))
     nigeria.cv = filter(coeff.var, Country == "Nigeria")
-    nigeria.cv[paste("X", 1989:2014, sep = "")] = 
-    as.numeric(as.character(as.matrix(nigeria.cv[paste("X", 1989:2014, sep = "")])))
+    nigeria.cv[paste("X", 1989:2017, sep = "")] = 
+    as.numeric(as.character(as.matrix(nigeria.cv[paste("X", 1989:2017, sep = "")])))
 
-    cvs = as.matrix(as.numeric(as.character(nigeria.cv[paste("X", 1989:2014, sep = "")])))
-    nigeria.cv = data.frame(cbind(1989:2014, cvs))
+    cvs = as.matrix(as.numeric(as.character(nigeria.cv[paste("X", 1989:2017, sep = "")])))
+    nigeria.cv = data.frame(cbind(1989:2017, cvs))
     colnames(nigeria.cv) = c("year", "cv")
     nigeria.cv = filter(nigeria.cv, year > 1989)
     
@@ -904,13 +896,13 @@ multiplot(bol.cases, weight.cv, unweight.cv, cols = 1)
     ##' collect the weighted cv data for Nigeria, 
     coeff.var.cases = cbind(cbind(subset.data$Country, subset.data$WHO_REGION), coeff.var.cases)
     coeff.var.cases = data.frame(coeff.var.cases)
-    colnames(coeff.var.cases) = c("Country", "WHO_REGION", paste("X", 1989:2014, sep = ""))
+    colnames(coeff.var.cases) = c("Country", "WHO_REGION", paste("X", 1989:2017, sep = ""))
     nigeria.cv = filter(coeff.var.cases, Country == "Nigeria")
-    nigeria.cv[paste("X", 1989:2014, sep = "")] = 
-    as.numeric(as.character(as.matrix(nigeria.cv[paste("X", 1989:2014, sep = "")])))
+    nigeria.cv[paste("X", 1989:2017, sep = "")] = 
+    as.numeric(as.character(as.matrix(nigeria.cv[paste("X", 1989:2017, sep = "")])))
 
-    cvs = as.matrix(as.numeric(as.character(nigeria.cv[paste("X", 1989:2014, sep = "")])))
-    nigeria.cv = data.frame(cbind(1989:2014, cvs))
+    cvs = as.matrix(as.numeric(as.character(nigeria.cv[paste("X", 1989:2017, sep = "")])))
+    nigeria.cv = data.frame(cbind(1989:2017, cvs))
     colnames(nigeria.cv) = c("year", "cv")
     nigeria.cv = filter(nigeria.cv, year > 1989)
 
@@ -975,26 +967,28 @@ country.codes <- read.csv("./data/country_codes2.csv")
 country.names.amro <- country.codes$Report_country_name[country.codes$Region_Code=="AMRO"]
 country.names.afro <- country.codes$Report_country_name[country.codes$Region_Code=="AFRO"]
 
-##' need population size 1981 to 2014 per AMRO and AFRO country 
-pop.amro <- matrix(NA, length(country.names.amro), 34) #1981 to 2014
-pop.afro <- matrix(NA, length(country.names.afro), 34) #1981 to 2014
+#need population size 1981 to 2017 per AMRO and AFRO country 
+pop.amro <- matrix(NA, length(country.names.amro), 37) #1981 to 2017
+pop.afro <- matrix(NA, length(country.names.afro), 37) #1981 to 2017
 for (c in 1:length(country.names.amro)){
   country <- country.names.amro[c]
   cc <- as.numeric(country.codes$uncode[country.codes$Report_country_name==country])
   data(pop) #from wpp2015 package
-  pop.total.1950.2015.by5 <-  as.numeric(cbind(pop[pop$country_code==cc,3:ncol(pop)]))
-  f <- smooth.spline(seq(1950,2015,5), pop.total.1950.2015.by5)
-  pop.total.1981.2014 <- predict(f, seq(1981,2014,1))$y*1000
-  pop.amro[c,] <- pop.total.1981.2014
+  data(popproj) #for population for 2016 and 2017
+  pop.total.1950.2020.by5 <-  as.numeric(cbind(pop[pop$country_code==cc,3:ncol(pop)], popproj[popproj$country_code==cc,3]))
+  f <- smooth.spline(seq(1950,2020,5), pop.total.1950.2020.by5)
+  pop.total.1981.2017 <- predict(f, seq(1981,2017,1))$y*1000
+  pop.amro[c,] <- pop.total.1981.2017
 }
 for (c in 1:length(country.names.afro)){
   country <- country.names.afro[c]
   cc <- as.numeric(country.codes$uncode[country.codes$Report_country_name==country])
   data(pop) #from wpp2015 package
-  pop.total.1950.2015.by5 <-  as.numeric(cbind(pop[pop$country_code==cc,3:ncol(pop)]))
-  f <- smooth.spline(seq(1950,2015,5), pop.total.1950.2015.by5)
-  pop.total.1981.2014 <- predict(f, seq(1981,2014,1))$y*1000
-  pop.afro[c,] <- pop.total.1981.2014
+  data(popproj) #for population for 2016 and 2017
+  pop.total.1950.2020.by5 <-  as.numeric(cbind(pop[pop$country_code==cc,3:ncol(pop)], popproj[popproj$country_code==cc,3]))
+  f <- smooth.spline(seq(1950,2020,5), pop.total.1950.2020.by5)
+  pop.total.1981.2017 <- predict(f, seq(1981,2017,1))$y*1000
+  pop.afro[c,] <- pop.total.1981.2017
 }
 
 ##' sort countries (names, iso3, and uncodes) by population size
@@ -1010,20 +1004,20 @@ country.names.afro <- country.codes$Report_country_name[country.codes$Region_Cod
 iso3.afro <- country.codes$ISO3_code[country.codes$Region_Code=="AFRO"][afro.order]
 
 ##' download simulated data
-incs.amro <- cvs.amro <- matrix(NA, length(uncodes.amro)*100, 25)
+incs.amro <- cvs.amro <- matrix(NA, length(uncodes.amro)*100, 28)
 for (c in 1:length(uncodes.amro)){
   index <- min(which(is.na(incs.amro)))
-  incs <- read.csv(paste("./sim.data/incs",  uncodes.amro[c], ".csv", sep="_"))[1:25,-1] #1990 through 2014
+  incs <- read.csv(paste("./sim.data/incs",  uncodes.amro[c], ".csv", sep="_"))[1:28,-1] #1990 through 2017
   incs.amro[index:(index+99),] <- t(incs)
-  cvs <- read.csv(paste("./sim.data/cvs",  uncodes.amro[c], ".csv", sep="_"))[1:25,-1] #1990 through 2014
+  cvs <- read.csv(paste("./sim.data/cvs",  uncodes.amro[c], ".csv", sep="_"))[1:28,-1] #1990 through 2017
   cvs.amro[index:(index+99),] <- t(cvs)
 }
-incs.afro <- cvs.afro <- matrix(NA, length(uncodes.afro)*100, 25)
+incs.afro <- cvs.afro <- matrix(NA, length(uncodes.afro)*100, 28)
 for (c in 1:length(uncodes.afro)){
   index <- min(which(is.na(incs.afro)))
-  incs <- read.csv(paste("./sim.data/incs",  uncodes.afro[c], ".csv", sep="_"))[1:25,-1] #1990 through 2014
+  incs <- read.csv(paste("./sim.data/incs",  uncodes.afro[c], ".csv", sep="_"))[1:28,-1] #1990 through 2017
   incs.afro[index:(index+99),] <- t(incs)
-  cvs <- read.csv(paste("./sim.data/cvs",  uncodes.afro[c], ".csv", sep="_"))[1:25,-1] #1990 through 2014
+  cvs <- read.csv(paste("./sim.data/cvs",  uncodes.afro[c], ".csv", sep="_"))[1:28,-1] #1990 through 2017
   cvs.afro[index:(index+99),] <- t(cvs)
 }
 
@@ -1031,16 +1025,16 @@ cvs <- rbind(cvs.amro, cvs.afro)
 incs <- rbind(incs.amro, incs.afro)
 
 ##' download estimated data for comparison - incidence per 100,000 per the state-space model
-ss <- read.csv("data/State_space_cases2.csv")
-ss.inc.amro <- matrix(NA, length(uncodes.amro), ncol(ss)-3)
+ss <- read.csv("data/State_space_cases_new.csv")
+ss.inc.amro <- matrix(NA, length(uncodes.amro), ncol(ss)-1)
 for (c in 1:length(uncodes.amro)){
-  ss.cases <- as.numeric(ss[which(as.character(ss$ISO3_code)==as.character(iso3.amro[c])),4:37])
+  ss.cases <- as.numeric(ss[which(as.character(ss$iso)==as.character(iso3.amro[c])),2:ncol(ss)])
   ss.inc.amro[c,] <- ss.cases/pop.amro[c,]
 }
 ss.inc.amro <- as.data.frame(cbind(uncodes.amro, ss.inc.amro))
-ss.inc.afro <- matrix(NA, length(uncodes.afro), ncol(ss)-3)
+ss.inc.afro <- matrix(NA, length(uncodes.afro), ncol(ss)-1)
 for (c in 1:length(uncodes.afro)){
-  ss.cases <- as.numeric(ss[which(as.character(ss$ISO3_code)==as.character(iso3.afro[c])),4:37])
+  ss.cases <- as.numeric(ss[which(as.character(ss$iso)==as.character(iso3.afro[c])),2:ncol(ss)])
   ss.inc.afro[c,] <- ss.cases/pop.afro[c,]
 }
 ss.inc.afro <- as.data.frame(cbind(uncodes.afro, ss.inc.afro))
@@ -1065,66 +1059,65 @@ incs.afro[incs.afro <= c(-0.5)] <- c(-0.5)
 
 We plotted AFRO countries in incidence-space (Fig. S4A).
 
-```{r, echo = include.code, fig.height = 25, fig.width = 18}
+```{r, echo = include.code, fig.height = 96, fig.width = 18}
 
 ##' make colour palette
-colfunc = colorRampPalette(c("red", "white", "blue"))
+colfunc = colorRampPalette(c("green", "white", "orange"))
 
 ##' plot AFRO
-par(mfrow=c(8,6), bty="l")
+par(mfrow=c(16,3), bty="l", mar=c(8, 10, 8, 2) + 0.1)
 ylim = c(-0.5, as.numeric(max(log10(as.numeric(incs[, 2:ncol(incs)])*100000), na.rm = T)))
 xlim = c(0,4)
 for (c in 1:length(uncodes.afro)){
-  plot(0, bg = colfunc(25), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
-       xlim = xlim, ylim = ylim)
-  axis(2, log10(c(1,50,100,250,500,1000,2000,4000)), labels=F)
+  plot(0, bg = colfunc(28), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
+       xlim = xlim, ylim = ylim, cex.lab=2, cex.axis=2, mgp=c(4, 1.5, 0))
+  axis(2, log10(c(1,50,100,250,500,1000,2000,4000)), labels=F, cex.lab=2)
   text(y=log10(c(1,50,100,250,500,1000,2000,4000)), par("usr")[1] - 0.05, 
-       labels = c(1,50,100,250,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE)
-  title(country.names.afro[c])
+       labels = c(1,50,100,250,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE, cex=2)
+  title(country.names.afro[c], cex.main=3)
   #mtext(paste("(2010 pop: ", signif(pop.afro[c,30],-5), ")", sep=""), 3, cex=0.7)
   for(i in 1:100){
     points(cvs.afro[((100*c)-(100-i)), 2:ncol(cvs.afro)],
            incs.afro[((100*c)-(100-i)), 2:ncol(incs.afro)], 
-           bg = colfunc(25), col = 'black', pch = 21)
+           bg = colfunc(28), col = 'black', pch = 21, cex=2)
   }
   lines(colMeans(cvs.afro[(100*c-99):(100*c), 2:ncol(cvs.afro)]), 
-        colMeans(incs.afro[(100*c-99):(100*c), 2:ncol(incs.afro)]), col = 'black', lwd=2, cex=1.5)
-  points(Af.cv.ss[c,], incs.afro.ss[c,], pch=3, bg = colfunc(25))
-  lines(Af.cv.ss[c,], incs.afro.ss[c,], col="grey")
-  LEGEND("topright", c("simulated", "estimated"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
+        colMeans(incs.afro[(100*c-99):(100*c), 2:ncol(incs.afro)]), col = 'black', lwd=4)
+  points(Af.cv.ss[c,], incs.afro.ss[c,], pch=3, bg = colfunc(28), lwd=3)
+  lines(Af.cv.ss[c,], incs.afro.ss[c,], col="grey", lwd=4)
+  LEGEND("topright", c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1, cex=2, lwd=3)
 }
 
 ```
 
 We plotted AMRO countries in incidence-space (Fig. S4B).
 
-```{r, echo = include.code, fig.height = 20, fig.width = 18}
+```{r, echo = include.code, fig.height = 66, fig.width = 18}
 
 ##' make colour palette
-colfunc = colorRampPalette(c("red", "white", "blue"))
+colfunc = colorRampPalette(c("green", "white", "orange"))
 
-##' plot AMRO
-par(mfrow=c(6,6), bty="l")
+par(mfrow=c(11,3), bty="l", mar=c(8, 10, 8, 2) + 0.1)
 ylim = c(-0.5, as.numeric(max(log10(as.numeric(incs[, 2:ncol(incs)])*100000), na.rm = T)))
-xlim = c(0,3.5)
+xlim = c(0,4)
 for (c in 1:length(uncodes.amro)){
-  plot(0, bg = colfunc(25), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
-       xlim = xlim, ylim = ylim)
-  axis(2, log10(c(1,50,100,250,500,1000,2000,4000)), labels=F)
+  plot(0, bg = colfunc(28), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
+       xlim = xlim, ylim = ylim, cex.lab=2, cex.axis=2, mgp=c(4, 1.5, 0))
+  axis(2, log10(c(1,50,100,250,500,1000,2000,4000)), labels=F, cex.lab=2)
   text(y=log10(c(1,50,100,250,500,1000,2000,4000)), par("usr")[1] - 0.05, 
-       labels = c(1,50,100,250,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE)
-  title(country.names.amro[c])
+       labels = c(1,50,100,250,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE, cex=2)
+  title(country.names.amro[c], cex.main=3)
   #mtext(paste("(2010 pop: ", signif(pop.amro[c,30],-5), ")", sep=""), 3, cex=0.7)
   for(i in 1:100){
     points(cvs.amro[((100*c)-(100-i)), 2:ncol(cvs.amro)],
            incs.amro[((100*c)-(100-i)), 2:ncol(incs.amro)], 
-           bg = colfunc(25), col = 'black', pch = 21)
+           bg = colfunc(28), col = 'black', pch = 21, cex=2)
   }
   lines(colMeans(cvs.amro[(100*c-99):(100*c), 2:ncol(cvs.amro)]), 
-        colMeans(incs.amro[(100*c-99):(100*c), 2:ncol(incs.amro)]), col = 'black', lwd=2, cex=1.5)
-  points(Am.cv.ss[c,], incs.amro.ss[c,], pch=3, bg = colfunc(25))
-  lines(Am.cv.ss[c,], incs.amro.ss[c,], col="grey")
-  LEGEND("topright", c("simulated", "estimated"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
+        colMeans(incs.amro[(100*c-99):(100*c), 2:ncol(incs.amro)]), col = 'black', lwd=4)
+  points(Am.cv.ss[c,], incs.amro.ss[c,], pch=3, bg = colfunc(28), cex=3, lwd=3)
+  lines(Am.cv.ss[c,], incs.amro.ss[c,], col="grey", lwd=4)
+  LEGEND("topright", c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1, cex=2, lwd=3)
 }
 
 ```
