@@ -1458,6 +1458,104 @@ incidence.space.fig <- function(anim.data = anim.data, years = c(1990, 2017),
 }
 
 
+incidence.space.fig.dashed.arrow <- function(anim.data = anim.data, years = c(1990, 2017), 
+                                             state.space = 0,
+                                             regions, shapes = c(1,2,16,17),
+                                             countries.of.interest = c("Malawi", "United States", "Brazil",
+                                                                       "Congo, Democratic Republic of the",
+                                                                       "Zambia", "Tanzania",
+                                                                       "Colombia"),
+                                             colors = c("deeppink", "royalblue1"), 
+                                             text.size = 4,
+                                             arrow.size = 3, xint = 1.7, yint = 7,
+                                             line.color = 'grey2',
+                                             breaks = c(1,5,10,20,40,80,120,160)){
+  
+  if(state.space == 1){
+    years = c(min(anim.data$Year), max(anim.data$Year))
+  }
+  
+  years2 = years
+  years2[2] = years[2] - 4
+  D = anim.data[which(anim.data$WHO_REGION %in% regions & 
+                        anim.data$Year %in% years2 & 
+                        anim.data$Country != ""), ]
+  D$colour = matrix(0, nrow(D), 1)
+  count = 1
+  
+  
+  for(i in 1 : length(years)){
+    for(j in 1 : length(regions)){
+      k = which(D$Year == years2[i] & D$WHO_REGION == regions[j])
+      D$shape[k] = count
+      D$colour[k] = count
+      count = count + 1
+    }
+  }
+  max.incidence = max(D$Incidence)
+  D$alpha[which(D$Country %in% countries.of.interest)] = 1
+  D = rbind(D, D[1, ])
+  D$alpha[nrow(D)] = 0
+  D$size = matrix(0, nrow(D), 1)
+  D$size[which(D$Country %in% countries.of.interest)] = text.size
+  if("Congo, Democratic Republic of the" %in% countries.of.interest){
+    D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  if("United States" %in% countries.of.interest){
+    D$Country[which(D$Country == "United States")] = "USA"
+  }
+  a <- ggplot(D, aes(x = Coefficient.of.Variation, y = 100*Incidence, label = Country)) 
+  
+  
+  a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
+    scale_shape_manual(values=shapes, name  ="",
+                       breaks=c(1, 2, 3, 4),
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+    scale_colour_manual(values = rep(colors, 2),name  ="",
+                        breaks=c(1, 2, 3, 4),
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+    scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
+                       breaks = 100*breaks) + 
+    theme_classic() + scale_alpha(guide = "none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text=element_text(size=20), #, color = 'darkgrey'), 
+          axis.title=element_text(size=20), #, color = 'darkgrey'),
+          legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
+    labs(x = "coefficient of variation",
+         y = paste("mean incidence per 100,000"), 
+         color = "% not vaccinated" )
+  
+  
+  y = seq(min(years), max(years))
+  Mean_X = matrix(0, length(y), length(regions))
+  Mean_Y = matrix(0, length(y), length(regions))
+  for ( i in 1:length(y)){
+    for(j in 1 : length(regions)){
+      Mean_X[i, j] = mean(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
+                                                                     anim.data$WHO_REGION == regions[j] & 
+                                                                     anim.data$Country != "")], na.rm = T)
+      Mean_Y[i, j] = mean(anim.data$Incidence[which(anim.data$Year == y[i] &
+                                                      anim.data$WHO_REGION == regions[j] & 
+                                                      anim.data$Country != "")], na.rm = T)
+    }
+    
+  }
+  
+  
+  df <- data.frame(x = Mean_X, y  = 100*Mean_Y)
+  qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = arrow.size,
+                       arrow = arrow(), color = colors[1]) +
+    geom_path(data = df[1:(nrow(df)-4),], aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2])  +
+    geom_path(data = df[(nrow(df)-4):nrow(df),], aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2], linetype = 2)+
+    #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
+    #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
+  return(qqq1)
+}
+
 
 
 
@@ -1541,6 +1639,104 @@ incidence.space.fig.median <- function(anim.data = anim.data, years = c(1990, 20
                        arrow = arrow(), color = colors[1]) +
     geom_path(data = df, aes(x.2, y.2, label = NULL ), size = arrow.size,
               arrow = arrow(), color = colors[2])  +
+    #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
+    #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
+  return(qqq1)
+}
+
+
+
+
+
+
+incidence.space.fig.median.dashed.arrow <- function(anim.data = anim.data, years = c(1990, 2017), 
+                                       regions, shapes = c(1,2,16,17),
+                                       countries.of.interest = c("Malawi", "United States", "Brazil",
+                                                                 "Congo, Democratic Republic of the",
+                                                                 "Zambia", "Tanzania",
+                                                                 "Colombia"),
+                                       colors = c("deeppink", "royalblue1"), 
+                                       text.size = 4,
+                                       arrow.size = 3, xint = 1.7, yint = 7,
+                                       line.color = 'grey2',
+                                       breaks = c(1,5,10,20,40,80,120,160)){
+  
+  years2 = years
+  years2[2] = years[2] - 4
+  D = anim.data[which(anim.data$WHO_REGION %in% regions & 
+                        anim.data$Year %in% years2 & 
+                        anim.data$Country != ""), ]
+  D$colour = matrix(0, nrow(D), 1)
+  count = 1
+  
+  
+  for(i in 1 : length(years)){
+    for(j in 1 : length(regions)){
+      k = which(D$Year == years2[i] & D$WHO_REGION == regions[j])
+      D$shape[k] = count
+      D$colour[k] = count
+      count = count + 1
+    }
+  }
+  max.incidence = max(D$Incidence)
+  D$alpha[which(D$Country %in% countries.of.interest)] = 1
+  D = rbind(D, D[1, ])
+  D$alpha[nrow(D)] = 0
+  D$size = matrix(0, nrow(D), 1)
+  D$size[which(D$Country %in% countries.of.interest)] = text.size
+  if("Congo, Democratic Republic of the" %in% countries.of.interest){
+    D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  if("United States" %in% countries.of.interest){
+    D$Country[which(D$Country == "United States")] = "USA"
+  }
+  a <- ggplot(D, aes(x = Coefficient.of.Variation, y = 100*Incidence, label = Country)) 
+  
+  
+  a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
+    scale_shape_manual(values=shapes, name  ="",
+                       breaks=c(1, 2, 3, 4),
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+    scale_colour_manual(values = rep(colors, 2),name  ="",
+                        breaks=c(1, 2, 3, 4),
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+    scale_y_continuous(limits = c(0, 100*round(max.incidence + 2)), trans= 'sqrt' ,
+                       breaks = 100*breaks) + 
+    theme_classic() + scale_alpha(guide = "none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text=element_text(size=20), #, color = 'darkgrey'), 
+          axis.title=element_text(size=20), #, color = 'darkgrey'),
+          legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
+    labs(x = "coefficient of variation",
+         y = paste("median incidence per 100,000"), 
+         color = "% not vaccinated" )
+  
+  
+  y = seq(min(years), max(years))
+  Median_X = matrix(0, length(y), length(regions))
+  Median_Y = matrix(0, length(y), length(regions))
+  for ( i in 1:length(y)){
+    for(j in 1 : length(regions)){
+      Median_X[i, j] = median(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
+                                                                         anim.data$WHO_REGION == regions[j] & 
+                                                                         anim.data$Country != "")], na.rm = T)
+      Median_Y[i, j] = median(anim.data$Incidence[which(anim.data$Year == y[i] &
+                                                          anim.data$WHO_REGION == regions[j] & 
+                                                          anim.data$Country != "")], na.rm = T)
+    }
+    
+  }
+  
+  
+  df <- data.frame(x = Median_X, y  = 100*Median_Y)
+  qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = arrow.size,
+                       arrow = arrow(), color = colors[1]) +
+    geom_path(data = df[1:(nrow(df)-4),], aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2])  +
+    geom_path(data = df[(nrow(df)-4):nrow(df),], aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2], linetype = 2)+
     #geom_vline(xintercept = xint,  colour = line.color, linetype = 'dashed') +
     #geom_hline(yintercept = 100*yint,  colour = line.color, linetype = 'dashed') +
     theme(axis.line.x = element_line(color="black", size = 0.5),
@@ -1637,6 +1833,99 @@ awesome.mega.figure.scaled <- function(anim.data = anim.data, years = c(1990, 20
                        arrow = arrow(), color = colors[1]) +
     geom_path(data = df, aes(x.2, y.2, label = NULL ), size = 2,
               arrow = arrow(), color = colors[2])  +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
+  return(qqq1)
+}
+
+
+
+awesome.mega.figure.scaled.dashed.arrow <- function(anim.data = anim.data, years = c(1990, 2017), 
+                                       regions, shapes = c(1,2,16,17),
+                                       countries.of.interest = c("Malawi", "United States", "Brazil",
+                                                                 "Congo, Democratic Republic of the",
+                                                                 "Zambia",
+                                                                 "Colombia"),
+                                       colors = c("deeppink", "royalblue1"), 
+                                       text.size = 4,
+                                       arrow.size = 3, xint = 1.7, yint = 7,
+                                       line.color = 'grey2',
+                                       breaks = c(1,5,10,20,40,80,120,160)){
+  
+  years2 = years
+  years2[2] = years[2] - 4
+  D = anim.data[which(anim.data$WHO_REGION %in% regions & 
+                        anim.data$Year %in% years2 & 
+                        anim.data$Country != ""), ]
+  D$colour = matrix(0, nrow(D), 1)
+  count = 1
+  
+  
+  for(i in 1 : length(years)){
+    for(j in 1 : length(regions)){
+      k = which(D$Year == years2[i] & D$WHO_REGION == regions[j])
+      D$shape[k] = count
+      D$colour[k] = count
+      count = count + 1
+    }
+  }
+  max.incidence = max(D$Incidence)
+  D$alpha[which(D$Country %in% countries.of.interest)] = 1
+  D = rbind(D, D[1, ])
+  D$alpha[nrow(D)] = 0
+  D$size = matrix(0, nrow(D), 1)
+  D$size[which(D$Country %in% countries.of.interest)] = text.size
+  if("Congo, Democratic Republic of the" %in% countries.of.interest){
+    D$Country[which(D$Country == "Congo, Democratic Republic of the")] = "DRC"
+  }
+  if("United States" %in% countries.of.interest){
+    D$Country[which(D$Country == "United States")] = "USA"
+  }
+  a <- ggplot(D, aes(x = Coefficient.of.Variation, y = Incidence, label = Country)) 
+  
+  
+  a <-  a + geom_point(aes( alpha = alpha, shape = factor(shape), color = factor(colour)), size = 10) +
+    scale_shape_manual(values=shapes, name  ="",
+                       breaks=c(1, 2, 3, 4),
+                       labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014"))+
+    scale_colour_manual(values = rep(colors, 2),name  ="",
+                        breaks=c(1, 2, 3, 4),
+                        labels=c("Africa 1990", "Americas 1990", "Africa 2014","Americas 2014")) + 
+    #scale_y_continuous(limits = c(0, round(max.incidence)), trans= 'sqrt' ,
+    #                  breaks = breaks) + 
+    theme_classic() + scale_alpha(guide = "none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          axis.text=element_text(size=20), #, color = 'darkgrey'), 
+          axis.title=element_text(size=20), #, color = 'darkgrey'),
+          legend.position = "bottom", legend.text=element_text(size=16)) + geom_text(size = D$size) +
+    labs(x = "scaled coefficient of variation",
+         y = paste("scaled incidence"), 
+         color = "% not vaccinated" )
+  
+  
+  y = seq(min(years), max(years))
+  Mean_X = matrix(0, length(y), length(regions))
+  Mean_Y = matrix(0, length(y), length(regions))
+  for ( i in 1:length(y)){
+    for(j in 1 : length(regions)){
+      Mean_X[i, j] = mean(anim.data$Coefficient.of.Variation[which(anim.data$Year == y[i] &
+                                                                     anim.data$WHO_REGION == regions[j] & 
+                                                                     anim.data$Country != "")], na.rm = T)
+      Mean_Y[i, j] = mean(anim.data$Incidence[which(anim.data$Year == y[i] &
+                                                      anim.data$WHO_REGION == regions[j] & 
+                                                      anim.data$Country != "")], na.rm = T)
+    }
+    
+  }
+  
+  
+  df <- data.frame(x = Mean_X, y  = Mean_Y)
+  qqq1<- a + geom_path(data = df, aes(x.1, y.1, label = NULL ), size = 2,
+                       arrow = arrow(), color = colors[1]) +
+    geom_path(data = df[1:(nrow(df)-4),], aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2])  +
+    geom_path(data = df[(nrow(df)-4):nrow(df),], aes(x.2, y.2, label = NULL ), size = arrow.size,
+              arrow = arrow(), color = colors[2], linetype = 2)+
     theme(axis.line.x = element_line(color="black", size = 0.5),
           axis.line.y = element_line(color="black", size = 0.5))
   return(qqq1)
@@ -3507,4 +3796,192 @@ plot.case.boxplots <- function(Cases, country, col = 'cornflowerblue', alpha = 1
                         boxwex = 0.6, xlab = 'year', main = country, pch = 16, cex = 0.2,
                         frame.plot = FALSE, ylim = c(-0.5,20.5))
   
+}
+
+
+
+
+closest.path.point.movement.comparison <- function(d, regions, years, use.rep.cases = 1,
+                                                   make.inc.cv.scale.same = TRUE,inc.transform = 'sqrt',
+                                                   connect.canonical.path.to.zero = 0, log.incidence = F,
+                                                   number.points){
+  
+  ##' filter the data to only include the regions, and years required, along with only
+  ##' entries which have incidence greater than 0.
+  d = d %>% filter(., Year %in% years, WHO_REGION %in% regions, Incidence > 0,
+                   Country != "")
+  
+  ##' remove years where the coefficient of variation is 0, and the year is before 1995,
+  ##' as before this time, no countries had reached elimination, so the only way to 
+  ##' have a 0 here, is if there is no data before this time (unless a country reported
+  ##' the exact same non-zero number of cases for every year, which didn't happen)
+  j = which(d$Year < 1995 & d$Coefficient.of.Variation == 0)
+  if(length(j) > 0){
+    d = d[-(j), ]
+  }
+  
+  ##' if we want to log the incidence before assigning countries to their location
+  ##' on the path, then we do that here. Along with adding a small non-zero value to each of the
+  ##' incidences, so that there are no -Inf values created.
+  if(log.incidence == T){
+    d$Incidence = log(d$Incidence+0.000001)
+  }
+  
+  ##' if wantedscale the incidence and coefficient of variation so that they are both in the 0-1 range
+  
+  if(make.inc.cv.scale.same == T){
+    d$Incidence = scl(d$Incidence)
+    d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
+  }
+  # 
+  ##' input d with non-square rooted incidence values. Then we take the square root of the 
+  ##' incidence to match the path calculation
+  ##' 
+  # if(use.rep.cases == 1 & make.inc.cv.scale.same == F){
+  #     d$Incidence = sqrt(d$Incidence)  
+  # }
+  
+  ##' 
+  
+  # d$Incidence = scl(d$Incidence)
+  # d$Coefficient.of.Variation = scl (d$Coefficient.of.Variation)
+  # 
+  ##' find the mean path for each region by averaging positions in each year
+  list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions,
+                                        inc.transform = inc.transform,
+                                        make.inc.cv.scale.same = make.inc.cv.scale.same)
+  
+  
+  
+  
+  if(use.rep.cases ==  1){
+    ##' If we are considering the reported cases to locate the countries, then
+    ##' Africa and the Americas mean paths converge at roughly 2007 in Africa and 
+    ##' 1993 for the Americas. Join the paths at this point, and use it as the canonical
+    ##' path 
+    k = which(years == 2008)
+    k1 = which(years == 1995)
+    #zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
+    #zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
+    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
+                           cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
+      data.frame()
+    
+    
+  }else{
+    ##' If we are considering the state space cases to locate the countries, then
+    ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
+    ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
+    ##' and use it as the canonical path
+    k = which(years == 2010)
+    k1 = which(years == 1998)
+    # zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
+    #    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
+    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
+                           cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
+      data.frame()
+    # canonical.path = canonical.path[-(33:35),]
+    
+  }
+  colnames(canonical.path) = c('x', 'y')
+  last.canonical = c(tail(canonical.path$x, 1), tail(canonical.path$y, 1))
+  
+  end.canonical =c(0,0)
+  
+  if(connect.canonical.path.to.zero == 1){
+    l = cbind(seq(last.canonical[1], end.canonical[1], -last.canonical[1] / 3),
+              seq(last.canonical[2], end.canonical[2], -last.canonical[2] / 3))
+    
+    colnames(l) = colnames(canonical.path)
+    canonical.path = rbind(canonical.path, l)
+  }
+  
+  ###########################################
+  
+  ###########################################
+  
+  ##' here is where the new higher resolution path is constructed
+  
+  granular.canonical.path = calculate.granular.path(canonical.path, number.points = number.points)
+  
+  ###########################################
+  
+  ###########################################
+  
+  # canonical.path$x = scl(canonical.path$x)
+  # canonical.path$y = scl(canonical.path$y)
+  ##' add a column to hold the closest position on the mean trajectory
+  d$closest = 0
+  
+  ##' we only need to calculate the closest position for each country once a year, 
+  ##' therefore we restrict to only yearly data
+  y1 = unique(round(d$Year))
+  d = filter(d, Year %in% y1)
+  
+  ##' for each entry, then calculate which point is the closest on the trajectory
+  for(i in 1 : nrow(d)){
+    q = c(d$Coefficient.of.Variation[i], d$Incidence[i]) %>%
+      rbind( cbind(granular.canonical.path$x, granular.canonical.path$y)) %>%
+      dist() %>% as.matrix()
+    d$closest[i] = which(q[1, -(1)] == min(q[1, -(1)])) %>% as.matrix() %>% tail(1)
+    
+  }
+  d$canonical.x = granular.canonical.path$x[d$closest]
+  d$canonical.y = granular.canonical.path$y[d$closest]
+  return(list(d, granular.canonical.path))
+}
+
+
+
+
+
+
+
+
+
+##' create a canonical path where the points on the path are equally spaced from each other
+
+calculate.granular.path <- function(canonical.path, number.points){
+  total.canonical.distance = 0
+  for(i in 2:nrow(canonical.path)){
+    total.canonical.distance = sqrt((canonical.path$x[i] - canonical.path$x[i-1])^2 + 
+                                      (canonical.path$y[i] - canonical.path$y[i-1])^2) +
+      total.canonical.distance
+  }
+  
+  
+  
+  step.distance = total.canonical.distance/(number.points-1)
+  
+  canonical.points = data.frame(matrix(NA, number.points, 2))
+  colnames(canonical.points) = c("x", "y")
+  canonical.points[1, ] = c(canonical.path$x[1],canonical.path$y[1])
+  point.we.are.at = 1
+  distance.so.far = 0 
+  distance.to.travel = sqrt((canonical.path$x[2] - canonical.path$x[1])^2 + 
+                              (canonical.path$y[2] - canonical.path$y[1])^2)
+  for (i in 2:number.points){
+    slope = (canonical.path$y[point.we.are.at+1] - canonical.points$y[i-1])/
+      (canonical.path$x[point.we.are.at+1] - canonical.points$x[i-1])
+    x.change = sqrt(step.distance^2/(1+slope^2))
+    if(canonical.path$x[point.we.are.at+1] - canonical.points$x[i-1]  < 0){
+      x.change = -x.change
+    }
+    if(canonical.path$y[point.we.are.at+1] - canonical.points$y[i-1]>0){
+      y.change = abs(slope * x.change)
+    } else{
+      y.change = -abs(slope * x.change)
+    }
+    
+    canonical.points$x[i] = canonical.points$x[i-1] + x.change
+    canonical.points$y[i] = canonical.points$y[i-1] + y.change
+    
+    distance.to.travel = distance.to.travel - step.distance
+    if (distance.to.travel < 0 & i < number.points){
+      point.we.are.at = point.we.are.at + 1
+      distance.to.travel = sqrt((canonical.path$x[point.we.are.at+1] - canonical.points$x[i])^2 + 
+                                  (canonical.path$y[point.we.are.at+1] - canonical.points$y[i])^2)
+    }
+  }
+  return(canonical.points)
 }

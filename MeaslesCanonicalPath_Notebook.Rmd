@@ -1,8 +1,9 @@
 ---
 title: "Measles and the Canonical Path to Elimination"
 output:
+  pdf_document: default
   html_document:
-        keep_md: true
+    keep_md: yes
 bibliography: bibliography.bib
 ---
 
@@ -59,7 +60,7 @@ figure below, with the green line being for Africa and the purple one for the Am
 ```{r, echo = include.code, include=FALSE}
 
 
-taxonomy.fig1 = incidence.space.fig(anim.data = canonical.path.data, years = c(1990, 2017), 
+taxonomy.fig1 = incidence.space.fig.dashed.arrow(anim.data = canonical.path.data, years = c(1990, 2017), 
                                      regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                      countries.of.interest = c("Malawi", "United States", 
                                                                "Brazil", "Argentina",
@@ -87,7 +88,7 @@ The canonical path seen in Fig. 2A is constructed by putting the incidence and c
 list[d1a, canonical.path2] = closest.path.point(d = canonical.path.data, 
                                                   use.rep.cases = 1,
                                                   regions = regions, 
-                                                  years = seq(1990, 2016),
+                                                  years = seq(1990, 2017),
                                                   make.inc.cv.scale.same = 0,
                                                   inc.transform = 'sqrt',
                                                   connect.canonical.path.to.zero = 0,
@@ -125,12 +126,19 @@ log.incidence = T
 list[d1, canonical.path] = closest.path.point(d = d, 
                                               use.rep.cases = use.rep.cases,
                                               regions = regions, 
-                                              years = seq(1990, 2016),
+                                              years = seq(1990, 2017),
                                               make.inc.cv.scale.same = make.inc.cv.scale.same,
                                               inc.transform = inc.transform,
                                               connect.canonical.path.to.zero,
                                               log.incidence = log.incidence)
 ```
+
+```{r, echo = include.code}
+
+granular.canonical.path = calculate.granular.path(canonical.path, number.points = 200)
+
+```
+
 
 When we plot the canonical path now, we see that there is a much greater distinction between points at the low incidence part of the path (figure not shown in the paper).  
 
@@ -139,6 +147,7 @@ When we plot the canonical path now, we see that there is a much greater distinc
  plot(canonical.path$x, canonical.path$y, pch = 21, cex = 2,
          xlab = 'scaled coefficient of variation', ylab= 'scaled mean incidence', bty="n", 
      cex.axis=1.5, cex.lab = 1.5, col = 'black', bg = cols.1)
+points(granular.canonical.path$x, granular.canonical.path$y, pch = 16, cex = 0.5)
 
 ```
 
@@ -673,7 +682,7 @@ k$year = as.numeric(as.character(k$year))
 ggplot(k, aes(x = year, y = weight, col = factor(w))) + geom_point(cex = 3) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-    scale_colour_manual(values=wes_palette("Darjeeling1")[c(1,5)]) #potentially Darjeeling without the 1 pending R version
+    scale_colour_manual(values=wes_palette("Darjeeling")[c(1,5)]) #potentially Darjeeling without the 1 pending R version
 
 
 ```
@@ -698,7 +707,7 @@ p <- ggplot(weighted.mean.inc, aes(x = year, y = mean.inc))
 p + geom_point(cex = 3, aes(col = factor(type))) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-        scale_color_manual(values = c("grey",wes_palette("Darjeeling1")[c(1,5)]) ) + 
+        scale_color_manual(values = c("grey",wes_palette("Darjeeling")[c(1,5)]) ) + 
         ylab("mean incidence per 100,000") + xlim(c(1990, 2017))
 
 
@@ -940,7 +949,7 @@ d$Incidence = log(d$Incidence+0.000001)
 d$Incidence = scl(d$Incidence)
 d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
 
-logged.scaled.path = awesome.mega.figure.scaled (anim.data = d, years = c(1990, 2017), 
+logged.scaled.path = awesome.mega.figure.scaled.dashed.arrow (anim.data = d, years = c(1990, 2017), 
                                      regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                      countries.of.interest = c("Malawi", "United States", 
                                                                "Brazil", "Argentina",
@@ -1126,7 +1135,7 @@ Figure S5 shows the trajectory of the Americas and Africa when we take the media
 
 ```{r, echo = F, include = F}
 
-taxonomy.fig.median = incidence.space.fig.median(anim.data = canonical.path.data, years = c(1990, 2017), 
+taxonomy.fig.median = incidence.space.fig.median.dashed.arrow(anim.data = canonical.path.data, years = c(1990, 2017), 
                                                  regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                                  countries.of.interest = c("Malawi", "United States", 
                                                                            "Brazil", "Argentina",
@@ -1150,7 +1159,7 @@ taxonomy.fig.median
 
 The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig S6.
 
-```{r, echo = include.code, include=FALSE}
+```{r, echo = include.code}
 
 
 state.space.data = 
@@ -1169,9 +1178,11 @@ colnames(mean.age.sus) = gsub("X", "", colnames(mean.age.sus))
 list[state.space.data, Af.data.state.space, Amr.data.state.space, Rest.data.state.space] = 
     prepare.anim.data.for.analysis(input.data = state.space.data,
                                    mean.age.sus = mean.age.sus)
+```
 
+```{r, echo = include.code}
 
-state.space.fig = incidence.space.fig(anim.data = state.space.data, years = c(1990, 2017), 
+state.space.fig = incidence.space.fig.dashed.arrow(anim.data = state.space.data, years = c(1990, 2017), 
                                       state.space = 1,
                                      regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
                                      countries.of.interest = c("Malawi", "United States", 
