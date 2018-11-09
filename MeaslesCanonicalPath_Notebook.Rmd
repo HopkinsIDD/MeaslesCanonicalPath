@@ -131,213 +131,171 @@ list[d1, canonical.path] = closest.path.point(d = d,
                                               inc.transform = inc.transform,
                                               connect.canonical.path.to.zero,
                                               log.incidence = log.incidence)
+
+##' d1b will contain the closest point on the granular canonical path over time.
+list[d1b, granular.canonical.path] = closest.path.point.movement.comparison(d = d, 
+                                              use.rep.cases = use.rep.cases,
+                                              regions = regions, 
+                                              years = seq(1990, 2017),
+                                              make.inc.cv.scale.same = make.inc.cv.scale.same,
+                                              inc.transform = inc.transform,
+                                              connect.canonical.path.to.zero,
+                                              log.incidence = log.incidence,
+                                              number.points = 200)
 ```
 
-```{r, echo = include.code}
-
-granular.canonical.path = calculate.granular.path(canonical.path, number.points = 200)
-
-```
-
-
-When we plot the canonical path now, we see that there is a much greater distinction between points at the low incidence part of the path (figure not shown in the paper).  
+When we plot the canonical path now, we see that there is a much greater distinction between points at the low incidence part of the path (Fig. S3 in the supplement).  
 
 ```{r, echo = include.code, fig.height = 5, fig.width = 8}
 
- plot(canonical.path$x, canonical.path$y, pch = 21, cex = 2,
+plot(canonical.path$x, canonical.path$y, pch = 21, cex = 2,
          xlab = 'scaled coefficient of variation', ylab= 'scaled mean incidence', bty="n", 
      cex.axis=1.5, cex.lab = 1.5, col = 'black', bg = cols.1)
 points(granular.canonical.path$x, granular.canonical.path$y, pch = 16, cex = 0.5)
 
 ```
 
-We can now assign countries to the closest point on this path each year that we have data for, using the re-scaled canonical path. This is seen in Fig. 3 in the paper, for 10 countries in Africa, the Americas and Europe. We also locate the positions on this path that the countries were at particular milestones in the attempt to control measles. These are the year of the first supplementary immunization activity (SIA), and the introduction of the second routine measles-containing vaccine (MCV2). 
+We can now assign countries to the closest point on this path each year that we have data for, using the re-scaled canonical path. This is seen in Fig. 4A in the paper, where we plot all countries position on the path overtime, in addition to population-weighted region averages.  
 
 ```{r, echo = include.code, include = F}
 
-##' choose the countries we want to plot for figure 2
-countries.plot = c("Malawi", "United States", 
-                   "Brazil", "Argentina",
-                   "Congo, Democratic Republic of the",
-                   "Zambia", "India", "France",
-                   "Uruguay", "Tanzania")
-
-##' choose the years that we want to plot the each country's location at
-years.to.plot = c(1990, 2013)
-
-
-##' get the year of the first SIA campaign in each country
-##' Edit the country column to contain the correct country names for
-##' linking to other data sets
-first.sia = first.sia.year.by.country.correct()
-first.sia$Country = as.character(first.sia$Country)
-first.sia$Country[which(first.sia$Country == "Democratic Republic of the Congo")] = 
-    ("Congo, Democratic Republic of the")
-first.sia$Country[which(first.sia$Country == "United States of America")] = 
-    ("United States")
-first.sia$Country[which(first.sia$Country == "United Republic of Tanzania")] = 
-    ("Tanzania")
-A = filter(first.sia, Country %in% countries.plot )
-A = A[!is.na(A$Year), ]
-
-##' we have conflicting SIA data, so manually change these values to reflect earliest recorded SIA
-A[which(A$Country == "India"), 3] = 1995
-A[which(A$Country == "Congo, Democratic Republic of the"), 3] = 1996
-A[which(A$Country == "Tanzania"), 3] = 1999
-A[which(A$Country == "Zambia"), 3] = 1999
-
-##' get only the data that we want, so the countries we want to plot and 
-##' the previously selected countries
-cc = filter(d1, Country %in% countries.plot, Year %in% years.to.plot)
-##' add in the data from the first SIA for each country
-for(i in 1 : nrow(A)){
-    c = A$Country[i]
-    y = A$Year[i]
-    cc = rbind(cc, filter(d1, Country == c, Year == y))
+##' First add population size to the data.frame because we need to weight the region estimates by population size of coutry
+d1b$pop <- as.numeric(rep(NA, nrow(d1b)))
+pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE) 
+for (a in 1:nrow(d1b)){
+  row <- which(pop.by.year$Country.Name==d1b$Country[a])
+  col <- which((1961:2017)==d1b$Year[a])+2
+  d1b$pop[a] <- pop.by.year[row,col]
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-1)]} #kuwait has some NAs that trying to fix
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-2)]} #and some counties in the later years have some issues 41 rows total missing pops
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-3)]}
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-4)]}
 }
+d1b$pop <- as.numeric(d1b$pop)
 
+##' Get country-specific population weight for each region and year
+##' This will be used to weight the average position by region overtime
+d1b <- d1b %>%
+  group_by(WHO_REGION, Year) %>%
+  mutate(weight = pop/sum(pop))
+d1b$weight <- round(d1b$weight,5)
 
-##' generate data for the first MCV2 introduction
-list[MCV2.countries, MCV2.year, Amr.countries, Amr.data] = sort.arrow.data(d = canonical.path.data,
-                                                                           regions = c("EMR" , "EUR",  "AFR",  "AMR"  ,"WPR"  ,"SEAR"))
+##' create data frame to store values in
+deltas.by.continent = data.frame(matrix(NA, nrow(d1b), 6))
+colnames(deltas.by.continent) = c("country", "region", "year", "delta", "pos","weight")
 
-##' choose the data that we want for the plot
-mcv2.plot = MCV2.countries %>% filter(., Country %in% countries.plot) %>%
-    dplyr::select(Country, Intro_Year)
-mcv2.plot$Intro_Year[which(as.numeric(as.character(mcv2.plot$Intro_Year)) < 1990)] = 1990
-
-##' we also have conflicting MCV2 data, so amend this
-mcv2.plot$Intro_Year[which(mcv2.plot$Country == "Brazil")] = 2000
-mcv2.plot$Intro_Year[which(mcv2.plot$Country == "Tanzania")] = 2001
-
-##' add mcv2 data to plot data
-for(i in 1 : nrow(mcv2.plot)){
-    c = mcv2.plot$Country[i]
-    y = mcv2.plot$Intro_Year[i]
-    cc = rbind(cc, filter(d1, Country == c, Year == y))
-}
-
-
-
-##' list of countries that go backwards. These were found by visual inspection
-back.countries = c("Congo, Democratic Republic of the", "Zambia", "France", "Uruguay")
-
-##' for the countries which go backwards, we then construct a
-##' line to show their progress. This is obviously more complicated than for
-##' which only go forwards, as for those we can just make a line going from the initial point
-##' to the final point.
-progress.line = data.frame(matrix(0, length(countries.plot) + 10, 3))
-colnames(progress.line) = c("Country", "Min", "Max")
+##' go through data set containing the position for each country for each year, 
+##' and store the data in the new data frame we have created.
 count = 1
-for(i in 1:length(countries.plot)){
-    h = d1 %>% filter(Country == countries.plot[i])
-    if(countries.plot[i] %in% back.countries){
-        oo = na.omit(h$closest - lag(h$closest))
-        k = which(oo < -1)[1]
-        k1 = which(oo[-(1:k)] > 0)
-        start = h$closest[1]
-        next1 = h$closest[k]
-        next2 = h$closest[k+1]
-        progress.line[count, ] = c(countries.plot[i], 
-                                   start, next1)
-        count = count + 1
-        progress.line[count, ] = c(countries.plot[i], 
-                                   next1, next2)
-        count = count + 1
-        
-    }else{
-        progress.line[count, ] = c(countries.plot[i], 
-                                   h$closest[which(h$Year %in% years.to.plot)])
-        count = count + 1
-    }
-       
-}
-progress.line[7,3] = 1
-progress.line[8,2:3] = c(1,22)
-
-progress.line[10,3] = 1
-progress.line[11,2:3] = c(1,19)
-
-progress.line[12,3] = 22
-progress.line[13,2:3] = c(22,38)
-
-progress.line = progress.line[1:14, ]
-
-##' find which country each line of the data to plot is
-p = (matrix(1, nrow(cc), 1))
-progress.line$loc = 0
-for(i in 1 : length(countries.plot)){
-    j = which(cc$Country == countries.plot[i])
-    p[j] = i
-    j = which(progress.line$Country == countries.plot[i])
-    progress.line$loc[j] = i
+for(i in 1:nrow(d1b)){
+  c1 = d1b$Country[i]
+  y = d1b$Year[i]
+  pos = d1b$closest[i]
+  
+  ##' for each country, each year, find the data for the same country the following year
+  
+  k = d1b %>% filter(Country == c1, Year == (y+1))
+  if(nrow(k)>0){
+    pos2 = k$closest
+    deltas.by.continent[count, ] =  c(c1, k$WHO_REGION, y+1, pos2-pos, pos2, k$weight)
+    count = count + 1
+  }
 }
 
-##' change name of the DRC and USA
-cc$Country[which(cc$Country == "Congo, Democratic Republic of the")] = "DRC"
-cc$Country[which(cc$Country == "United States")] = "USA"
-
-progress.line$Country[which(progress.line$Country == "Congo, Democratic Republic of the")] = "DRC"
-progress.line$Country[which(progress.line$Country == "United States")] = "USA"
-
-cc$Year[which(cc$Year == 2013)] = 2014
-
-##' prepare colour palette
-pall = brewer.pal(length(countries.plot), "Set3")
-colour.plot = matrix("", nrow(cc), 1)
-
-##' assign colours to each line
-for(i in 1 : nrow(cc)){
-    c = cc$Country[i]
-    j = which(cc$Country == c)
-    colour.plot[i] = pall[j[1]]
+##' remove data which is NA
+j = which(is.na(deltas.by.continent$country))
+if(length(j) >0 ){
+  deltas.by.continent = deltas.by.continent[-(j),]
 }
-cc = cbind(cc,p)
 
+##' extract the unique years from the data set containing the changes for each year
+all.years = as.numeric(unique(deltas.by.continent$year))
+countries = unique(deltas.by.continent$country)
+
+##' change the data to be characters and numbers
+deltas.by.continent$country = deltas.by.continent$country %>% as.character
+deltas.by.continent$region = deltas.by.continent$region %>% as.character
+deltas.by.continent$year = deltas.by.continent$year %>% as.character %>% as.numeric
+deltas.by.continent$delta = deltas.by.continent$delta %>% as.character %>% as.numeric
+deltas.by.continent$pos = deltas.by.continent$pos %>% as.character %>% as.numeric
+deltas.by.continent$weight = deltas.by.continent$weight %>% as.character %>% as.numeric
+
+##'choose a period of time over which to smooth the average position of the WHO regions. 
+##'A 2 this means that we smooth using the average of a given year along with two years before and two years after
+moving.av.length = 2
+
+##' set up a dataframe to hold the weighted data
+deltas.summary.weighted = data.frame(matrix(NA, (length(all.years)-2)*length(countries), 6))
+colnames(deltas.summary.weighted) = c("country","region", "year", "mean.delta", "mean.pos", "weight")
+
+count = 1
+for(i in (moving.av.length+1):length(all.years - moving.av.length)){
+  ##' choose the years we wish to include in the averaging
+  years = all.years[(i-moving.av.length):(i+moving.av.length)]
+  for(j in 1 : length(countries)){
+    ##' find the require data
+    c = countries[j]
+    d = deltas.by.continent %>% filter(year %in% years & country ==c) 
+    r = d$region[1]
+    
+    ##' record the regions, the year in question, along with summaries of the change in movement, along
+    ##' with the mean position of the region over the years in question
+    deltas.summary.weighted[count, ] = c(c, 
+                                         r,
+                                         years[(moving.av.length + 1)],
+                                         mean(d$delta),
+                                         mean(d$pos),
+                                         mean(d$weight)) #keep the weight for appropriate year
+    count = count + 1
+  }
+}
+
+##' remove data which is NA
+j = which(deltas.summary.weighted$mean.delta=="NaN")
+if(length(j) >0 ){
+  deltas.summary.weighted = deltas.summary.weighted[-(j),]
+}
+
+##' change the data to be characters and numbers
+deltas.summary.weighted$country = deltas.summary.weighted$country %>% as.character
+deltas.summary.weighted$region = deltas.summary.weighted$region %>% as.character
+deltas.summary.weighted$year = deltas.summary.weighted$year %>% as.character %>% as.numeric
+deltas.summary.weighted$mean.delta = deltas.summary.weighted$mean.delta %>% as.character %>% as.numeric
+deltas.summary.weighted$mean.pos = deltas.summary.weighted$mean.pos %>% as.character %>% as.numeric
+deltas.summary.weighted$weight = deltas.summary.weighted$weight %>% as.character %>% as.numeric
+
+dd <- deltas.summary.weighted
+
+##' summarise the population weighted average position for each region, by year
+dd2 = dd %>% 
+  group_by(region, year) %>%
+  summarise(mean.pos = weighted.mean(mean.pos, weight))
+dd3 = dd %>% 
+  group_by(region, year) %>%
+  summarise(mean.delta = weighted.mean(mean.delta, weight))
+```
+
+```{r, echo = include.code, fig.height = 6, fig.width = 6}
+
+ggplot(dd, aes(x=year, y=mean.pos/2, color=region)) + geom_line(aes(group=country), alpha=0.15) +
+  geom_line(data = dd2, lwd=1.2) + theme_minimal() + labs(y="position on path (%)") +
+  scale_colour_brewer(palette="Dark2", direction=1)
 
 ```
 
-This figure is reproduced here (for the paper, this was edited in Adobe Illustrator). Being at 0 on the x-axis scale of this figure indicates that the country is at the first point on the canonical path, and to be at 1 indicates that the country is at the final point on the path. The arrows show the progression of the country over time, with some of the countries heading backwards along the path. Countries do not necessarily progress smoothly along the path as if, for example, after years of low incidence is interrupted by a year of high incidence, then this will increase the x and y position of the country in incidence-space and hence the position on the canonical path will head backwards.
+Countries do not necessarily progress smoothly along the path as if, for example, after years of low incidence is interrupted by a year of high incidence, then this will increase the x and y position of the country in incidence-space and hence the position on the canonical path will head backwards. We demonstrate these movements along the path by plotting the % change in path postion between 1990 and 2017 for each country in addition to population-weighted region averages, as see in Fig. 4B in the paper.
 
-```{r, fig.height = 7, fig.width = 7, echo = include.code} 
+```{r, fig.height = 6, fig.width = 6, echo = include.code} 
 
-plot(cc$closest, p, col = alpha(colour.plot, 0.5), pch = 16, cex = 3, yaxt="n", xaxt = 'n',
-     frame.plot = F, ylab = "", xlab = "location on path", xlim = c(-10, max(cc$closest ) + 10))
-text( cc$closest[1:20],p[1:20], labels = as.character(paste( " ",cc$Year[1:20], sep = "")))
-text( cc$closest[21:28],p[21:28], labels = as.character(paste( " SIA \n",cc$Year[21:28], sep = "")))
-text( cc$closest[29:36],p[29:36], labels = as.character(paste( " MCV2 \n",cc$Year[29:36], sep = "")))
-text( rep(-5,10), cc$p[1:10], labels = as.character(cc$Country[1:10]))
-for(i in c(1:4, 9,14)){
-    arrows(x0 = as.numeric(progress.line$Min[i]), 
-           y0 = as.numeric(progress.line$loc[i]), 
-           x1 = as.numeric(progress.line$Max[i]), 
-           y1 = as.numeric(progress.line$loc[i]))
-    
-}
-
-for(i in c(5, 7,10, 12)){
-    arrows(x0 = as.numeric(progress.line$Min[i]), 
-           y0 = as.numeric(progress.line$loc[i]) - 0.2, 
-           x1 = as.numeric(progress.line$Max[i]), 
-           y1 = as.numeric(progress.line$loc[i])-0.2)
-    
-}
-
-for(i in c(6, 8,11, 13)){
-    arrows(x0 = as.numeric(progress.line$Min[i]), 
-           y0 = as.numeric(progress.line$loc[i]) + 0.2, 
-           x1 = as.numeric(progress.line$Max[i]), 
-           y1 = as.numeric(progress.line$loc[i])+0.2)
-    
-}
-axis(1, c(0,max(cc$closest)), labels = c(0,1))
+ggplot(dd, aes(x=year, y=mean.delta/2, color=region)) + geom_line(aes(group=country), alpha=0.15) +
+  geom_line(data = dd3, lwd=1.2) + ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)") +
+  scale_colour_brewer(palette="Dark2", direction=1)
 
 ```
 
-This can be repeated for all countries, and hence for a given year a map can be produced which is colored according to each countries position along the path. This is seen below for 2014 (Fig. 2B of the paper).  We have also made available web application, developed with R package Shiny, to view all countries position on the canonical path between 1980 and 2014 (available at http://iddynamics.jhsph.edu/apps/shiny/measlescanonicalpath/).
+Given our assignement of all countries to the closest point on the path, for any given year a map can be produced which is colored according to each countries position along the path. This is seen below for 2017 (Fig. 2C of the paper).  We have also made available web application, developed with R package Shiny, to view all countries position on the canonical path between 1980 and 2014 (available at http://iddynamics.jhsph.edu/apps/shiny/measlescanonicalpath/).
 
 ```{r, fig.height = 6, fig.width = 10, echo = include.code}
-
 plot.year = 2017
 
 missing.countries = c("Bosnia and Herzegovina", "Central African Republic",
@@ -365,6 +323,171 @@ list[w.plot, A, canonical.path] = plot.world.map (d = canonical.path.data,
 
 ```{r, echo = include.code, fig.height = 4.6, fig.width = 10}
 w.plot
+```
+
+We can also capture direction of movement of each country within the incidence space in order to assess "deviations" from the path or trajectories of countries in incidence space that were different than expected given the characterized canonical path.  Fig. 4C in the paper is reproduced here.  
+
+```{r, echo=include.code}
+position.and.movement.comparison = data.frame(matrix(NA, nrow(d1b), 15))
+colnames(position.and.movement.comparison) = c("country", "region", "year", 
+                                  "actual.x", "actual.y",
+                                  "next.actual.x", "next.actual.y",
+                                  "actual.x.change", "actual.y.change",
+                                  "canonical.x","canonical.y", 
+                                  "next.canonical.x", "next.canonical.y",
+                                  "canonical.x.change", "canonical.y.change")
+
+##' go through data set containing the position for each country for each year, 
+##' and store the data in the new data frame we have created.
+count = 1
+for(i in 1:nrow(d1b)){
+    c1 = d1b$Country[i]
+    y = d1b$Year[i]
+    pos = d1b$closest[i]
+    
+    ##' for each country, each year, find the data for the same country the following year
+    
+    k = d1b %>% filter(Country == c1, Year == (y+1))
+    if(nrow(k)>0){
+        if(pos < nrow(granular.canonical.path)){
+            position.and.movement.comparison[count, ] =  c(c1, k$WHO_REGION, y, 
+                                                           d1b$Coefficient.of.Variation[i], d1b$Incidence[i],
+                                                           k$Coefficient.of.Variation, k$Incidence,
+                                                           k$Coefficient.of.Variation - d1b$Coefficient.of.Variation[i],
+                                                           k$Incidence - d1b$Incidence[i],
+                                                           d1b$canonical.x[i], d1b$canonical.y[i],
+                                                           mean(granular.canonical.path$x[pos:(pos+9)], na.rm=T), mean(granular.canonical.path$y[pos:(pos+9)], na.rm=T),
+                                                           mean(granular.canonical.path$x[pos:(pos+9)], na.rm=T)-d1b$canonical.x[i],
+                                                           mean(granular.canonical.path$y[pos:(pos+9)], na.rm=T)-d1b$canonical.y[i])
+            
+        } else{
+            position.and.movement.comparison[count, ] =  c(c1, k$WHO_REGION, y, 
+                                                           d1b$Coefficient.of.Variation[i], d1b$Incidence[i],
+                                                           k$Coefficient.of.Variation, k$Incidence,
+                                                           k$Coefficient.of.Variation - d1b$Coefficient.of.Variation[i],
+                                                           k$Incidence - d1b$Incidence[i],
+                                                           d1b$canonical.x[i], d1b$canonical.y[i],
+                                                           d1b$canonical.x[i], d1b$canonical.y[i],
+                                                           0,0)
+            
+        }
+               count = count + 1
+    }
+}
+
+#remove non filled in rows
+df <- position.and.movement.comparison %>% filter(!is.na(country))
+
+#making numeric
+df$actual.x.change = df$actual.x.change %>% as.character %>% as.numeric
+df$actual.y.change = df$actual.y.change %>% as.character %>% as.numeric
+df$canonical.x.change = df$canonical.x.change %>% as.character %>% as.numeric
+df$canonical.y.change = df$canonical.y.change %>% as.character %>% as.numeric
+
+#calculating the angle
+df$actual.angle <- (atan2(df$actual.y.change,df$actual.x.change)*-180/pi)
+df$canonical.angle <- (atan2(df$canonical.y.change,df$canonical.x.change)*-180/pi) 
+
+#Angle difference
+df$angle.diff <- df$actual.angle-df$canonical.angle
+#series of if statements: to get angle difference between 180 and -180, rather than -360 and 360.
+dft <- df %>% filter(canonical.angle<= -90 & actual.angle>= 90)
+df$angle.diff[(df$canonical.angle<= -90 & df$actual.angle>= 90)] <- 180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+dft <- df %>% filter(actual.angle<= -90 & canonical.angle>= 90)
+df$angle.diff[(df$actual.angle<= -90 & df$canonical.angle>= 90)] <- 180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+dft <- df %>% filter(actual.angle<= -90 & canonical.angle<= 90 & canonical.angle>= 0 & angle.diff< -180)
+df$angle.diff[(df$actual.angle<= -90 & df$canonical.angle<= 90 & df$canonical.angle>= 0 & df$angle.diff< -180)] <- 
+  180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+dft <- df %>% filter(canonical.angle>= 90 & actual.angle>= -90 & actual.angle<= 0 & angle.diff< -180)
+df$angle.diff[(df$canonical.angle>= 90 & df$actual.angle>= -90 & df$actual.angle<= 0 & df$angle.diff< -180)] <- 
+  180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+
+#group angles in 10s
+df$canonical.angle10 <- plyr::round_any(df$canonical.angle, 10)
+df$actual.angle10 <- plyr::round_any(df$actual.angle, 10)
+df$angle.diff10 <- plyr::round_any(df$angle.diff, 10)
+
+```
+
+We can plot the expected movement, observed movement, and difference for each region over 5 or 7 year increments.  The heat map captures the frequency of countries movement in a direction grouped by 10 degree angle groups.
+
+```{r,echo = include.code}
+#looping through regions
+regs = c("AMR","AFR","EMR","EUR","SEAR","WPR")
+year.groups <- list(2001:2005, 2006:2010, 2011:2017)
+all.plots <- list()
+for (c in 1:length(regs)){
+  for (y in 1:3){
+    
+    #filtering and grouping data to set up dataframe for plotting
+    dfo <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      group_by(a = actual.angle10) %>%
+      summarise(n=n()) %>%
+      mutate(frequency=n/sum(n))
+    dfd <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      group_by(a = round(angle.diff10)) %>%
+      summarise(n=n()) %>%
+      mutate(frequency=n/sum(n))
+    dfe.tmp <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      group_by(a = round(canonical.angle10)) %>%
+      summarise(n=n()) %>%
+      mutate(freq=n/sum(n))
+    
+    #smoothing expected path
+    byn <- seq(-180,179,10)
+    dfe <- as.data.frame(matrix(NA, nrow=length(byn), ncol=2))
+    colnames(dfe) <- c("a", "freq")
+    for (i in 1:length(byn)){
+      dfe$freq[i] <- ifelse(is.na(dfe.tmp$freq[match(byn[i], dfe.tmp$a)]),0,
+                            dfe.tmp$freq[match(byn[i], dfe.tmp$a)])
+      dfe$a[i] <- byn[i]
+    }
+    dfe$frequency <- rep(NA, nrow(dfe))
+    for (r in 1:nrow(dfe)){
+      if (r==1) {dfe$frequency[r] <- mean(dfe$freq[(r):(r+2)], na.rm=T)}
+      if (r==2) {dfe$frequency[r] <- mean(dfe$freq[(r-1):(r+2)], na.rm=T)}
+      if (r>=3) {dfe$frequency[r] <- mean(dfe$freq[(r-2):(r+2)], na.rm=T)}
+    }
+    
+    #merging the datasets together into one
+    byn <- seq(-180,179,10)
+    dfa <- data.frame(a=rep(byn,3), obs.exp=c(rep("O",length(byn)),rep("FF",length(byn)),rep("E",length(byn))), frequency=rep(NA, length(byn)*3))
+    for (i in 1:length(byn)){
+      dfa$frequency[which(dfa$obs.exp=="O")[i]] <- dfo$frequency[match(dfa$a[i], dfo$a)]
+      dfa$frequency[which(dfa$obs.exp=="FF")[i]] <- dfd$frequency[match(dfa$a[i], dfd$a)]
+      dfa$frequency[which(dfa$obs.exp=="E")[i]] <- dfe$frequency[match(dfa$a[i], dfe$a)]
+    }
+    dfa$label <- c(rep("Observed",length(byn)), rep("Difference",length(byn)), rep("Expected",length(byn)))
+    dfa$frequency[is.na(dfa$frequency)] <- 0
+    dfa$a[dfa$a==seq(-180,-100,10)] <- 360+dfa$a[dfa$a==seq(-180,-100,10)] #hack so the top is -90 degrees
+    
+    #plot it
+    dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
+    name <- paste("reg",c,".year",y, sep="")
+    all.plots[[name]] <- 
+      ggplot(dfa, aes(x=a, y=obs.exp, fill=(frequency))) +
+      geom_tile(colour="white") +
+      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.2)) + #Greys
+      ylim(c(0, max(dfa$obs.exp) + 0.5)) +
+      coord_polar(theta="x") +
+      theme(panel.background=element_blank(),
+            axis.title=element_blank(),
+            panel.grid=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks=element_blank(),
+            axis.text.y=element_text(size=5)) + ggtitle(paste(regs[c],": ", year.groups[[y]][1], "-", year.groups[[y]][length(year.groups[[y]])], sep=""))
+  }
+}
+```
+
+```{r, fig.height = 4.6, fig.width = 10}
+all.plots
 ```
 
 Along with this analysis, we used a method for estimating the susceptibility in each year of age which was developed by @tak2015. Each age cohort's susceptiblity is estimated based on its opportunity for immunization (via routine and supplmentary activities) and risk of natural infection. The probabliity of immunization was estimated per WHO reported administrative vaccination coverage estimates (@who). The probability of natural infection by age was estimated by assuming a constant hazard of infection over age that scaled each year relative to the proportional decline in estimated measles incidence corrected for under-reporting. Measles incidence, corrected for under-reporting, was estimated using a state space model per @statespace and @simons2012. The following chunks of code first uses the state-space model to estimate the number of measles cases (corrected for under-reporting) by year and country, then goes on to infer susceptibilty by age for each country and each year.
@@ -477,7 +600,6 @@ We also have data on the mean age of measles cases in multiple countries from 20
 
 ```{r, echo = include.code, fig.height = 5, fig.width = 8}
 
-
 ##' import the data on mean age of measles cases 
 mean.measles.age <- read.csv("data/mean_age_meas.csv", stringsAsFactors = F)
 
@@ -553,6 +675,14 @@ The figures below show the estimated proportion of susceptibles who are under 5 
 
 ```{r, echo = include.code, include = F}
 
+prop.sus.by.age <- prop.sus.by.age[,-1]
+a = 1:59
+n = 5
+min = c(seq.int(from=1, to=length(a), by=n))
+max = c((min-1)[2:length(min)], length(a))
+prop.sus.by.age.group = apply(prop.sus.by.age, 1, function(x) sapply(1:length(min), function(i) mean(x[min[i]:max[i]])))
+prop.sus.by.age.group <- rbind(prop.sus.by.age.group, prop.sus[, 2]) #add in prop.sus for ALL ages to the last row (same as Fig. 2A)
+
 dist.by.age.rep = dist.by.age
 points = unique(dist.by.age.rep$point)
 perc.by.age.sia.rep = data.frame(matrix(NA, max(points), 5))
@@ -586,11 +716,11 @@ perc.by.age.sia.rep$pos = 1:nrow(perc.by.age.sia.rep)
 
 ```{r, echo = include.code, fig.height = 6, fig.width = 9}
 
-prop.sus.by.age <- prop.sus.by.age[,-1]
-levelplot(as.matrix(prop.sus.by.age), ylab="age (years)", xlab="position on canonical path", 
-          col.regions=colorRampPalette(brewer.pal(9,"Greys")), aspect=1/2, 
-          scales=list(y=list(at=seq(2,60,2), labels=seq(1,59,2))))
-
+levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)", 
+          xlab="position on canonical path", xaxt = "n",
+          col.regions=colorRampPalette(brewer.pal(9,"Greys")),
+          scales=list(y=list(at=1:13, labels=c("<5","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49",
+                                                                                            "50-54","55-59", "all"))))
 
 plot( perc.by.age.sia.rep$pos, perc.by.age.sia.rep$perc.to.5, pch = 21, cex = 2,
       xlab = '', ylab= '% of susceptibles 5 or under', bty="n",
@@ -612,7 +742,6 @@ result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$a
 perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$age.for.90.perc),5] <- result$y
 lines(smoo, col='black', lwd=2)
 ```
-
 
 
 # Supplementary 
@@ -682,7 +811,7 @@ k$year = as.numeric(as.character(k$year))
 ggplot(k, aes(x = year, y = weight, col = factor(w))) + geom_point(cex = 3) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-    scale_colour_manual(values=wes_palette("Darjeeling")[c(1,5)]) #potentially Darjeeling without the 1 pending R version
+    scale_colour_manual(values=wes_palette("Darjeeling1")[c(1,5)]) #potentially Darjeeling without the 1 pending R version
 
 
 ```
@@ -707,7 +836,7 @@ p <- ggplot(weighted.mean.inc, aes(x = year, y = mean.inc))
 p + geom_point(cex = 3, aes(col = factor(type))) +
     geom_line() +
     theme_bw() + theme(legend.position="none") +
-        scale_color_manual(values = c("grey",wes_palette("Darjeeling")[c(1,5)]) ) + 
+        scale_color_manual(values = c("grey",wes_palette("Darjeeling1")[c(1,5)]) ) + 
         ylab("mean incidence per 100,000") + xlim(c(1990, 2017))
 
 
@@ -923,7 +1052,7 @@ multiplot(bol.cases, weight.cv, unweight.cv, cols = 1)
 ```
 
 
-Figure S3 of the supplement has the location of countries in the WHO Africa and Americas Regions in incidence-space in 1990 and 2014 post scaling of incidence and CV. This is re-created here.
+Figure S4 of the supplement has the location of countries in the WHO Africa and Americas Regions in incidence-space in 1990 and 2014 post scaling of incidence and CV. This is re-created here.
 
 ```{r, echo = include.code, include = F}
 
@@ -970,8 +1099,7 @@ logged.scaled.path
 
 We used an established discrete time age-structured mathematical model, introduced in @metcalf2012a and @metcalf2012b to simulate measles transmission dynamics for each country in the WHO Americas and Africa Regions.  We used the same gaussian weights as in the empirical analysis to create an incidence-space for each country over time, and compared this to estimates of measles incidence per @statespace and @simons2012.
 
-```{r, echo=include.code}
-
+```{r, echo=F}
 country.codes <- read.csv("./data/country_codes2.csv")
 country.names.amro <- country.codes$Report_country_name[country.codes$Region_Code=="AMRO"]
 country.names.afro <- country.codes$Report_country_name[country.codes$Region_Code=="AFRO"]
@@ -1066,7 +1194,7 @@ incs.afro[incs.afro <= c(-0.5)] <- c(-0.5)
 
 ```
 
-We plotted AFRO countries in incidence-space (Fig. S4A).
+We plotted AFRO countries in incidence-space (Fig. S5A).
 
 ```{r, echo = include.code, fig.height = 96, fig.width = 18}
 
@@ -1099,7 +1227,7 @@ for (c in 1:length(uncodes.afro)){
 
 ```
 
-We plotted AMRO countries in incidence-space (Fig. S4B).
+We plotted AMRO countries in incidence-space (Fig. S5B).
 
 ```{r, echo = include.code, fig.height = 66, fig.width = 18}
 
@@ -1131,7 +1259,7 @@ for (c in 1:length(uncodes.amro)){
 
 ```
 
-Figure S5 shows the trajectory of the Americas and Africa when we take the median of these regions paths rather than the mean.
+Figure S6 shows the trajectory of the Americas and Africa when we take the median of these regions paths rather than the mean.
 
 ```{r, echo = F, include = F}
 
@@ -1151,16 +1279,15 @@ taxonomy.fig.median = incidence.space.fig.median.dashed.arrow(anim.data = canoni
 
 
 
-```{r, echo = F, fig.height = 8, fig.width = 8}
+```{r, echo = F, fig.height = 10, fig.width = 10}
 taxonomy.fig.median
 
 ```
 
 
-The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig S6.
+The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig S7. The only difference is that Fig. 1A uses reported cases, and Fig. S7 uses cases corrected for under-reporting.
 
 ```{r, echo = include.code}
-
 
 state.space.data = 
     generate.state.space.data(window.length = 10, regions, 
@@ -1202,7 +1329,23 @@ state.space.fig = incidence.space.fig.dashed.arrow(anim.data = state.space.data,
 state.space.fig
 ```
 
-Figures S7 and S8, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vacciation proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The only difference is that Fig. S7 uses reported cases, and Fig. S8 uses cases corrected for under-reporting. The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
+Figure S8 demonstrates movement along the canonical path for 10 countries of interest from the Americas, Africa, and European.  These 10 countries are highlighted from Fig. 4A-B in the main text to conceptualize an individual country's movement on the path and discuss data biases or true dynamics that may have contributed to these movements.  
+
+```{r, fig.height=6, fig.width=12, echo=include.code}
+##' filtering to the countries of interest
+cc <- dd %>%
+  filter(country=="Malawi" | country=="Brazil" | country=="Uruguay" | country=="Congo, Democratic Republic of the" |
+           country=="Zambia" | country=="United States" | country=="France" | country=="Argentina" | country=="Tanzania") %>%
+  mutate(country=ifelse(country=="Congo, Democratic Republic of the", "DRC", country))
+
+ggplot(cc, aes(x=year, y=mean.pos/2, color=country)) + geom_line(alpha=0.6, lwd=1.5) +
+  theme_minimal() + labs(y="position on path (%)") + scale_colour_brewer(palette="Paired")
+ggplot(cc, aes(x=year, y=mean.delta/2, color=country)) + geom_line(alpha=0.6, lwd=1.5) +
+  ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)")  + scale_colour_brewer(palette="Paired")
+```
+
+
+Figures S9 and S10, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vacciation proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
 
 ```{r, echo = include.code, include = F}
 mean.age.sus = read.csv(file = "data/mean_age_sus.csv", stringsAsFactors = F)
@@ -1230,9 +1373,9 @@ list[ha, za, ja, z1a, colfunc.br, colfunc.vacc, colfunc.br.vacc] = produce.gams.
 
 ```
 
-We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S7).
+We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S9).
 
-```{r, echo = include.code, fig.height = 5, fig.width = 5}
+```{r, echo = include.code, fig.height = 8, fig.width = 8}
 tick.labels = c(0,25,100, 250,500)
 ticks = c(0,sqrt(25), 10, sqrt(250), sqrt(500))
 plot.alpha = 0.8
@@ -1254,7 +1397,7 @@ plot.alpha = 0.8
 ```
    
     
-```{r, echo = include.code, fig.height = 5, fig.width = 5} 
+```{r, echo = include.code, fig.height = 8, fig.width = 8} 
        plot(ha$x, sqrt(100*ha$y), yaxt = "n", xlab = "coefficient of variation", 
          ylab = "mean incidence per 100,000",
          col = alpha(colfunc.br(nrow(ha)),plot.alpha), 
@@ -1273,7 +1416,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S7 also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
+Figure S9C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
 
 ```{r, echo = F, fig.height = 8, fig.width = 8}
 
@@ -1332,7 +1475,7 @@ lines(L$Mean.vaccination, predict(loess_fit), col = "blue", lwd = 2)
 
 ```
 
-Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig S8 of the paper.
+Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig S10 of the paper.
 
 ```{r, echo = include.code, include = F}
 
@@ -1349,10 +1492,6 @@ list[ha, za, ja, z1a, colfunc.br, colfunc.vacc, colfunc.br.vacc] = produce.gams.
                   ticks = c(0,sqrt(25), 10, sqrt(250), sqrt(500)),
                   tick.labels = c(0,25,100, 250,500))
  
-
-
-
-
 ```
 
 
@@ -1398,11 +1537,9 @@ plot.alpha = 0.8
 
 ```
 
-Figure S9 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
+Figure S11 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
 
 ```{r, echo = F, fig.height = 8, fig.width = 12}
-
-
 
 Cases.by.age = read.csv("data/Angola_Malawi_cases.csv")
 
