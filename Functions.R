@@ -675,10 +675,10 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
   # 5. Natural Immunity 
   
   # This is the state space model adjusted disease burden.
-  df <- read.csv("data/WHO_measles_burden_2013.csv",stringsAsFactors=FALSE,row.names=1)
+  df <- read.csv("data/State_space_cases_new.csv",stringsAsFactors=FALSE,row.names=1)
   #df <- read.csv("data/output-estimated_incidence.csv",stringsAsFactors=FALSE,row.names=1)
   if(reported.cases == T){
-    df <- read.csv("Measles_cases_by_year2.csv", stringsAsFactors = FALSE)
+    df <- read.csv("Measles_cases_by_year.csv", stringsAsFactors = FALSE)
   }
   country.codes <- read.csv("data/country_codes.csv")
   iso <- country.codes[which(country.codes[,1]==country1),"ISO3_code"]

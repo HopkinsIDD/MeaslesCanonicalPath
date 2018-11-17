@@ -1,9 +1,9 @@
 ---
 title: "Measles and the Canonical Path to Elimination"
 output:
-  pdf_document: default
   html_document:
     keep_md: yes
+  pdf_document: default
 bibliography: bibliography.bib
 ---
 
@@ -486,15 +486,15 @@ for (c in 1:length(regs)){
 }
 ```
 
-```{r, fig.height = 4.6, fig.width = 10}
-#only plot 2000-2017 in the main figure, all years will be in the supplement
-all.plots[[3]]; all.plots[[4]]; all.plots[[5]]; all.plots[[8]]; all.plots[[9]]; all.plots[[10]]; all.plots[[13]]; all.plots[[14]]; all.plots[[15]]; all.plots[[18]]; all.plots[[19]]; all.plots[[20]]; all.plots[[23]]; all.plots[[24]]; all.plots[[25]]; all.plots[[28]]; all.plots[[29]]; all.plots[[30]]
+```{r, fig.height = 7, fig.width = 10}
+all.plots
 ```
 
 Along with this analysis, we used a method for estimating the susceptibility in each year of age which was developed by @tak2015. Each age cohort's susceptiblity is estimated based on its opportunity for immunization (via routine and supplmentary activities) and risk of natural infection. The probabliity of immunization was estimated per WHO reported administrative vaccination coverage estimates (@who). The probability of natural infection by age was estimated by assuming a constant hazard of infection over age that scaled each year relative to the proportional decline in estimated measles incidence corrected for under-reporting. Measles incidence, corrected for under-reporting, was estimated using a state space model per @statespace and @simons2012. The following chunks of code first uses the state-space model to estimate the number of measles cases (corrected for under-reporting) by year and country, then goes on to infer susceptibilty by age for each country and each year.
 
 ```{r, eval=F, include=F, eval = FALSE}
 ##' this chunk of code runs the state space model that estimates measles incidence as "output-estimated_incidence.csv"
+##' and then copied and renamed "State_space_cases_new.csv" 
 source("state.space.model/run_state_space_model.R")
 
 ```
@@ -1098,6 +1098,32 @@ logged.scaled.path = awesome.mega.figure.scaled.dashed.arrow (anim.data = d, yea
 logged.scaled.path
 ```
 
+Figure S5 shows the trajectory of the Americas and Africa when we take the median of these regions paths rather than the mean.
+
+```{r, echo = F, include = F}
+
+taxonomy.fig.median = incidence.space.fig.median.dashed.arrow(anim.data = canonical.path.data, years = c(1990, 2017), 
+                                                 regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
+                                                 countries.of.interest = c("Malawi", "United States", 
+                                                                           "Brazil", "Argentina",
+                                                                           "Congo, Democratic Republic of the",
+                                                                           "Zambia",
+                                                                           "Uruguay", "Tanzania"),
+                                                 colors = c( "#367526", "#7a40a0"), text.size = 4,xint=-1.07, yint = 0.25,
+                                                 line.color = 'grey1', arrow.size = 2,
+                                                 breaks = c(1,5,10,15,20,40,60))
+
+
+```
+
+
+
+```{r, echo = F, fig.height = 10, fig.width = 10}
+taxonomy.fig.median
+
+```
+
+
 We used an established discrete time age-structured mathematical model, introduced in @metcalf2012a and @metcalf2012b to simulate measles transmission dynamics for each country in the WHO Americas and Africa Regions.  We used the same gaussian weights as in the empirical analysis to create an incidence-space for each country over time, and compared this to estimates of measles incidence per @statespace and @simons2012.
 
 ```{r, echo=F}
@@ -1195,7 +1221,7 @@ incs.afro[incs.afro <= c(-0.5)] <- c(-0.5)
 
 ```
 
-We plotted AFRO countries in incidence-space (Fig. S5A).
+We plotted AFRO countries in incidence-space (Fig. S6A).
 
 ```{r, echo = include.code, fig.height = 96, fig.width = 18}
 
@@ -1228,7 +1254,7 @@ for (c in 1:length(uncodes.afro)){
 
 ```
 
-We plotted AMRO countries in incidence-space (Fig. S5B).
+We plotted AMRO countries in incidence-space (Fig. S6B).
 
 ```{r, echo = include.code, fig.height = 66, fig.width = 18}
 
@@ -1260,33 +1286,8 @@ for (c in 1:length(uncodes.amro)){
 
 ```
 
-Figure S6 shows the trajectory of the Americas and Africa when we take the median of these regions paths rather than the mean.
 
-```{r, echo = F, include = F}
-
-taxonomy.fig.median = incidence.space.fig.median.dashed.arrow(anim.data = canonical.path.data, years = c(1990, 2017), 
-                                                 regions = c("AFR",  "AMR"), shapes = c(1,2,16,17),
-                                                 countries.of.interest = c("Malawi", "United States", 
-                                                                           "Brazil", "Argentina",
-                                                                           "Congo, Democratic Republic of the",
-                                                                           "Zambia",
-                                                                           "Uruguay", "Tanzania"),
-                                                 colors = c( "#367526", "#7a40a0"), text.size = 4,xint=-1.07, yint = 0.25,
-                                                 line.color = 'grey1', arrow.size = 2,
-                                                 breaks = c(1,5,10,15,20,40,60))
-
-
-```
-
-
-
-```{r, echo = F, fig.height = 10, fig.width = 10}
-taxonomy.fig.median
-
-```
-
-
-The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig S7. The only difference is that Fig. 1A uses reported cases, and Fig. S7 uses cases corrected for under-reporting.
+The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig. S7. The only difference is that Fig. 1A uses reported cases, and Fig. S7 uses cases corrected for under-reporting.
 
 ```{r, echo = include.code}
 
@@ -1345,13 +1346,7 @@ ggplot(cc, aes(x=year, y=mean.delta/2, color=country)) + geom_line(alpha=0.6, lw
   ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)")  + scale_colour_brewer(palette="Paired")
 ```
 
-Figure S9 displays the full results from the direction of movement analysis for years 1990-2017 across the columns and all regions of the world across the rows. Similar to Fig. 4C in the main text, we display the frequency of expected and observed movements, and the difference between them, for each region over 5, 6, or 7 years.  The heat map captures the frequency of countries movement in a direction grouped by 10 degree angle groups.
-
-```{r, fig.height = 4.6, fig.width = 10}
-all.plots
-```
-
-Figures S10 and S11, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vacciation proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
+Figures S9 and S10, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vaccination proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
 
 ```{r, echo = include.code, include = F}
 mean.age.sus = read.csv(file = "data/mean_age_sus.csv", stringsAsFactors = F)
@@ -1379,7 +1374,7 @@ list[ha, za, ja, z1a, colfunc.br, colfunc.vacc, colfunc.br.vacc] = produce.gams.
 
 ```
 
-We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S10).
+We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S9).
 
 ```{r, echo = include.code, fig.height = 8, fig.width = 8}
 tick.labels = c(0,25,100, 250,500)
@@ -1422,7 +1417,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S10C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
+Figure S9C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
 
 ```{r, echo = F, fig.height = 8, fig.width = 8}
 
@@ -1481,7 +1476,7 @@ lines(L$Mean.vaccination, predict(loess_fit), col = "blue", lwd = 2)
 
 ```
 
-Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig S11 of the paper.
+Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig. S10 of the paper.
 
 ```{r, echo = include.code, include = F}
 
@@ -1543,7 +1538,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S12 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
+Figure S11 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
 
 ```{r, echo = F, fig.height = 8, fig.width = 12}
 

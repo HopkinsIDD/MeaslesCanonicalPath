@@ -94,108 +94,192 @@ all.plots
 
 ```
 ## 
-## $reg2.year1
+## $reg1.year4
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-4.png)<!-- -->
 
 ```
 ## 
-## $reg2.year2
+## $reg1.year5
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-5.png)<!-- -->
 
 ```
 ## 
-## $reg2.year3
+## $reg2.year1
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-6.png)<!-- -->
 
 ```
 ## 
-## $reg3.year1
+## $reg2.year2
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-7.png)<!-- -->
 
 ```
 ## 
-## $reg3.year2
+## $reg2.year3
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-8.png)<!-- -->
 
 ```
 ## 
-## $reg3.year3
+## $reg2.year4
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-9.png)<!-- -->
 
 ```
 ## 
-## $reg4.year1
+## $reg2.year5
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-10.png)<!-- -->
 
 ```
 ## 
-## $reg4.year2
+## $reg3.year1
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-11.png)<!-- -->
 
 ```
 ## 
-## $reg4.year3
+## $reg3.year2
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-12.png)<!-- -->
 
 ```
 ## 
-## $reg5.year1
+## $reg3.year3
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-13.png)<!-- -->
 
 ```
 ## 
-## $reg5.year2
+## $reg3.year4
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-14.png)<!-- -->
 
 ```
 ## 
-## $reg5.year3
+## $reg3.year5
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-15.png)<!-- -->
 
 ```
 ## 
-## $reg6.year1
+## $reg4.year1
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-16.png)<!-- -->
 
 ```
 ## 
-## $reg6.year2
+## $reg4.year2
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-17.png)<!-- -->
 
 ```
 ## 
-## $reg6.year3
+## $reg4.year3
 ```
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-18.png)<!-- -->
+
+```
+## 
+## $reg4.year4
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-19.png)<!-- -->
+
+```
+## 
+## $reg4.year5
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-20.png)<!-- -->
+
+```
+## 
+## $reg5.year1
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-21.png)<!-- -->
+
+```
+## 
+## $reg5.year2
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-22.png)<!-- -->
+
+```
+## 
+## $reg5.year3
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-23.png)<!-- -->
+
+```
+## 
+## $reg5.year4
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-24.png)<!-- -->
+
+```
+## 
+## $reg5.year5
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-25.png)<!-- -->
+
+```
+## 
+## $reg6.year1
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-26.png)<!-- -->
+
+```
+## 
+## $reg6.year2
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-27.png)<!-- -->
+
+```
+## 
+## $reg6.year3
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-28.png)<!-- -->
+
+```
+## 
+## $reg6.year4
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-29.png)<!-- -->
+
+```
+## 
+## $reg6.year5
+```
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-16-30.png)<!-- -->
 
 Along with this analysis, we used a method for estimating the susceptibility in each year of age which was developed by @tak2015. Each age cohort's susceptiblity is estimated based on its opportunity for immunization (via routine and supplmentary activities) and risk of natural infection. The probabliity of immunization was estimated per WHO reported administrative vaccination coverage estimates (@who). The probability of natural infection by age was estimated by assuming a constant hazard of infection over age that scaled each year relative to the proportional decline in estimated measles incidence corrected for under-reporting. Measles incidence, corrected for under-reporting, was estimated using a state space model per @statespace and @simons2012. The following chunks of code first uses the state-space model to estimate the number of measles cases (corrected for under-reporting) by year and country, then goes on to infer susceptibilty by age for each country and each year.
 
@@ -264,6 +348,15 @@ Figure S4 of the supplement has the location of countries in the WHO Africa and 
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
 
+Figure S5 shows the trajectory of the Americas and Africa when we take the median of these regions paths rather than the mean.
+
+
+
+
+
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+
+
 We used an established discrete time age-structured mathematical model, introduced in @metcalf2012a and @metcalf2012b to simulate measles transmission dynamics for each country in the WHO Americas and Africa Regions.  We used the same gaussian weights as in the empirical analysis to create an incidence-space for each country over time, and compared this to estimates of measles incidence per @statespace and @simons2012.
 
 
@@ -299,24 +392,16 @@ We used an established discrete time age-structured mathematical model, introduc
 ##     compact
 ```
 
-We plotted AFRO countries in incidence-space (Fig. S5A).
+We plotted AFRO countries in incidence-space (Fig. S6A).
 
-![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
 
-We plotted AMRO countries in incidence-space (Fig. S5B).
-
-![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
-
-Figure S6 shows the trajectory of the Americas and Africa when we take the median of these regions paths rather than the mean.
-
-
-
-
+We plotted AMRO countries in incidence-space (Fig. S6B).
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 
 
-The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig S7. The only difference is that Fig. 1A uses reported cases, and Fig. S7 uses cases corrected for under-reporting.
+The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig. S7. The only difference is that Fig. 1A uses reported cases, and Fig. S7 uses cases corrected for under-reporting.
 
 
 
@@ -329,8 +414,7 @@ Figure S8 demonstrates movement along the canonical path for 10 countries of int
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-43-1.png)<!-- -->![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-43-2.png)<!-- -->
 
-
-Figures S9 and S10, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vacciation proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
+Figures S9 and S10, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vaccination proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
 
 
 
@@ -345,7 +429,7 @@ Figure S9C also displays the association between incidence or coefficient of var
 
 ![](MeaslesCanonicalPath_Notebook_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
 
-Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig S10 of the paper.
+Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig. S10 of the paper.
 
 
 
