@@ -405,31 +405,24 @@ df$angle.diff[(df$canonical.angle>= 90 & df$actual.angle>= -90 & df$actual.angle
 #group angles in 10s
 df$canonical.angle10 <- plyr::round_any(df$canonical.angle, 10)
 df$actual.angle10 <- plyr::round_any(df$actual.angle, 10)
-df$angle.diff10 <- plyr::round_any(df$angle.diff, 10)
 
 ```
 
-We can plot the expected movement, observed movement, and difference for each region over 5 or 7 year increments.  The heat map captures the frequency of countries movement in a direction grouped by 10 degree angle groups.
+We can plot the expected movement, observed movement, and difference for each region over 10 or 8 year increments.  The heat map captures the frequency of countries movement in a direction grouped by 10 degree angle groups. This plot will look slightly different than the main text because the main text range is from 0 to >20%, where we grouped frequencies between 20 and 25% into one color dark blue color.  Below we show the range 0 to 25%. 
 
 ```{r,echo = include.code}
 #looping through regions
 regs = c("AMR","AFR","EMR","EUR","SEAR","WPR")
-year.groups <- list(1990:1995, 1996:2000, 2001:2005, 2006:2010, 2011:2017)
+year.groups <- list(1990:1999, 2000:2009, 2010:2017)
 all.plots <- list()
 for (c in 1:length(regs)){
-  for (y in 1:5){
+  for (y in 1:3){
     
     #filtering and grouping data to set up dataframe for plotting
     dfo <- df %>%
       filter(region==regs[c]) %>%
       filter(year %in% year.groups[[y]]) %>%
       group_by(a = actual.angle10) %>%
-      summarise(n=n()) %>%
-      mutate(frequency=n/sum(n))
-    dfd <- df %>%
-      filter(region==regs[c]) %>%
-      filter(year %in% year.groups[[y]]) %>%
-      group_by(a = round(angle.diff10)) %>%
       summarise(n=n()) %>%
       mutate(frequency=n/sum(n))
     dfe.tmp <- df %>%
@@ -460,12 +453,18 @@ for (c in 1:length(regs)){
     dfa <- data.frame(a=rep(byn,3), obs.exp=c(rep("O",length(byn)),rep("FF",length(byn)),rep("E",length(byn))), frequency=rep(NA, length(byn)*3))
     for (i in 1:length(byn)){
       dfa$frequency[which(dfa$obs.exp=="O")[i]] <- dfo$frequency[match(dfa$a[i], dfo$a)]
-      dfa$frequency[which(dfa$obs.exp=="FF")[i]] <- dfd$frequency[match(dfa$a[i], dfd$a)]
       dfa$frequency[which(dfa$obs.exp=="E")[i]] <- dfe$frequency[match(dfa$a[i], dfe$a)]
     }
-    dfa$label <- c(rep("Observed",length(byn)), rep("Difference",length(byn)), rep("Expected",length(byn)))
-    dfa$frequency[is.na(dfa$frequency)] <- 0
+    dfa$label <- c(rep("Observed",length(byn)), rep("blank",length(byn)), rep("Expected",length(byn)))
+    dfa$frequency[is.na(dfa$frequency)] <- 0 #because no change is NA
+    dfa$frequency[which(dfa$obs.exp=="FF")] <- NA
     dfa$a[dfa$a==seq(-180,-100,10)] <- 360+dfa$a[dfa$a==seq(-180,-100,10)] #hack so the top is -90 degrees
+    
+    #estimating median difference in angle
+    dfd <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      summarise(med=(median(angle.diff)*(-1))) #want positive 90 at top and -90 at bottom
     
     #plot it
     dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
@@ -473,21 +472,87 @@ for (c in 1:length(regs)){
     all.plots[[name]] <- 
       ggplot(dfa, aes(x=a, y=obs.exp, fill=(frequency))) +
       geom_tile(colour="white") +
-      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.2)) + #Greys
+      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.25), na.value="white") + #Greys
       ylim(c(0, max(dfa$obs.exp) + 0.5)) +
-      coord_polar(theta="x") +
+      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1],1)) +
       theme(panel.background=element_blank(),
             axis.title=element_blank(),
             panel.grid=element_blank(),
             axis.text.x=element_blank(),
             axis.ticks=element_blank(),
             axis.text.y=element_text(size=5)) + ggtitle(paste(regs[c],": ", year.groups[[y]][1], "-", year.groups[[y]][length(year.groups[[y]])], sep=""))
+    
   }
 }
 ```
 
-```{r, fig.height = 7, fig.width = 10}
+We can plot all regions and years here as shown in Fig. 4C.
+
+```{r, fig.height = 3, fig.width = 3}
 all.plots
+```
+
+We can also plot the expected and observed movements for all countries and years, as shown as the top of Fig. 4C. 
+
+```{r, echo = include.code, fig.height = 4, fig.width = 4}
+    dfo <- df %>%
+      group_by(a = actual.angle10) %>%
+      summarise(n=n()) %>%
+      mutate(frequency=n/sum(n))
+    dfe.tmp <- df %>%
+      group_by(a = round(canonical.angle10)) %>%
+      summarise(n=n()) %>%
+      mutate(freq=n/sum(n))
+    
+    #smoothing expected path
+    byn <- seq(-180,179,10)
+    dfe <- as.data.frame(matrix(NA, nrow=length(byn), ncol=2))
+    colnames(dfe) <- c("a", "freq")
+    for (i in 1:length(byn)){
+      dfe$freq[i] <- ifelse(is.na(dfe.tmp$freq[match(byn[i], dfe.tmp$a)]),0,
+                            dfe.tmp$freq[match(byn[i], dfe.tmp$a)])
+      dfe$a[i] <- byn[i]
+    }
+    dfe$frequency <- rep(NA, nrow(dfe))
+    for (r in 1:nrow(dfe)){
+      if (r==1) {dfe$frequency[r] <- mean(dfe$freq[(r):(r+2)], na.rm=T)}
+      if (r==2) {dfe$frequency[r] <- mean(dfe$freq[(r-1):(r+2)], na.rm=T)}
+      if (r>=3) {dfe$frequency[r] <- mean(dfe$freq[(r-2):(r+2)], na.rm=T)}
+    }
+    
+    #merging the datasets together into one
+    byn <- seq(-180,179,10)
+    dfa <- data.frame(a=rep(byn,3), obs.exp=c(rep("O",length(byn)),rep("FF",length(byn)),rep("E",length(byn))), frequency=rep(NA, length(byn)*3))
+    for (i in 1:length(byn)){
+      dfa$frequency[which(dfa$obs.exp=="O")[i]] <- dfo$frequency[match(dfa$a[i], dfo$a)]
+      dfa$frequency[which(dfa$obs.exp=="E")[i]] <- dfe$frequency[match(dfa$a[i], dfe$a)]
+    }
+    dfa$label <- c(rep("Observed",length(byn)), rep("blank",length(byn)), rep("Expected",length(byn)))
+    dfa$frequency[is.na(dfa$frequency)] <- 0 #because no change is NA
+    dfa$frequency[which(dfa$obs.exp=="FF")] <- NA
+    dfa$a[dfa$a==seq(-180,-100,10)] <- 360+dfa$a[dfa$a==seq(-180,-100,10)] #hack so the top is -90 degrees
+    
+    #estimating median difference in angle
+    dfd <- df %>%
+      summarise(med=median(angle.diff)*(-1)) #want positive 90 top, and -90 bottom
+    
+    #plot it
+    dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
+    all.together <-  ggplot(dfa, aes(x=a, y=obs.exp, fill=(frequency))) +
+      geom_tile(colour="white") +
+      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.2), na.value="white") + #Greys
+      ylim(c(0, max(dfa$obs.exp) + 0.5)) +
+      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1],1)) +
+      theme(panel.background=element_blank(),
+            axis.title=element_blank(),
+            panel.grid=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks=element_blank(),
+            axis.text.y=element_text(size=5)) +  annotate("text", x = 0, y = 0, label = round(dfd[1,1],1)) +
+      ggtitle("All countries and years")
+    
+    all.together
+    
 ```
 
 Along with this analysis, we used a method for estimating the susceptibility in each year of age which was developed by @tak2015. Each age cohort's susceptiblity is estimated based on its opportunity for immunization (via routine and supplmentary activities) and risk of natural infection. The probabliity of immunization was estimated per WHO reported administrative vaccination coverage estimates (@who). The probability of natural infection by age was estimated by assuming a constant hazard of infection over age that scaled each year relative to the proportional decline in estimated measles incidence corrected for under-reporting. Measles incidence, corrected for under-reporting, was estimated using a state space model per @statespace and @simons2012. The following chunks of code first uses the state-space model to estimate the number of measles cases (corrected for under-reporting) by year and country, then goes on to infer susceptibilty by age for each country and each year.
@@ -510,6 +575,10 @@ years = seq(1990,2017)
 
 number.of.susceptibles = number.of.individuals = data.frame(matrix(0, length(years) * length(All.countries), 62))
 colnames(number.of.susceptibles) = colnames(number.of.individuals) = c("Country", "Year", paste("X",0:59, sep = ""))
+mean.age.sus = data.frame(matrix(0, length(All.countries), length(years) + 1))
+colnames(mean.age.sus) = c("", paste(years))
+mean.age.sus$Country = All.countries
+
 count = 1
 for(i in 1 : length(All.countries)){
     for(j in 1 : length(years)){
@@ -529,6 +598,10 @@ for(i in 1 : length(All.countries)){
         denom <- rep(1,length(pred))
         tot.susc <- pred-tot.imm
         
+        k = which(mean.age.sus$Country == All.countries[i])
+        l = which(colnames(mean.age.sus) == years[j])
+        mean.age.sus[k, l] = sum(tot.susc * 0:59)/sum(tot.susc)
+        
         number.of.individuals[count, ] = c(All.countries[i], years[j], round(as.numeric(pred)))
         number.of.susceptibles[count, ] = c(All.countries[i], years[j], round(as.numeric(tot.susc)))
         count = count + 1
@@ -542,6 +615,7 @@ for(i in 0:59){
 }
 write.csv(number.of.susceptibles, "data/est_sus_by_year.csv")
 write.csv(number.of.individuals, "data/est_age_dist_by_year.csv")
+#write.csv(mean.age.sus, "data/mean_age_sus.csv", row.names=F)
 ```
 
 For ease, we can simply read in the already estimated proportion susceptible by age, year, and country.
@@ -1207,87 +1281,77 @@ ss.inc.afro <- as.data.frame(cbind(uncodes.afro, ss.inc.afro))
 list[incs.amro.ss, Am.cv.ss] <- return.cv.inc.from.ss(ss.inc.amro)
 list[incs.afro.ss, Af.cv.ss] <- return.cv.inc.from.ss(ss.inc.afro)
 
-##' log10 per 100,000 people
-incs.amro.ss <- log10(incs.amro.ss*100000)
-incs.afro.ss <- log10(incs.afro.ss*100000)
-incs.amro <- log10(incs.amro*100000)
-incs.afro <- log10(incs.afro*100000)
-
-##' set min incs to -0.5
-incs.amro.ss[incs.amro.ss <= c(-0.5)] <- c(-0.5)
-incs.afro.ss[incs.afro.ss <= c(-0.5)] <- c(-0.5)
-incs.amro[incs.amro <= c(-0.5)] <- c(-0.5)
-incs.afro[incs.afro <= c(-0.5)] <- c(-0.5)
+##' square root per 100,000 people, this is the same scale as Figure 1A
+incs.amro.ss <- sqrt(incs.amro.ss*100000)
+incs.afro.ss <- sqrt(incs.afro.ss*100000)
+incs.amro <- sqrt(incs.amro*100000)
+incs.afro <- sqrt(incs.afro*100000)
 
 ```
 
-We plotted AFRO countries in incidence-space (Fig. S6A).
+We plotted AFRO countries in incidence-space (Fig. S6-S11).
 
-```{r, echo = include.code, fig.height = 96, fig.width = 18}
+```{r, echo = include.code, fig.height = 4, fig.width = 4}
 
 ##' make colour palette
 colfunc = colorRampPalette(c("green", "white", "orange"))
 
 ##' plot AFRO
-par(mfrow=c(16,3), bty="l", mar=c(8, 10, 8, 2) + 0.1)
-ylim = c(-0.5, as.numeric(max(log10(as.numeric(incs[, 2:ncol(incs)])*100000), na.rm = T)))
+par(bty="l", mar=c(4, 4, 1, 2) + 0.1)
+ylim = c(0, as.numeric(max(incs.afro), na.rm = T))
 xlim = c(0,4)
 for (c in 1:length(uncodes.afro)){
-  plot(0, bg = colfunc(28), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
-       xlim = xlim, ylim = ylim, cex.lab=2, cex.axis=2, mgp=c(4, 1.5, 0))
-  axis(2, log10(c(1,50,100,250,500,1000,2000,4000)), labels=F, cex.lab=2)
-  text(y=log10(c(1,50,100,250,500,1000,2000,4000)), par("usr")[1] - 0.05, 
-       labels = c(1,50,100,250,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE, cex=2)
-  title(country.names.afro[c], cex.main=3)
-  #mtext(paste("(2010 pop: ", signif(pop.afro[c,30],-5), ")", sep=""), 3, cex=0.7)
-  for(i in 1:100){
-    points(cvs.afro[((100*c)-(100-i)), 2:ncol(cvs.afro)],
-           incs.afro[((100*c)-(100-i)), 2:ncol(incs.afro)], 
-           bg = colfunc(28), col = 'black', pch = 21, cex=2)
-  }
-  lines(colMeans(cvs.afro[(100*c-99):(100*c), 2:ncol(cvs.afro)]), 
-        colMeans(incs.afro[(100*c-99):(100*c), 2:ncol(incs.afro)]), col = 'black', lwd=4)
-  points(Af.cv.ss[c,], incs.afro.ss[c,], pch=3, bg = colfunc(28), lwd=3)
-  lines(Af.cv.ss[c,], incs.afro.ss[c,], col="grey", lwd=4)
-  LEGEND("topright", c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1, cex=2, lwd=3)
+   plot(0, bg = colfunc(28), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
+         xlim = xlim, ylim = ylim, mgp=c(2.5, 1.1, 0))
+    axis(2, sqrt(c(1,100,500,1000,2000,4000)), labels=F)
+    text(y=sqrt(c(1,100,500,1000,2000,4000)), par("usr")[1] - 0.05, 
+         labels = c(1,100,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE)
+    title(country.names.afro[c], line=0)
+    for(i in 1:100){
+      points(cvs.afro[((100*c)-(100-i)), 2:ncol(cvs.afro)],
+             incs.afro[((100*c)-(100-i)), 2:ncol(incs.afro)], 
+             bg = colfunc(28), col = 'black', pch = 21)
+    }
+    lines(colMeans(cvs.afro[(100*c-99):(100*c), 2:ncol(cvs.afro)]), 
+          colMeans(incs.afro[(100*c-99):(100*c), 2:ncol(incs.afro)]), col = 'black')
+    points(Af.cv.ss[c,], incs.afro.ss[c,], pch=3, bg = colfunc(28))
+    lines(Af.cv.ss[c,], incs.afro.ss[c,], col="grey")
+    LEGEND(1.8,sqrt(4000), c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
 }
 
 ```
 
-We plotted AMRO countries in incidence-space (Fig. S6B).
+We plotted AMRO countries in incidence-space (Fig. S12-S15).
 
-```{r, echo = include.code, fig.height = 66, fig.width = 18}
-
+```{r, echo = include.code, fig.height = 4, fig.width = 4}
 ##' make colour palette
 colfunc = colorRampPalette(c("green", "white", "orange"))
 
-par(mfrow=c(11,3), bty="l", mar=c(8, 10, 8, 2) + 0.1)
-ylim = c(-0.5, as.numeric(max(log10(as.numeric(incs[, 2:ncol(incs)])*100000), na.rm = T)))
+par(bty="l", mar=c(4, 4, 1, 2) + 0.1)
+ylim = c(0, as.numeric(max(incs.amro), na.rm = T))
 xlim = c(0,4)
 for (c in 1:length(uncodes.amro)){
   plot(0, bg = colfunc(28), col = 'black', pch = '', bty="n", ylab="incidence per 100,000", xlab="coefficent of variation", yaxt="n",
-       xlim = xlim, ylim = ylim, cex.lab=2, cex.axis=2, mgp=c(4, 1.5, 0))
-  axis(2, log10(c(1,50,100,250,500,1000,2000,4000)), labels=F, cex.lab=2)
-  text(y=log10(c(1,50,100,250,500,1000,2000,4000)), par("usr")[1] - 0.05, 
-       labels = c(1,50,100,250,500,1000,2000,4000), srt = 45, pos = 2, xpd = TRUE, cex=2)
-  title(country.names.amro[c], cex.main=3)
-  #mtext(paste("(2010 pop: ", signif(pop.amro[c,30],-5), ")", sep=""), 3, cex=0.7)
-  for(i in 1:100){
-    points(cvs.amro[((100*c)-(100-i)), 2:ncol(cvs.amro)],
-           incs.amro[((100*c)-(100-i)), 2:ncol(incs.amro)], 
-           bg = colfunc(28), col = 'black', pch = 21, cex=2)
-  }
-  lines(colMeans(cvs.amro[(100*c-99):(100*c), 2:ncol(cvs.amro)]), 
-        colMeans(incs.amro[(100*c-99):(100*c), 2:ncol(incs.amro)]), col = 'black', lwd=4)
-  points(Am.cv.ss[c,], incs.amro.ss[c,], pch=3, bg = colfunc(28), cex=3, lwd=3)
-  lines(Am.cv.ss[c,], incs.amro.ss[c,], col="grey", lwd=4)
-  LEGEND("topright", c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1, cex=2, lwd=3)
+         xlim = xlim, ylim = ylim, mgp=c(2.5, 1.1, 0))
+    axis(2, sqrt(c(1,100,500,1000,2000)), labels=F)
+    text(y=sqrt(c(1,100,500,1000,2000)), par("usr")[1] - 0.05, 
+         labels = c(1,100,500,1000,2000), srt = 45, pos = 2, xpd = TRUE)
+    title(country.names.amro[c], line=-1.5)
+    for(i in 1:100){
+      points(cvs.amro[((100*c)-(100-i)), 2:ncol(cvs.amro)],
+             incs.amro[((100*c)-(100-i)), 2:ncol(incs.amro)], 
+             bg = colfunc(28), col = 'black', pch = 21)
+    }
+    lines(colMeans(cvs.amro[(100*c-99):(100*c), 2:ncol(cvs.amro)]), 
+          colMeans(incs.amro[(100*c-99):(100*c), 2:ncol(incs.amro)]), col = 'black')
+    points(Am.cv.ss[c,], incs.amro.ss[c,], pch=3, bg = colfunc(28))
+    lines(Am.cv.ss[c,], incs.amro.ss[c,], col="grey")
+    LEGEND(1.8,sqrt(2000), c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
 }
 
 ```
 
-
-The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig. S7. The only difference is that Fig. 1A uses reported cases, and Fig. S7 uses cases corrected for under-reporting.
+The estimated case data per @statespace and @simons2012 can also be used to plot a figure similar to figure 1 of the paper, demonstrating the path of the Americas and Africa through incidence space. This is seen below and is Fig. S16. The only difference is that Fig. 1A uses reported cases, and Fig. S16 uses cases corrected for under-reporting.
 
 ```{r, echo = include.code}
 
@@ -1331,7 +1395,7 @@ state.space.fig = incidence.space.fig.dashed.arrow(anim.data = state.space.data,
 state.space.fig
 ```
 
-Figure S8 demonstrates movement along the canonical path for 10 countries of interest from the Americas, Africa, and European.  These 10 countries are highlighted from Fig. 4A-B in the main text to conceptualize an individual country's movement on the path and discuss data biases or true dynamics that may have contributed to these movements.  
+Figure S17 demonstrates movement along the canonical path for 10 countries of interest from the Americas, Africa, and European.  These 10 countries are highlighted from Fig. 4A-B in the main text to conceptualize an individual country's movement on the path and discuss data biases or true dynamics that may have contributed to these movements.  
 
 ```{r, fig.height=6, fig.width=12, echo=include.code}
 ##' filtering to the countries of interest
@@ -1346,7 +1410,7 @@ ggplot(cc, aes(x=year, y=mean.delta/2, color=country)) + geom_line(alpha=0.6, lw
   ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)")  + scale_colour_brewer(palette="Paired")
 ```
 
-Figures S9 and S10, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vaccination proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
+Figures S18 and S19, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vaccination proportion and (birth rate) times (1-vacciantion proportion) all used independent variables (one at a time) using generalized additivie models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
 
 ```{r, echo = include.code, include = F}
 mean.age.sus = read.csv(file = "data/mean_age_sus.csv", stringsAsFactors = F)
@@ -1374,7 +1438,7 @@ list[ha, za, ja, z1a, colfunc.br, colfunc.vacc, colfunc.br.vacc] = produce.gams.
 
 ```
 
-We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S9).
+We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S18).
 
 ```{r, echo = include.code, fig.height = 8, fig.width = 8}
 tick.labels = c(0,25,100, 250,500)
@@ -1417,7 +1481,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S9C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
+Figure S18C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
 
 ```{r, echo = F, fig.height = 8, fig.width = 8}
 
@@ -1476,7 +1540,7 @@ lines(L$Mean.vaccination, predict(loess_fit), col = "blue", lwd = 2)
 
 ```
 
-Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig. S10 of the paper.
+Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig. S19 of the paper.
 
 ```{r, echo = include.code, include = F}
 
@@ -1538,7 +1602,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S11 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
+Figure S20 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
 
 ```{r, echo = F, fig.height = 8, fig.width = 12}
 
