@@ -2216,24 +2216,13 @@ back.only.method.state.space <- function(window.length, regions,
 #'
 #' @examples
 
-find.mean.path <- function(d, 
-                           regions, 
-                           inc.transform = F,
-                           make.inc.cv.scale.same = F){
+find.mean.path <- function(d, regions){
   
   years = unique(d$Year)
   mean.x = data.frame(matrix(0, length(years), length(regions) + 2))
   mean.y = data.frame(matrix(0, length(years), length(regions) + 2))
   mean.x[, 1] = years
   mean.y[, 1] = years
-  if(make.inc.cv.scale.same == T ){
-    d$Incidence = d$Incidence %>% 
-      multiply_by(max(d$Coefficient.of.Variation) - min(d$Coefficient.of.Variation)) %>%
-      divide_by(max(d$Incidence) - min(d$Incidence))
-  }
-  if(inc.transform == 'sqrt' & make.inc.cv.scale.same == F){
-    d$Incidence <-  d$Incidence %>% sqrt
-  }
   
   for(j in 1 : length(regions)){
     mean.x[, j + 1] = d %>%
@@ -2278,7 +2267,6 @@ find.mean.path <- function(d,
 #' @param years 
 #' @param use.rep.cases 
 #' @param make.inc.cv.scale.same 
-#' @param inc.transform 
 #' @param connect.canonical.path.to.zero 
 #' @param log.incidence 
 #'
@@ -2288,7 +2276,7 @@ find.mean.path <- function(d,
 #' @examples
 
 closest.path.point <- function(d, regions, years, use.rep.cases = 1,
-                               make.inc.cv.scale.same = TRUE,inc.transform = 'sqrt',
+                               make.inc.cv.scale.same = TRUE, sqrt.inc = F, sqrt.cv=F,
                                connect.canonical.path.to.zero = 0, log.incidence = F,
                                make.figure.plot = F){
   
@@ -2306,47 +2294,38 @@ closest.path.point <- function(d, regions, years, use.rep.cases = 1,
     d = d[-(j), ]
   }
   
-  ##' if we want to log the incidence before assigning countries to their location
-  ##' on the path, then we do that here. Along with adding a small non-zero value to each of the
-  ##' incidences, so that there are no -Inf values created.
-  if(log.incidence == T){
-    d$Incidence = log(d$Incidence+0.000001)
-  }
-  
-  ##' if wanted scale the incidence and coefficient of variation so that they are both in the 0-1 range
-  
-  if(make.inc.cv.scale.same == T){
-    d$Incidence = scl(d$Incidence)
-    d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
-  }
-  
   ##' if make.figure.plot = T then we will produce the plot that is seen in the paper, which is 
   ##' make by putting the incidence data onto the same range as the coefficient of variation data.
   if(make.figure.plot == T){
     d$Incidence = d$Incidence* max(d$Coefficient.of.Variation)/ max(d$Incidence)
   }
   
+  ##' if we want to log the incidence before assigning countries to their location
+  ##' on the path, then we do that here. Along with adding a small non-zero value to each of the
+  ##' incidences, so that there are no -Inf values created.
+  if(log.incidence == T){
+    d$Incidence = log(d$Incidence + 0.000001)
+  }
   
+  ##' if sqrt.inc=T then take sqrt of incidence
+  if(sqrt.inc == T){
+    d$Incidence <-  sqrt(d$Incidence)
+  }
   
-  # 
-  ##' input d with non-square rooted incidence values. Then we take the square root of the 
-  ##' incidence to match the path calculation
-  ##' 
-  # if(use.rep.cases == 1 & make.inc.cv.scale.same == F){
-  #     d$Incidence = sqrt(d$Incidence)  
-  # }
+  ##' if sqrt.cv=T then take sqrt of cv
+  if(sqrt.cv == T){
+    d$Coefficient.of.Variation = sqrt(d$Coefficient.of.Variation)
+  }
   
-  ##' 
+  ##' if wanted scale the incidence and coefficient of variation so that they are both in the 0-1 range
+  if(make.inc.cv.scale.same == T){
+    d$Incidence = scl(d$Incidence)
+    d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
+  }
   
-  # d$Incidence = scl(d$Incidence)
-  # d$Coefficient.of.Variation = scl (d$Coefficient.of.Variation)
-  # 
   ##' find the mean path for each region by averaging positions in each year
-  list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions,
-                                        inc.transform = inc.transform,
-                                        make.inc.cv.scale.same = make.inc.cv.scale.same)
-  
-  
+  ##' 
+  list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions)
   
   
   if(use.rep.cases ==  1){
@@ -2368,11 +2347,11 @@ closest.path.point <- function(d, regions, years, use.rep.cases = 1,
     ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
     ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
     ##' and use it as the canonical path
-    k = which(years == 2010)
-    k1 = which(years == 1998)
-    # zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
-    #    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
-    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
+    k = which(years == 2012)
+    k1 = which(years == 1994)
+    zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
+    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
+    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]), cbind(zzz,zzz1),
                            cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
       data.frame()
     # canonical.path = canonical.path[-(33:35),]
@@ -2730,7 +2709,6 @@ calc.variables.by.window.length <- function(year, window.length, num.windows,
 #' @param rep.cases - are we using the reported or estimated cases
 #' @param regions - the WHO regions we are considering
 #' @param make.inc.cv.scale.same - if 1, then we scale both the incidence and cv data to be on 0-1 range
-#' @param inc.transform - should we transform the incidence data. 
 #' Generally redundant now due to the log.incidence argument
 #' @param connect.canonical.path.to.zero - do we attach the canonical path to the (0,0) point
 #' @param log.incidence - should we log the incidence
@@ -2742,7 +2720,7 @@ calc.variables.by.window.length <- function(year, window.length, num.windows,
 plots.for.sus.dist.by.canonical.path <- function(d1, d2, d3, rep.cases,
                                                  regions,
                                                  make.inc.cv.scale.same,
-                                                 inc.transform,
+                                                 sqrt.inc,
                                                  connect.canonical.path.to.zero,
                                                  log.incidence,
                                                  make.figure.plot = F){
@@ -2753,7 +2731,7 @@ plots.for.sus.dist.by.canonical.path <- function(d1, d2, d3, rep.cases,
                                                 regions = regions, 
                                                 years = seq(1990, 2017),
                                                 make.inc.cv.scale.same = make.inc.cv.scale.same,
-                                                inc.transform = inc.transform,
+                                                sqrt.inc = sqrt.inc,
                                                 connect.canonical.path.to.zero,
                                                 log.incidence = log.incidence,
                                                 make.figure.plot = make.figure.plot)
@@ -3027,7 +3005,7 @@ plot.world.map <- function(d,
                            regions,
                            year,
                            make.inc.cv.scale.same,
-                           inc.transform,
+                           sqrt.inc,
                            missing.countries,
                            replace.countries,
                            connect.canonical.path.to.zero,
@@ -3039,7 +3017,7 @@ plot.world.map <- function(d,
                                                 regions = regions, 
                                                 years = seq(1990, 2017),
                                                 make.inc.cv.scale.same = make.inc.cv.scale.same,
-                                                inc.transform = inc.transform,
+                                                sqrt.inc = sqrt.inc,
                                                 connect.canonical.path.to.zero,
                                                 log.incidence = log.incidence)
   
@@ -3802,9 +3780,9 @@ plot.case.boxplots <- function(Cases, country, col = 'cornflowerblue', alpha = 1
 
 
 closest.path.point.movement.comparison <- function(d, regions, years, use.rep.cases = 1,
-                                                   make.inc.cv.scale.same = TRUE,inc.transform = 'sqrt',
+                                                   make.inc.cv.scale.same = TRUE, sqrt.inc=F, sqrt.cv=F,
                                                    connect.canonical.path.to.zero = 0, log.incidence = F,
-                                                   number.points){
+                                                   number.of.additional.points = 5){
   
   ##' filter the data to only include the regions, and years required, along with only
   ##' entries which have incidence greater than 0.
@@ -3824,33 +3802,28 @@ closest.path.point.movement.comparison <- function(d, regions, years, use.rep.ca
   ##' on the path, then we do that here. Along with adding a small non-zero value to each of the
   ##' incidences, so that there are no -Inf values created.
   if(log.incidence == T){
-    d$Incidence = log(d$Incidence+0.000001)
+    d$Incidence = log(d$Incidence + 0.000001)
+  }
+  
+  if(sqrt.cv == T){
+    d$Coefficient.of.Variation = sqrt(d$Coefficient.of.Variation)
+  }
+  
+  ##' if sqrt.inc=T then take sqrt of incidence
+  if(sqrt.inc == T){
+    d$Incidence <-  sqrt(d$Incidence)
   }
   
   ##' if wantedscale the incidence and coefficient of variation so that they are both in the 0-1 range
-  
   if(make.inc.cv.scale.same == T){
     d$Incidence = scl(d$Incidence)
     d$Coefficient.of.Variation = scl(d$Coefficient.of.Variation)
   }
-  # 
-  ##' input d with non-square rooted incidence values. Then we take the square root of the 
-  ##' incidence to match the path calculation
-  ##' 
-  # if(use.rep.cases == 1 & make.inc.cv.scale.same == F){
-  #     d$Incidence = sqrt(d$Incidence)  
-  # }
   
-  ##' 
   
-  # d$Incidence = scl(d$Incidence)
-  # d$Coefficient.of.Variation = scl (d$Coefficient.of.Variation)
-  # 
   ##' find the mean path for each region by averaging positions in each year
-  list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions,
-                                        inc.transform = inc.transform,
-                                        make.inc.cv.scale.same = make.inc.cv.scale.same)
-  
+  ##' 
+  list[mean.x, mean.y] = find.mean.path(d = filter(d, Year <= 2013), regions)
   
   
   
@@ -3873,11 +3846,11 @@ closest.path.point.movement.comparison <- function(d, regions, years, use.rep.ca
     ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
     ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
     ##' and use it as the canonical path
-    k = which(years == 2010)
-    k1 = which(years == 1998)
-    # zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
-    #    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
-    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]),# cbind(zzz,zzz1),
+    k = which(years == 2012)
+    k1 = which(years == 1994)
+    zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
+    zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
+    canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]), cbind(zzz,zzz1),
                            cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
       data.frame()
     # canonical.path = canonical.path[-(33:35),]
@@ -3902,7 +3875,7 @@ closest.path.point.movement.comparison <- function(d, regions, years, use.rep.ca
   
   ##' here is where the new higher resolution path is constructed
   
-  granular.canonical.path = calculate.granular.path(canonical.path, number.points = number.points)
+  granular.canonical.path = calculate.granular.path(canonical.path, number.of.additional.points)
   
   ###########################################
   
@@ -3939,49 +3912,67 @@ closest.path.point.movement.comparison <- function(d, regions, years, use.rep.ca
 
 
 
-##' create a canonical path where the points on the path are equally spaced from each other
-
-calculate.granular.path <- function(canonical.path, number.points){
-  total.canonical.distance = 0
-  for(i in 2:nrow(canonical.path)){
-    total.canonical.distance = sqrt((canonical.path$x[i] - canonical.path$x[i-1])^2 + 
-                                      (canonical.path$y[i] - canonical.path$y[i-1])^2) +
-      total.canonical.distance
-  }
+##' create a canonical path where the number.of.additional.points are placed between
+##' the 38 canonical path points
+calculate.granular.path <- function(canonical.path, number.of.additional.points){
+  ##' calculate how many total points will be on the granular path
+  number.points = (nrow(canonical.path)-1) * (number.of.additional.points + 1) + 1
   
+  ##' set up mdata frame to hold this path
+  granular.path = data.frame(matrix(NA, number.points, 2))
+  colnames(granular.path) = c("x", "y")
   
+  ##' intialise the new path at the first positions
+  granular.path[1, ] = c(canonical.path$x[1],canonical.path$y[1])
   
-  step.distance = total.canonical.distance/(number.points-1)
+  ##' begin a counter
+  count = 2
   
-  canonical.points = data.frame(matrix(NA, number.points, 2))
-  colnames(canonical.points) = c("x", "y")
-  canonical.points[1, ] = c(canonical.path$x[1],canonical.path$y[1])
-  point.we.are.at = 1
-  distance.so.far = 0 
-  distance.to.travel = sqrt((canonical.path$x[2] - canonical.path$x[1])^2 + 
-                              (canonical.path$y[2] - canonical.path$y[1])^2)
-  for (i in 2:number.points){
-    slope = (canonical.path$y[point.we.are.at+1] - canonical.points$y[i-1])/
-      (canonical.path$x[point.we.are.at+1] - canonical.points$x[i-1])
+  for(i in 2 : nrow(canonical.path)){
+    
+    ##' x1 and y1 defines the point on the canonical path that we begin from
+    x1 = canonical.path$x[i-1]
+    y1 = canonical.path$y[i-1]
+    
+    ##' x2 and y2 defines the point on the canonical path that we move towards
+    x2 = canonical.path$x[i]
+    y2 = canonical.path$y[i]
+    
+    ##' calculate the slope we have to move along
+    slope = (y2 - y1)/(x2 - x1)
+    
+    ##' calculate the distance along the path that we have to move
+    path.distance = sqrt((y2-y1)^2 + (x2-x1)^2)
+    
+    ##' split this distance up so that we get the desired number of points between the two points on the path
+    step.distance = path.distance / (number.of.additional.points + 1)
+    
+    ##' calculate the change in x
     x.change = sqrt(step.distance^2/(1+slope^2))
-    if(canonical.path$x[point.we.are.at+1] - canonical.points$x[i-1]  < 0){
+    
+    ##' if we move backwards in the x direction, then amend the direction of this movement
+    if(canonical.path$x[i] - canonical.path$x[i-1]  < 0){
       x.change = -x.change
     }
-    if(canonical.path$y[point.we.are.at+1] - canonical.points$y[i-1]>0){
+    
+    ##' if we move up or down in the y direction, then calculate the change in y appropriately
+    if(canonical.path$y[i] - canonical.path$y[i-1]>0){
       y.change = abs(slope * x.change)
     } else{
       y.change = -abs(slope * x.change)
     }
     
-    canonical.points$x[i] = canonical.points$x[i-1] + x.change
-    canonical.points$y[i] = canonical.points$y[i-1] + y.change
-    
-    distance.to.travel = distance.to.travel - step.distance
-    if (distance.to.travel < 0 & i < number.points){
-      point.we.are.at = point.we.are.at + 1
-      distance.to.travel = sqrt((canonical.path$x[point.we.are.at+1] - canonical.points$x[i])^2 + 
-                                  (canonical.path$y[point.we.are.at+1] - canonical.points$y[i])^2)
+    ##' add in the additional points iteratively
+    for(j in 1 : number.of.additional.points){
+      granular.path$x[count] = granular.path$x[count - 1] + x.change
+      granular.path$y[count] = granular.path$y[count -1] + y.change
+      count = count + 1
     }
+    
+    ##' add in the point on the path that we were moving towards
+    granular.path$x[count] = x2
+    granular.path$y[count] = y2
+    count = count + 1
   }
-  return(canonical.points)
+  return(granular.path)
 }
