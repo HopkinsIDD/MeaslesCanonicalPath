@@ -600,9 +600,8 @@ source("state.space.model/run_state_space_model.R")
 ```{r, eval=F, include=F, eval = FALSE}
 ##' this chunk of code infers susceptiblity from the estimated measles incidence, birth rates, and vaccination rates
 All.countries = as.character(unique(canonical.path.data$Country))
-All.countries = All.countries[-(which(All.countries %in% c("","Andorra","Monaco", "Tuvalu", "Dominica", 
-                                                           "Saint Kitts and Nevis", "Palau", "Marshall Islands",
-                                                           "San Marino")))]
+All.countries = All.countries[-(which(All.countries %in% c("")))]
+
 All.countries= All.countries[order(All.countries)]
 years = seq(1990,2017)
 

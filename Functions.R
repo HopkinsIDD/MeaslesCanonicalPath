@@ -635,14 +635,38 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
   
   p <- read.csv("data/Population_through_time.csv")
   country2 = country
-  # if(country == "Congo, Democratic Republic of the") {country2 = "Democratic Republic of the Congo"}
-  # if(country == "Congo, Republic of the"){country2 = "Congo"}
-  # if(country == "Gambia, The"){country2 = "Gambia"}
-  # if(country == "Tanzania"){country2 = "United Republic of Tanzania"}
-  # if(country == "Moldova") {country2 = "Republic of Moldova"}
-  # if(country == "Russia") {country2 = "Russian Federation"}
-  # if(country == "Iran") {country2 = "Iran (Islamic Republic of)"}
-  # if(country == "Syria") {country2 = "Syrian Arab Republic"}
+  pop.adjust = 1
+  if(country == "Andorra") {
+    country2 = "Spain"
+    pop.adjust = 77281/46570000}
+  if(country == "Monaco"){
+    country2 = "Japan"
+    pop.adjust = 38695/126800000
+  }
+  if(country == "Tuvalu"){
+    country2 = "Syria"
+    pop.adjust = 11192/18270000
+  }
+  if(country == "Dominica"){
+    country2 = "Albania"
+    pop.adjust = 73925/2873000
+  }
+  if(country == "Saint Kitts and Nevis") {
+    country2 = "Albania"
+    pop.adjust = 55345/2873000
+  }
+  if(country == "Palau") {
+    country2 = "Albania"
+    pop.adjust = 21729/2873000
+  }
+  if(country == "Marshall Islands") {
+    country2 = "Syria"
+    pop.adjust = 53127/18270000
+  }
+  if(country == "San Marino") {
+    country2 = "Denmark"
+    pop.adjust = 33400/5770000
+  }
   # if(country == "Korea, South") {country2 = "Republic of Korea"}
   # if(country == "Laos"){country2 = "Lao People's Democratic Republic"}
   # if(country == "Vietnam"){country2 = "Viet Nam"}
@@ -652,11 +676,11 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
   # if(country == "United States") {country2 = "United States of America"}
   # if(country == "Micronesia, Federated States of"){country2 = "Micronesia (Fed. States of)"}
   # if(country == "Burma"){country2 = "Myanmar"}
-  pop.struct.past = p[which(p$Region == country2 & p$Data == z1), 4:ncol(p)] * 1000
+  pop.struct.past = p[which(p$Region == country2 & p$Data == z1), 4:ncol(p)] * 1000 * pop.adjust
   if(z>2015){
     z=2015
   }
-  pop.struct.future = p[which(p$Region == country2 & p$Data == z), 4:ncol(p)] * 1000
+  pop.struct.future = p[which(p$Region == country2 & p$Data == z), 4:ncol(p)] * 1000 * pop.adjust
   
   fraction = year - z1
   if(fraction > 5){
@@ -2347,14 +2371,14 @@ closest.path.point <- function(d, regions, years, use.rep.cases = 1,
     ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
     ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
     ##' and use it as the canonical path
-    k = which(years == 2012)
-    k1 = which(years == 1994)
+    k = which(years == 2008)
+    k1 = which(years == 1995)
     zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
     zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
     canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]), cbind(zzz,zzz1),
                            cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
       data.frame()
-    # canonical.path = canonical.path[-(33:35),]
+    canonical.path = canonical.path[-c(8,29,31),]
     
   }
   colnames(canonical.path) = c('x', 'y')
@@ -3846,14 +3870,14 @@ closest.path.point.movement.comparison <- function(d, regions, years, use.rep.ca
     ##' Africa and the Americas mean paths converge at roughly 2011 in Africa and 
     ##' 1994 for the Americas. We add in 3 intermediate points here and join the paths at this point, 
     ##' and use it as the canonical path
-    k = which(years == 2012)
-    k1 = which(years == 1994)
+    k = which(years == 2008)
+    k1 = which(years == 1995)
     zzz = mean.x$AFR[k] + (c(1,2,3)* (mean.x$AMR[k1] - mean.x$AFR[k]))/4
     zzz1 = mean.y$AFR[k] + (c(1,2,3)* (mean.y$AMR[k1] - mean.y$AFR[k]))/4
     canonical.path = rbind(cbind(mean.x$AFR[1:k], mean.y$AFR[1:k]), cbind(zzz,zzz1),
                            cbind(mean.x$AMR[k1:nrow(mean.x)], mean.y$AMR[k1:nrow(mean.x)])) %>%
       data.frame()
-    # canonical.path = canonical.path[-(33:35),]
+    canonical.path = canonical.path[-c(8,29,31),]
     
   }
   colnames(canonical.path) = c('x', 'y')
