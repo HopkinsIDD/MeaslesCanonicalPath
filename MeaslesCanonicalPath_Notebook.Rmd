@@ -363,20 +363,20 @@ for(i in 1:nrow(d1b)){
     
     ##' for each country, each year, find the data for the same country the following year
     
-    k = d1b %>% filter(Country == c1, Year == (y+1))
+    k = d1b %>% filter(Country == c1, Year == (y+1)) #looking one year ahead (i.e., 1 for observed, and 5 for expected)
     if(nrow(k)>0){
-        if(pos < nrow(granular.canonical.path)){
+        if(pos < (nrow(granular.canonical.path)-5)){
             position.and.movement.comparison[count, ] =  c(c1, k$WHO_REGION, y, 
                                                            d1b$Coefficient.of.Variation[i], d1b$Incidence[i],
                                                            k$Coefficient.of.Variation, k$Incidence,
                                                            k$Coefficient.of.Variation - d1b$Coefficient.of.Variation[i],
                                                            k$Incidence - d1b$Incidence[i],
                                                            d1b$canonical.x[i], d1b$canonical.y[i],
-                                                           mean(granular.canonical.path$x[pos:(pos+9)], na.rm=T), mean(granular.canonical.path$y[pos:(pos+9)], na.rm=T),
-                                                           mean(granular.canonical.path$x[pos:(pos+9)], na.rm=T)-d1b$canonical.x[i],
-                                                           mean(granular.canonical.path$y[pos:(pos+9)], na.rm=T)-d1b$canonical.y[i])
+                                                           granular.canonical.path$x[(pos+5)], granular.canonical.path$y[(pos+5)],
+                                                           granular.canonical.path$x[(pos+5)]-d1b$canonical.x[i],
+                                                           granular.canonical.path$y[(pos+5)]-d1b$canonical.y[i])
             
-        } else{
+        } else { #else means the country is at the end of the granular path, so force canonical path change to 0
             position.and.movement.comparison[count, ] =  c(c1, k$WHO_REGION, y, 
                                                            d1b$Coefficient.of.Variation[i], d1b$Incidence[i],
                                                            k$Coefficient.of.Variation, k$Incidence,
@@ -487,7 +487,7 @@ for (c in 1:length(regs)){
       filter(region==regs[c]) %>%
       filter(year %in% year.groups[[y]])
     iqr <- quantile((df.iqr$angle.diff*(-1)), c(0.25, 0.5,0.75)) #want positive 90 top, and -90 bottom
-    print(iqr)
+    print(c(paste(regs[c], year.groups[y]), iqr))
     
     #plot it
     dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
@@ -495,9 +495,9 @@ for (c in 1:length(regs)){
     all.plots[[name]] <- 
       ggplot(dfa, aes(x=a, y=obs.exp, fill=(frequency))) +
       geom_tile(colour="white") +
-      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.25), na.value="white") + #Greys
+      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.25), na.value="white") + 
       ylim(c(0, max(dfa$obs.exp) + 0.5)) +
-      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1],1)) +
+      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1])) +
       theme(panel.background=element_blank(),
             axis.title=element_blank(),
             panel.grid=element_blank(),
@@ -565,13 +565,13 @@ We can also plot the expected and observed movements for all countries and years
       geom_tile(colour="white") +
       scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.2), na.value="white") + #Greys
       ylim(c(0, max(dfa$obs.exp) + 0.5)) +
-      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1],1)) +
+      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1])) +
       theme(panel.background=element_blank(),
             axis.title=element_blank(),
             panel.grid=element_blank(),
             axis.text.x=element_blank(),
             axis.ticks=element_blank(),
-            axis.text.y=element_text(size=5)) +  annotate("text", x = 0, y = 0, label = round(dfd[1,1],1)) +
+            axis.text.y=element_text(size=5)) +
       ggtitle("All countries and years")
     
     #estimating IQR for difference in angle
@@ -622,7 +622,6 @@ for(i in 1 : length(All.countries)){
              mat.protect] = getLexisVaccPopStructSpecifyYear(country = All.countries[i],
                                                              barchart.susc = T,
                                                              proportion.pop=F,
-                                                             reported.cases = F,
                                                              year = years[j], max.x = 3000000,
                                                              output.plot = F)
         tot.imm <- mat.protect+(pred-mat.protect)*prop.vacc + (pred-mat.protect)*(1-prop.vacc)*(prop.nat.imm)

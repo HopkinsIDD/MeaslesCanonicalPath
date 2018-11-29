@@ -514,7 +514,6 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
                                             cover.from.DHS=NULL,
                                             cover.from.DHS.disrupted=NULL, 
                                             year,
-                                            reported.cases = T,
                                             max.x = 200000, output.plot = T){
   
   ages <- 1:60
@@ -700,23 +699,10 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
   
   # This is the state space model adjusted disease burden.
   df <- read.csv("data/State_space_cases_new.csv",stringsAsFactors=FALSE,row.names=1)
-  #df <- read.csv("data/output-estimated_incidence.csv",stringsAsFactors=FALSE,row.names=1)
-  if(reported.cases == T){
-    df <- read.csv("Measles_cases_by_year.csv", stringsAsFactors = FALSE)
-  }
   country.codes <- read.csv("data/country_codes.csv")
   iso <- country.codes[which(country.codes[,1]==country1),"ISO3_code"]
   if(country == "Cabo Verde"){iso = "CPV"}
-  if(reported.cases == T){
-    est.burden = numeric(length(seq(1981, year)))
-    all.years = seq(1981, min(year, 2013))
-    df <- (df[which(df$Cname==country), ])
-    for(i in 1 : length(all.years)){
-      est.burden[i] = as.numeric(df[which(colnames(df) == paste("X", all.years[i], sep = ""))])
-    }
-  }  else{
     est.burden <- as.numeric(df[which(rownames(df)==iso), which(colnames(df) %in% paste("X", 1981:year,sep = ""))])
-  }
   base.burden <- mean(est.burden[5:15],na.rm=T)
   rel.burden <- est.burden / base.burden
   j = which(is.na(rel.burden))
