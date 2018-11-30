@@ -898,8 +898,8 @@ prepare.anim.data.for.analysis <- function(input.data, mean.age.sus){
   names = colnames(input.data)
   anim.data = cbind(input.data, matrix(0, nrow(input.data), 1))
   colnames(anim.data) = c(names, "Mean.Age.Sus")
-  anim.data = anim.data %>% filter(Year %in% years)
-  Af.d = filter(anim.data, WHO_REGION == "AFR", Country != "")
+  anim.data = anim.data %>% dplyr::filter(Year %in% years)
+  Af.d = dplyr::filter(anim.data, WHO_REGION == "AFR", Country != "")
   Af.countries = unique(Af.d$Country)
   for( i in 1 : nrow(anim.data)){
     y = anim.data$Year[i]
@@ -916,13 +916,13 @@ prepare.anim.data.for.analysis <- function(input.data, mean.age.sus){
   anim.data$MCV2 = as.numeric(as.character(anim.data$MCV2))
   anim.data$shape = as.numeric(as.character(anim.data$shape))
   
-  Af.data = filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
+  Af.data = dplyr::filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
                    Country != "")
-  Af.data = filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
+  Af.data = dplyr::filter(anim.data, WHO_REGION == "AFR", Year %in% years, !is.na(Mean.Age.Sus),
                    Country != "South Sudan")
   Af.data = Af.data[order(Af.data$Country), ]
   Af.data$Country = as.factor(Af.data$Country)
-  Af.data = filter(Af.data, Country != "")
+  Af.data = dplyr::filter(Af.data, Country != "")
   Af.data$br.vacc = (100-Af.data$Mean.vaccination) * Af.data$Mean.birth.rate / 100
   levels(Af.data$Country)[levels(Af.data$Country)=="Congo, Democratic Republic of the"] <- "DRC"
   levels(Af.data$Country)[levels(Af.data$Country)=="Congo, Republic of the"] <- "Republic of the Congo"
@@ -930,19 +930,19 @@ prepare.anim.data.for.analysis <- function(input.data, mean.age.sus){
   Af.data = Af.data[order(Af.data$Country), ]
   
   
-  Amr.data = filter(anim.data, WHO_REGION == "AMR", Year %in% years, !is.na(Mean.Age.Sus),
+  Amr.data = dplyr::filter(anim.data, WHO_REGION == "AMR", Year %in% years, !is.na(Mean.Age.Sus),
                     Country != "" , Mean.birth.rate > 0 , Mean.vaccination > 0)
   Amr.data = Amr.data[order(Amr.data$Country), ]
   Amr.data$Country = as.factor(Amr.data$Country)
-  Amr.data = filter(Amr.data, Country != "")
+  Amr.data = dplyr::filter(Amr.data, Country != "")
   Amr.data$br.vacc = (100-Amr.data$Mean.vaccination) * Amr.data$Mean.birth.rate / 100
   Amr.data = Amr.data[order(Amr.data$Country), ]
   
-  Rest.data = filter(anim.data, WHO_REGION %in% c("WPR","EUR", "SEAR", "EMR"), Year %in% years, !is.na(Mean.Age.Sus),
+  Rest.data = dplyr::filter(anim.data, WHO_REGION %in% c("WPR","EUR", "SEAR", "EMR"), Year %in% years, !is.na(Mean.Age.Sus),
                      Country != "" , Mean.birth.rate > 0 , Mean.vaccination > 0)
   Rest.data = Rest.data[order(Rest.data$Country), ]
   Rest.data$Country = as.factor(Rest.data$Country)
-  Rest.data = filter(Rest.data, Country != "")
+  Rest.data = dplyr::filter(Rest.data, Country != "")
   Rest.data$br.vacc = (100-Rest.data$Mean.vaccination) * Rest.data$Mean.birth.rate / 100
   Rest.data = Rest.data[order(Rest.data$Country), ]
   
