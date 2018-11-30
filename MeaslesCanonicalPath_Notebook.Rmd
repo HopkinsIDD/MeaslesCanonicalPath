@@ -86,8 +86,9 @@ This figure was created in Adobe Illustrator, so cannot be reproduced here.
 The canonical path seen in Fig. 2A is constructed by putting the incidence and coefficient of variation on the same scale (by multiplying the incidence by max(coefficient of variation) / max(incidence)) and then calculating the mean trajectories of Africa and the Americas over time, and combining these at the point that they intersect, i.e. at the point that the green and purple lines cross in the plot above.
 
 ```{r, echo = include.code}
+use.reported.cases = TRUE
 list[d1a, canonical.path2] = closest.path.point(d = canonical.path.data, 
-                                                  use.rep.cases = 1,
+                                                  use.rep.cases = use.reported.cases,
                                                   regions = regions, 
                                                   years = seq(1990, 2017),
                                                   make.inc.cv.scale.same = 0,
@@ -116,7 +117,7 @@ The analysis performed in the paper relies on the fact that when we calculate th
 ##' assignment of countries to the closest point on the path
 
 d = canonical.path.data
-use.rep.cases = 1
+use.reported.cases = TRUE
 regions = c("EMR","EUR","AFR","AMR","WPR","SEAR")
 make.inc.cv.scale.same = 1 
 sqrt.inc = F 
@@ -127,7 +128,7 @@ number.of.additional.points = 4 #4 additional points between each of 38 points
 
 ##' d1 will contain the closest point on the canonical path over time.
 list[d1, canonical.path] = closest.path.point(d = d, 
-                                              use.rep.cases = use.rep.cases,
+                                              use.rep.cases = use.reported.cases,
                                               regions = regions, 
                                               years = seq(1990, 2017),
                                               make.inc.cv.scale.same = make.inc.cv.scale.same,
@@ -137,7 +138,7 @@ list[d1, canonical.path] = closest.path.point(d = d,
 
 ##' d1b will contain the closest point on the granular canonical path over time.
 list[d1b, granular.canonical.path] = closest.path.point.movement.comparison(d = d, 
-                                              use.rep.cases = use.rep.cases,
+                                              use.rep.cases = use.reported.cases,
                                               regions = regions, 
                                               years = seq(1990, 2017),
                                               make.inc.cv.scale.same = make.inc.cv.scale.same,
@@ -1429,7 +1430,657 @@ state.space.fig = incidence.space.fig.dashed.arrow(anim.data = state.space.data,
 state.space.fig
 ```
 
-Figure S17 demonstrates movement along the canonical path for 10 countries of interest from the Americas, Africa, and European.  These 10 countries are highlighted from Fig. 4A-B in the main text to conceptualize an individual country's movement on the path and discuss data biases or true dynamics that may have contributed to these movements.  
+The following chunks of code will recreate all the plots found in supplemental figures S17, S18, and S19. This analysis is now based on estimated cases, that corrects for under-reporting using a state space model, rather than reported cases.  All analyses were conducted the exact same as when using reported cases, with one small exception. When building the canonical path based on estiamted cases, there is a gap between African region countries and Americas region countries, as seen in the figure above (Fig. S16), therefore we forced the gap to be filled with three addtional points. For consistency, we removed three other points. As a result there are 2 main changes to the code: the first is to replace the canonical.path.data with data from the state space model, and the second is to replace the object use.reported.cases with FALSE.
+  
+```{r, echo = include.code}
+canonical.path.data <- state.space.data
+use.reported.cases = F
+```
+
+
+```{r, echo = include.code, fig.height = 6, fig.width = 8}
+list[d1a, canonical.path2] = closest.path.point(d = canonical.path.data, 
+                                                use.rep.cases = use.reported.cases,
+                                                regions = regions, 
+                                                years = seq(1990, 2017),
+                                                make.inc.cv.scale.same = 0,
+                                                sqrt.inc = T,
+                                                connect.canonical.path.to.zero = 0,
+                                                log.incidence = 0,
+                                                make.figure.plot = T)
+
+cols.1 <- colorRampPalette(c("red", "white", "blue"))(length(canonical.path2$x))
+plot(canonical.path2$x, canonical.path2$y, pch = 21, cex = 2,
+     xlab = 'coefficient of variation', ylab= 'scaled mean incidence', bty="n", 
+     yaxt = "n", cex.axis=1.5, cex.lab = 1.5, col = 'black', bg = cols.1)
+axis(2, at=c(sqrt(0.1),sqrt(seq(0,1.2, 0.2))), labels=c(0.1,seq(0, 1.2, 0.2)), cex.axis = 1.5)
+
+```
+
+
+```{r, echo = include.code, include = FALSE}
+
+##' set up variables to use for making the canonical path and the
+##' assignment of countries to the closest point on the path
+
+d = canonical.path.data
+use.rep.cases = use.reported.cases
+regions = c("EMR","EUR","AFR","AMR","WPR","SEAR")
+make.inc.cv.scale.same = 1 
+sqrt.inc = F 
+sqrt.cv = F
+connect.canonical.path.to.zero = 0
+log.incidence = T 
+number.of.additional.points = 4 #4 additional points between each of 38 points
+
+##' d1 will contain the closest point on the canonical path over time.
+list[d1, canonical.path] = closest.path.point(d = d, 
+                                              use.rep.cases = use.rep.cases,
+                                              regions = regions, 
+                                              years = seq(1990, 2017),
+                                              make.inc.cv.scale.same = make.inc.cv.scale.same,
+                                              sqrt.inc = sqrt.inc, sqrt.cv=sqrt.cv,
+                                              connect.canonical.path.to.zero,
+                                              log.incidence = log.incidence)
+
+##' d1b will contain the closest point on the granular canonical path over time.
+list[d1b, granular.canonical.path] = closest.path.point.movement.comparison(d = d, 
+                                                                            use.rep.cases = use.rep.cases,
+                                                                            regions = regions, 
+                                                                            years = seq(1990, 2017),
+                                                                            make.inc.cv.scale.same = make.inc.cv.scale.same,
+                                                                            sqrt.inc = sqrt.inc, sqrt.cv=sqrt.cv,
+                                                                            connect.canonical.path.to.zero,
+                                                                            log.incidence = log.incidence,
+                                                                            number.of.additional.points = number.of.additional.points) 
+```
+
+```{r, echo=include.code, include=FALSE}
+##' First add population size to the data.frame because we need to weight the region estimates by population size of coutry
+d1b$pop <- as.numeric(rep(NA, nrow(d1b)))
+pop.by.year = read.csv("data/All_populations.csv", stringsAsFactors = FALSE) 
+for (a in 1:nrow(d1b)){
+  row <- which(pop.by.year$Country.Name==d1b$Country[a])
+  col <- which((1961:2017)==d1b$Year[a])+2
+  d1b$pop[a] <- pop.by.year[row,col]
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-1)]} #kuwait has some NAs that trying to fix
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-2)]} #and some counties in the later years have some issues 41 rows total missing pops
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-3)]}
+  if (is.na(d1b$pop[a]) | d1b$pop[a]=="#N/A") {d1b$pop[a] <- pop.by.year[row,(col-4)]}
+}
+d1b$pop <- as.numeric(d1b$pop)
+
+##' Get country-specific population weight for each region and year
+##' This will be used to weight the average position by region overtime
+d1b <- d1b %>%
+  group_by(WHO_REGION, Year) %>%
+  mutate(weight = pop/sum(pop))
+d1b$weight <- round(d1b$weight,5)
+
+##' create data frame to store values in
+deltas.by.continent = data.frame(matrix(NA, nrow(d1b), 6))
+colnames(deltas.by.continent) = c("country", "region", "year", "delta", "pos","weight")
+
+##' go through data set containing the position for each country for each year, 
+##' and store the data in the new data frame we have created.
+count = 1
+for(i in 1:nrow(d1b)){
+  c1 = d1b$Country[i]
+  y = d1b$Year[i]
+  pos = d1b$closest[i]
+  
+  ##' for each country, each year, find the data for the same country the following year
+  
+  k = d1b %>% filter(Country == c1, Year == (y+1))
+  if(nrow(k)>0){
+    pos2 = k$closest
+    deltas.by.continent[count, ] =  c(c1, k$WHO_REGION, y+1, pos2-pos, pos2, k$weight)
+    count = count + 1
+  }
+}
+
+##' remove data which is NA
+j = which(is.na(deltas.by.continent$country))
+if(length(j) >0 ){
+  deltas.by.continent = deltas.by.continent[-(j),]
+}
+
+##' extract the unique years from the data set containing the changes for each year
+all.years = as.numeric(unique(deltas.by.continent$year))
+countries = unique(deltas.by.continent$country)
+
+##' change the data to be characters and numbers
+deltas.by.continent$country = deltas.by.continent$country %>% as.character
+deltas.by.continent$region = deltas.by.continent$region %>% as.character
+deltas.by.continent$year = deltas.by.continent$year %>% as.character %>% as.numeric
+deltas.by.continent$delta = deltas.by.continent$delta %>% as.character %>% as.numeric
+deltas.by.continent$pos = deltas.by.continent$pos %>% as.character %>% as.numeric
+deltas.by.continent$weight = deltas.by.continent$weight %>% as.character %>% as.numeric
+
+##'choose a period of time over which to smooth the average position of the WHO regions. 
+##'A 2 this means that we smooth using the average of a given year along with two years before and two years after
+moving.av.length = 2
+
+##' set up a dataframe to hold the weighted data
+deltas.summary.weighted = data.frame(matrix(NA, (length(all.years)-2)*length(countries), 6))
+colnames(deltas.summary.weighted) = c("country","region", "year", "mean.delta", "mean.pos", "weight")
+
+count = 1
+for(i in (moving.av.length+1):length(all.years - moving.av.length)){
+  ##' choose the years we wish to include in the averaging
+  years = all.years[(i-moving.av.length):(i+moving.av.length)]
+  for(j in 1 : length(countries)){
+    ##' find the require data
+    c = countries[j]
+    d = deltas.by.continent %>% filter(year %in% years & country ==c) 
+    r = d$region[1]
+    
+    ##' record the regions, the year in question, along with summaries of the change in movement, along
+    ##' with the mean position of the region over the years in question
+    deltas.summary.weighted[count, ] = c(c, 
+                                         r,
+                                         years[(moving.av.length + 1)],
+                                         mean(d$delta),
+                                         mean(d$pos),
+                                         mean(d$weight)) #keep the weight for appropriate year
+    count = count + 1
+  }
+}
+
+##' remove data which is NA
+j = which(deltas.summary.weighted$mean.delta=="NaN")
+if(length(j) >0 ){
+  deltas.summary.weighted = deltas.summary.weighted[-(j),]
+}
+
+##' change the data to be characters and numbers
+deltas.summary.weighted$country = deltas.summary.weighted$country %>% as.character
+deltas.summary.weighted$region = deltas.summary.weighted$region %>% as.character
+deltas.summary.weighted$year = deltas.summary.weighted$year %>% as.character %>% as.numeric
+deltas.summary.weighted$mean.delta = deltas.summary.weighted$mean.delta %>% as.character %>% as.numeric
+deltas.summary.weighted$mean.pos = deltas.summary.weighted$mean.pos %>% as.character %>% as.numeric
+deltas.summary.weighted$weight = deltas.summary.weighted$weight %>% as.character %>% as.numeric
+
+dd <- deltas.summary.weighted
+
+##' summarise with average position for each region, by year
+dd2 = dd %>% 
+  group_by(region, year) %>%
+  summarise(mean.pos = mean(mean.pos))
+dd3 = dd %>% 
+  group_by(region, year) %>%
+  summarise(mean.delta = mean(mean.delta))
+
+##' summarise the population weighted average position for each region, by year
+dd2b = dd %>% 
+  group_by(region, year) %>%
+  summarise(mean.pos = sum(mean.pos*weight))
+dd3b = dd %>% 
+  group_by(region, year) %>%
+  summarise(mean.delta = sum(mean.delta*weight))
+```
+
+```{r, echo = include.code, fig.height = 6, fig.width = 6}
+
+ggplot(dd, aes(x=year, y=mean.pos*(100/nrow(granular.canonical.path)), color=region)) + geom_line(aes(group=country), alpha=0.15) + geom_line(data = dd2, lwd=1.2) + theme_minimal() + labs(y="position on path (%)") + scale_colour_brewer(palette="Dark2", direction=1)
+
+ggplot(dd, aes(x=year, y=mean.delta*(100/nrow(granular.canonical.path)), color=region)) + geom_line(aes(group=country), alpha=0.15) + geom_line(data = dd3, lwd=1.2) + ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)") + scale_colour_brewer(palette="Dark2", direction=1)
+
+ggplot(dd, aes(x=year, y=mean.pos*(100/nrow(granular.canonical.path)), color=region)) + geom_line(aes(group=country), alpha=0.15) + geom_line(data = dd2b, lwd=1.2) + theme_minimal() + labs(y="position on path (%)") + scale_colour_brewer(palette="Dark2", direction=1)
+
+ggplot(dd, aes(x=year, y=mean.delta*(100/nrow(granular.canonical.path)), color=region)) + geom_line(aes(group=country), alpha=0.15) + geom_line(data = dd3b, lwd=1.2) + ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)") + scale_colour_brewer(palette="Dark2", direction=1)
+
+```
+
+```{r, echo = include.code,  fig.height = 6, fig.width = 10}
+plot.year = 2017
+
+missing.countries = c("Bosnia and Herzegovina", "Central African Republic",
+                      "Congo, Republic of The", "Czech Republic", "Korea, North",
+                      "Congo, Democratic Republic of the", "Dominican Republic", "Gambia, The",   
+                      "Burma", "Korea, South", "South Sudan")
+
+replace.countries = c("Bosnia and Herz", "Central African Rep.", "Congo", "Czech Rep.",
+                      "Dem. Rep. Korea", "Dem. Rep. Congo", "Dominican Rep.", "Gambia",
+                      "Myanmar", "Korea", "S. Sudan")
+
+
+list[w.plot, A, canonical.path] = plot.world.map (d = canonical.path.data, 
+                                                  use.rep.cases = use.reported.cases,
+                                                  regions,
+                                                  year = plot.year,
+                                                  make.inc.cv.scale.same = 1,
+                                                  sqrt.inc = F,
+                                                  missing.countries,
+                                                  replace.countries,
+                                                  connect.canonical.path.to.zero = 0 ,
+                                                  log.incidence = T,
+                                                  with.text = 1)
+w.plot
+
+```
+
+
+```{r, echo=include.code}
+position.and.movement.comparison = data.frame(matrix(NA, nrow(d1b), 15))
+colnames(position.and.movement.comparison) = c("country", "region", "year", 
+                                  "actual.x", "actual.y",
+                                  "next.actual.x", "next.actual.y",
+                                  "actual.x.change", "actual.y.change",
+                                  "canonical.x","canonical.y", 
+                                  "next.canonical.x", "next.canonical.y",
+                                  "canonical.x.change", "canonical.y.change")
+
+##' go through data set containing the position for each country for each year, 
+##' and store the data in the new data frame we have created.
+count = 1
+for(i in 1:nrow(d1b)){
+    c1 = d1b$Country[i]
+    y = d1b$Year[i]
+    pos = d1b$closest[i]
+    
+    ##' for each country, each year, find the data for the same country the following year
+    
+    k = d1b %>% filter(Country == c1, Year == (y+1)) #looking one year ahead (i.e., 1 for observed, and 5 for expected)
+    if(nrow(k)>0){
+        if(pos < (nrow(granular.canonical.path)-5)){
+            position.and.movement.comparison[count, ] =  c(c1, k$WHO_REGION, y, 
+                                                           d1b$Coefficient.of.Variation[i], d1b$Incidence[i],
+                                                           k$Coefficient.of.Variation, k$Incidence,
+                                                           k$Coefficient.of.Variation - d1b$Coefficient.of.Variation[i],
+                                                           k$Incidence - d1b$Incidence[i],
+                                                           d1b$canonical.x[i], d1b$canonical.y[i],
+                                                           granular.canonical.path$x[(pos+5)], granular.canonical.path$y[(pos+5)],
+                                                           granular.canonical.path$x[(pos+5)]-d1b$canonical.x[i],
+                                                           granular.canonical.path$y[(pos+5)]-d1b$canonical.y[i])
+            
+        } else { #else means the country is at the end of the granular path, so force canonical path change to 0
+            position.and.movement.comparison[count, ] =  c(c1, k$WHO_REGION, y, 
+                                                           d1b$Coefficient.of.Variation[i], d1b$Incidence[i],
+                                                           k$Coefficient.of.Variation, k$Incidence,
+                                                           k$Coefficient.of.Variation - d1b$Coefficient.of.Variation[i],
+                                                           k$Incidence - d1b$Incidence[i],
+                                                           d1b$canonical.x[i], d1b$canonical.y[i],
+                                                           d1b$canonical.x[i], d1b$canonical.y[i],
+                                                           0,0)
+            
+        }
+               count = count + 1
+    }
+}
+
+#remove non filled in rows
+df <- position.and.movement.comparison %>% filter(!is.na(country))
+
+#making numeric
+df$actual.x.change = df$actual.x.change %>% as.character %>% as.numeric
+df$actual.y.change = df$actual.y.change %>% as.character %>% as.numeric
+df$canonical.x.change = df$canonical.x.change %>% as.character %>% as.numeric
+df$canonical.y.change = df$canonical.y.change %>% as.character %>% as.numeric
+
+#calculating the angle
+df$actual.angle <- (atan2(df$actual.y.change,df$actual.x.change)*-180/pi)
+df$canonical.angle <- (atan2(df$canonical.y.change,df$canonical.x.change)*-180/pi) 
+
+#Angle difference
+df$angle.diff <- df$actual.angle-df$canonical.angle
+#series of if statements: to get angle difference between 180 and -180, rather than -360 and 360.
+dft <- df %>% filter(canonical.angle<= -90 & actual.angle>= 90)
+df$angle.diff[(df$canonical.angle<= -90 & df$actual.angle>= 90)] <- 180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+dft <- df %>% filter(actual.angle<= -90 & canonical.angle>= 90)
+df$angle.diff[(df$actual.angle<= -90 & df$canonical.angle>= 90)] <- 180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+dft <- df %>% filter(actual.angle<= -90 & canonical.angle<= 90 & canonical.angle>= 0 & angle.diff< -180)
+df$angle.diff[(df$actual.angle<= -90 & df$canonical.angle<= 90 & df$canonical.angle>= 0 & df$angle.diff< -180)] <- 
+  180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+dft <- df %>% filter(canonical.angle>= 90 & actual.angle>= -90 & actual.angle<= 0 & angle.diff< -180)
+df$angle.diff[(df$canonical.angle>= 90 & df$actual.angle>= -90 & df$actual.angle<= 0 & df$angle.diff< -180)] <- 
+  180-abs(dft$actual.angle)+180-abs(dft$canonical.angle)
+
+#group angles in 10s
+df$canonical.angle10 <- plyr::round_any(df$canonical.angle, 10)
+df$actual.angle10 <- plyr::round_any(df$actual.angle, 10)
+
+
+regs = c("AMR","AFR","EMR","EUR","SEAR","WPR")
+year.groups <- list(1990:1999, 2000:2009, 2010:2017)
+all.plots <- list()
+for (c in 1:length(regs)){
+  for (y in 1:3){
+    
+    #filtering and grouping data to set up dataframe for plotting
+    dfo <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      group_by(a = actual.angle10) %>%
+      summarise(n=n()) %>%
+      mutate(frequency=n/sum(n))
+    dfe.tmp <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      group_by(a = round(canonical.angle10)) %>%
+      summarise(n=n()) %>%
+      mutate(freq=n/sum(n))
+    
+    #smoothing expected path
+    byn <- seq(-180,179,10)
+    dfe <- as.data.frame(matrix(NA, nrow=length(byn), ncol=2))
+    colnames(dfe) <- c("a", "freq")
+    for (i in 1:length(byn)){
+      dfe$freq[i] <- ifelse(is.na(dfe.tmp$freq[match(byn[i], dfe.tmp$a)]),0,
+                            dfe.tmp$freq[match(byn[i], dfe.tmp$a)])
+      dfe$a[i] <- byn[i]
+    }
+    dfe$frequency <- rep(NA, nrow(dfe))
+    for (r in 1:nrow(dfe)){
+      if (r==1) {dfe$frequency[r] <- mean(dfe$freq[(r):(r+2)], na.rm=T)}
+      if (r==2) {dfe$frequency[r] <- mean(dfe$freq[(r-1):(r+2)], na.rm=T)}
+      if (r>=3) {dfe$frequency[r] <- mean(dfe$freq[(r-2):(r+2)], na.rm=T)}
+    }
+    
+    #merging the datasets together into one
+    byn <- seq(-180,179,10)
+    dfa <- data.frame(a=rep(byn,3), obs.exp=c(rep("O",length(byn)),rep("FF",length(byn)),rep("E",length(byn))), frequency=rep(NA, length(byn)*3))
+    for (i in 1:length(byn)){
+      dfa$frequency[which(dfa$obs.exp=="O")[i]] <- dfo$frequency[match(dfa$a[i], dfo$a)]
+      dfa$frequency[which(dfa$obs.exp=="E")[i]] <- dfe$frequency[match(dfa$a[i], dfe$a)]
+    }
+    dfa$label <- c(rep("Observed",length(byn)), rep("blank",length(byn)), rep("Expected",length(byn)))
+    dfa$frequency[is.na(dfa$frequency)] <- 0 #because no change is NA
+    dfa$frequency[which(dfa$obs.exp=="FF")] <- NA
+    dfa$a[dfa$a==seq(-180,-100,10)] <- 360+dfa$a[dfa$a==seq(-180,-100,10)] #hack so the top is -90 degrees
+    
+    #estimating median difference in angle
+    dfd <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]]) %>%
+      summarise(med=(median(angle.diff)*(-1))) #want positive 90 at top and -90 at bottom
+    
+    #IQR for region and year
+    df.iqr <- df %>%
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]])
+    iqr <- quantile((df.iqr$angle.diff*(-1)), c(0.25, 0.5,0.75)) #want positive 90 top, and -90 bottom
+    print(c(paste(regs[c], year.groups[y]), iqr))
+    
+    #plot it
+    dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
+    name <- paste("reg",c,".year",y, sep="")
+    all.plots[[name]] <- 
+      ggplot(dfa, aes(x=a, y=obs.exp, fill=(frequency))) +
+      geom_tile(colour="white") +
+      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.3), na.value="white") + #can change limits=c(0,0.2) instead, but will be missing one value
+      ylim(c(0, max(dfa$obs.exp) + 0.5)) +
+      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1])) +
+      theme(panel.background=element_blank(),
+            axis.title=element_blank(),
+            panel.grid=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks=element_blank(),
+            axis.text.y=element_text(size=5)) + ggtitle(paste(regs[c],": ", year.groups[[y]][1], "-", year.groups[[y]][length(year.groups[[y]])], sep=""))
+    
+  }
+}
+```
+
+```{r, fig.height = 9, fig.width = 18}
+do.call(grid.arrange, c(grobs=all.plots, nrow=3, as.table=F))
+```
+
+```{r, echo = include.code, fig.height = 3, fig.width = 3}
+    dfo <- df %>%
+      group_by(a = actual.angle10) %>%
+      summarise(n=n()) %>%
+      mutate(frequency=n/sum(n))
+    dfe.tmp <- df %>%
+      group_by(a = round(canonical.angle10)) %>%
+      summarise(n=n()) %>%
+      mutate(freq=n/sum(n))
+    
+    #smoothing expected path
+    byn <- seq(-180,179,10)
+    dfe <- as.data.frame(matrix(NA, nrow=length(byn), ncol=2))
+    colnames(dfe) <- c("a", "freq")
+    for (i in 1:length(byn)){
+      dfe$freq[i] <- ifelse(is.na(dfe.tmp$freq[match(byn[i], dfe.tmp$a)]),0,
+                            dfe.tmp$freq[match(byn[i], dfe.tmp$a)])
+      dfe$a[i] <- byn[i]
+    }
+    dfe$frequency <- rep(NA, nrow(dfe))
+    for (r in 1:nrow(dfe)){
+      if (r==1) {dfe$frequency[r] <- mean(dfe$freq[(r):(r+2)], na.rm=T)}
+      if (r==2) {dfe$frequency[r] <- mean(dfe$freq[(r-1):(r+2)], na.rm=T)}
+      if (r>=3) {dfe$frequency[r] <- mean(dfe$freq[(r-2):(r+2)], na.rm=T)}
+    }
+    
+    #merging the datasets together into one
+    byn <- seq(-180,179,10)
+    dfa <- data.frame(a=rep(byn,3), obs.exp=c(rep("O",length(byn)),rep("FF",length(byn)),rep("E",length(byn))), frequency=rep(NA, length(byn)*3))
+    for (i in 1:length(byn)){
+      dfa$frequency[which(dfa$obs.exp=="O")[i]] <- dfo$frequency[match(dfa$a[i], dfo$a)]
+      dfa$frequency[which(dfa$obs.exp=="E")[i]] <- dfe$frequency[match(dfa$a[i], dfe$a)]
+    }
+    dfa$label <- c(rep("Observed",length(byn)), rep("blank",length(byn)), rep("Expected",length(byn)))
+    dfa$frequency[is.na(dfa$frequency)] <- 0 #because no change is NA
+    dfa$frequency[which(dfa$obs.exp=="FF")] <- NA
+    dfa$a[dfa$a==seq(-180,-100,10)] <- 360+dfa$a[dfa$a==seq(-180,-100,10)] #hack so the top is -90 degrees
+    
+    #estimating median difference in angle
+    dfd <- df %>%
+      summarise(med=median(angle.diff)*(-1)) #want positive 90 top, and -90 bottom
+    
+    #plot it
+    dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
+    all.together <-  ggplot(dfa, aes(x=a, y=obs.exp, fill=(frequency))) +
+      geom_tile(colour="white") +
+      scale_fill_distiller(palette="YlGnBu", direction=1, limits=c(0,0.2), na.value="white") + #Greys
+      ylim(c(0, max(dfa$obs.exp) + 0.5)) +
+      coord_polar(theta="x") + annotate("text", x = 0, y = 0, label = round(dfd[1,1])) +
+      theme(panel.background=element_blank(),
+            axis.title=element_blank(),
+            panel.grid=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks=element_blank(),
+            axis.text.y=element_text(size=5)) +
+      ggtitle("All countries and years")
+    
+    #estimating IQR for difference in angle
+    iqr.all <- quantile(df$angle.diff*(-1), c(0.25, 0.5,0.75)) 
+    print(iqr.all)
+    
+    #how often angle differences plus or minus 45 degrees
+    #observations are year and country
+    df.xtra <- df %>%
+      filter(angle.diff > 45 | angle.diff < (-45))
+    nrow(df.xtra) / nrow(df)
+    
+    all.together
+    
+```
+
+
+```{r, echo = include.code, include=F}
+##' import the estimated susceptibles for each country and year.
+estimated.susceptibles.by.year = read.csv("data/est_sus_by_year.csv", stringsAsFactors = F)
+estimated.age.dist.by.year = read.csv("data/est_age_dist_by_year.csv", stringsAsFactors = F)
+```
+
+```{r, echo = include.code, include=F}
+estimated.susceptibles.by.year = estimated.susceptibles.by.year[, -(1)]
+estimated.age.dist.by.year = estimated.age.dist.by.year[, -(1)]
+##' run code to generate the number of susceptibles by age by canonical path point
+list[dist.by.age, canonical.path, prop.sus, d1, prop.sus.by.age] = 
+    plots.for.sus.dist.by.canonical.path (d1 = canonical.path.data, 
+                                          d2 = estimated.susceptibles.by.year, 
+                                          d3 = estimated.age.dist.by.year,
+                                          rep.cases = use.reported.cases,
+                                          regions,
+                                          make.inc.cv.scale.same = 1,
+                                          sqrt.inc = F,
+                                          connect.canonical.path.to.zero = 0,
+                                          log.incidence = 1,
+                                          make.figure.plot = F)
+cols.1 <- colorRampPalette(c("red", "white", "blue"))(length(canonical.path$x))
+```
+
+```{r, echo = include.code, fig.height = 4, fig.width = 6}
+
+    plot( prop.sus[, 2]*100, pch = 21, cex = 2,
+          xlab = '', ylab= '% susceptible', bty="n",
+          xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black')
+    smoo <- with(prop.sus[!is.na(prop.sus$y),],smooth.spline(x,y*100, df=4))
+    result <- with(prop.sus, predict(smoo,x[is.na(y)]))
+    prop.sus[is.na(prop.sus$y),] <- result
+    lines(smoo, col='black', lwd=2)
+    abline(h = 5, lwd = 2, lty = 2)
+    abline(h = ((1/15)*100), lwd = 2, lty = 2)
+    
+```
+
+```{r, echo = include.code, fig.height = 5, fig.width = 8}
+
+##' import the data on mean age of measles cases
+mean.measles.age <- read.csv("data/mean_age_meas.csv", stringsAsFactors = F)
+
+##' melt the mean age of measles data 
+melt.mean.measles.age = melt(mean.measles.age, id.vars = c("ISO3", "WHO_REGION", "Country")) %>%
+    na.omit
+
+##' remove the X from the year data
+melt.mean.measles.age$variable = substr(melt.mean.measles.age$variable, 2, 5) %>% as.numeric
+
+##' rename the columns 
+colnames(melt.mean.measles.age) = c("ISO3", "WHO_REGION", "country", "year", "value")
+
+##' remove data for countries which are not included in the canonical path data
+k = which(melt.mean.measles.age$country %in% c("occupied Palestinian territory", "#N/A"))
+melt.mean.measles.age = melt.mean.measles.age[-(k), ]
+
+##' add a column which will contain the canonical path location of each country and year
+melt.mean.measles.age$closest = NA
+
+##' find the canonical path location for each country and year in the mean measles age data
+for(i in 1 : nrow(melt.mean.measles.age)){
+    k = which(d1$Country == melt.mean.measles.age$country[i] &
+                                                     d1$Year == melt.mean.measles.age$year[i])
+    if(length(k) > 0){
+        melt.mean.measles.age$closest[i] = d1$closest[k]
+    }
+}
+
+##' find all the locations on the canonical path that the data on the mean age of measles are on
+all.closest = unique(melt.mean.measles.age$closest)
+
+##' which locations on the canonical path are not included in this data
+missing = setdiff(1:max(all.closest, na.rm = T), all.closest)
+
+##' generate a data set called X, that has the same dimensions as the melted mean measles data
+X = data.frame(matrix(NA, length(missing),6))
+
+##' give this data set the same column names as the melted data
+colnames(X) = colnames(melt.mean.measles.age)
+
+##' assign the missing canonical path points to the data set X, along with a value outside of the range of the possible mean age of the measles cases
+X$closest = missing
+X$value = -100
+
+##' combine the melted measles data and the missing data so that we can make a boxplot of the mean age of measles cases
+melt.mean.measles.age = rbind(melt.mean.measles.age, X)
+```
+
+```{r, echo = include.code, fig.height = 6, fig.width = 9}
+
+boxplot(age ~ point, data = dist.by.age, outline = F, bty = "n",
+        ylim = c(0, 60), xaxt = "n", frame.plot = F, xlab = "position on canonical path",
+        cex.axis = 1.5, cex.lab = 1.5)
+
+boxplot(value/12 ~ closest, 
+        data = melt.mean.measles.age, boxlwd=0.01, whisklwd=2, staplelwd=2.5,
+        ylim = c(0,700/12), border = rgb(red = 10/255, green = 10/255, blue = 100/255, alpha = 0.55),
+        col = rgb(red = 1/255, green = 10/255, blue = 100/255, alpha = 0.4),
+        ylab ="age", xaxt = "n", frame.plot = F,
+        pars = list(boxwex = 0.38, staplewex = 0.5, outwex = 0),
+        cex.axis = 1.5, cex.lab = 1.5, outline = F, add= T)
+
+axis(1, at = c(1,length(unique(dist.by.age$point))),labels = c("",""))
+
+
+```
+
+
+```{r, echo = include.code, include = F}
+
+prop.sus.by.age <- prop.sus.by.age[,-1]
+a = 1:59
+n = 5
+min = c(seq.int(from=1, to=length(a), by=n))
+max = c((min-1)[2:length(min)], length(a))
+prop.sus.by.age.group = apply(prop.sus.by.age, 1, function(x) sapply(1:length(min), function(i) mean(x[min[i]:max[i]])))
+prop.sus.by.age.group <- rbind(prop.sus.by.age.group, prop.sus[, 2]) #add in prop.sus for ALL ages to the last row (same as Fig. 2A)
+
+dist.by.age.rep = dist.by.age
+points = unique(dist.by.age.rep$point)
+perc.by.age.sia.rep = data.frame(matrix(NA, max(points), 5))
+perc.by.age.sia.rep[,1] = 1:max(points)
+colnames(perc.by.age.sia.rep) = c("pos", "perc.to.5", "perc.to.10", "perc.to.15", "age.for.90.perc")
+
+for(i in 1 : length(points)){
+    p = dist.by.age.rep[which(dist.by.age.rep$point == points[i]), ]
+    if(nrow(p) > 1){ #xxamy this if statement was added
+    p1 = p %>% filter(age <= 5)
+    p2 = p %>% filter(age <= 10)
+    p3 = p %>% filter(age <= 15)
+    p4 = p[order(p$age), ]
+    
+    perc.by.age.sia.rep[points[i], ] = c(points[i], 
+                             nrow(p1)*100/nrow(p),
+                             nrow(p2)*100/nrow(p),
+                             nrow(p3)*100/nrow(p),
+                             p4[floor(nrow(p)*0.9), 2] )
+    }
+}
+
+
+##'  adjust positions of the percentage age to sia age to go from 1 to
+##' the number of points that have countries assigned to them
+perc.by.age.sia.rep$pos = 1:nrow(perc.by.age.sia.rep)
+#plot(perc.by.age.sia.rep$pos, perc.by.age.sia.rep$age.for.90.perc)
+#k=unique(dist.by.age$point)
+#k = k[order(k)]
+
+```
+
+
+```{r, echo = include.code, fig.height = 6, fig.width = 9}
+
+levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)", 
+          xlab="position on canonical path", xaxt = "n",
+          col.regions=colorRampPalette(brewer.pal(9,"Greys")),
+          scales=list(y=list(at=1:13, labels=c("<5","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49",
+                                                                                            "50-54","55-59", "all"))))
+
+plot( perc.by.age.sia.rep$pos, perc.by.age.sia.rep$perc.to.5, pch = 21, cex = 2,
+      xlab = '', ylab= '% of susceptibles 5 or under', bty="n",
+      xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black', ylim = c(10,70))
+smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5))
+result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$perc.to.5)]))
+perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$perc.to.5),2] <- result$y
+smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5), cv = T)
+lines(smoo, col='black', lwd=2)
+abline(h = 50, lwd = 2, lty = 2)
+abline(h = 2/30, lwd = 2, lty = 2)
+
+
+plot(perc.by.age.sia.rep$pos, perc.by.age.sia.rep$age.for.90.perc, pch = 21, cex = 2,
+     xlab = '', ylab= 'oldest SIA age to reach 90% of susceptibles', bty="n",ylim = c(14,42),
+     xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black')
+smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$age.for.90.perc),], smooth.spline(pos,age.for.90.perc, df=6))
+result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$age.for.90.perc)]))
+perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$age.for.90.perc),5] <- result$y
+lines(smoo, col='black', lwd=2)
+```
+
+
+Figure S20 demonstrates movement along the canonical path for 10 countries of interest from the Americas, Africa, and European.  These 10 countries are highlighted from Fig. 4A-B in the main text to conceptualize an individual country's movement on the path and discuss data biases or true dynamics that may have contributed to these movements.  
 
 ```{r, fig.height=6, fig.width=12, echo=include.code}
 ##' filtering to the countries of interest
@@ -1444,7 +2095,7 @@ ggplot(cc, aes(x=year, y=mean.delta/2, color=country)) + geom_line(alpha=0.6, lw
   ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)")  + scale_colour_brewer(palette="Paired")
 ```
 
-Figures S18 and S19, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vaccination proportion and (birth rate) times (1-vaccination proportion) all used independent variables (one at a time) using generalized additive models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
+Figures S21 and S22, contains the results of modeling incidence and coefficient of variation as dependent variables separately, with birth rate, vaccination proportion and (birth rate) times (1-vaccination proportion) all used independent variables (one at a time) using generalized additive models (GAM). The term (birth rate) times (1-vaccination proportion) is an approximation of how quickly individuals who are susceptible to measles are recruited into the population, therefore we term this the rate of susceptible recruitment. To produce the GAM plots, we first need to construct a data set which has the estimated mean age of susceptibles by country and by year.
 
 ```{r, echo = include.code, include = F}
 mean.age.sus = read.csv(file = "data/mean_age_sus.csv", stringsAsFactors = F)
@@ -1472,7 +2123,7 @@ list[ha, za, ja, z1a, colfunc.br, colfunc.vacc, colfunc.br.vacc] = produce.gams.
 
 ```
 
-We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S18).
+We can then plot these predicted paths in the incidence-space over values of birth rate, vaccination rate, and the rate of susceptible recruitment with reported cases (Fig. S21).
 
 ```{r, echo = include.code, fig.height = 8, fig.width = 8}
 tick.labels = c(0,25,100, 250,500)
@@ -1515,7 +2166,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S18C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
+Figure S21C also displays the association between incidence or coefficient of variation with the birth rate and vaccination coverage in Africa.
 
 ```{r, echo = F, fig.height = 8, fig.width = 8}
 
@@ -1574,7 +2225,7 @@ lines(L$Mean.vaccination, predict(loess_fit), col = "blue", lwd = 2)
 
 ```
 
-Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig. S19 of the paper.
+Similarly, we can use model incidence and coefficient of variation using GAMS, as seen above for the reported case data. This is seen below and Fig. S22 of the paper.
 
 ```{r, echo = include.code, include = F}
 
@@ -1636,7 +2287,7 @@ plot.alpha = 0.8
 
 ```
 
-Figure S20 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
+Figure S23 shows the age distribution of cases in Malawi and Angola from 2006-2013. This figure is reproduced below.
 
 ```{r, echo = F, fig.height = 8, fig.width = 12}
 
@@ -1651,7 +2302,7 @@ plot.case.boxplots(Cases.by.age, "Angola", col = "#9964BF", alpha = 0.75)
 
 ```
 
-Figure S21 displays the results of a sensitivity analysis of incidence space projections.  Here we show the position and speed of movement analysis by time and country (as displayed in Fig. 4A-B in the main text) for other scalings of incidence and the coefficent of variation.  We overlay the region averages and population-weighted region averages. 
+Figure S24 displays the results of a sensitivity analysis of incidence space projections.  Here we show the position and speed of movement analysis by time and country (as displayed in Fig. 4A-B in the main text) for other scalings of incidence and the coefficent of variation.  We overlay the region averages and population-weighted region averages. 
 
 We will start with the square root incidence and then scaling both square root incidence and coefficent of variation so that all of their values are between 0 and 1.
 
@@ -2011,7 +2662,6 @@ ggplot(dd, aes(x=year, y=mean.pos*(100/nrow(granular.canonical.path)), color=reg
 
 ggplot(dd, aes(x=year, y=mean.delta*(100/nrow(granular.canonical.path)), color=region)) + geom_line(aes(group=country), alpha=0.15) + geom_line(data = dd3b, lwd=1.2) + ylim(-10,10) + theme_minimal() + labs(y="speed of movement on path (% change)") + scale_colour_brewer(palette="Dark2", direction=1) + ggtitle("log(inc) and sqrt(cv), both scaled 0 to 1 \npopulation-weighted region averages")
 ```
-
 
 
 # References
