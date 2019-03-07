@@ -580,6 +580,7 @@ getLexisVaccPopStructSpecifyYear<- function(country="Sierra Leone",overlap=1,
   years.sia <- as.numeric(substring(df$date,5,nchar(df$date))[df$is.SIA==1])
   if (length(years.sia)>0) {
     coverage.sia <- pmin(df$percent.cov[df$is.SIA==1]*0.97,max.cover)    #adjust for 97% vaccine efficacy for all SIA delivery
+    coverage.sia[is.na(coverage.sia)] <- 0 #if no coverage reported, assume 0%
     age.range <- cbind(df$age.low[df$is.SIA==1],df$age.high[df$is.SIA==1])
     
     for (j in 1:length(years.sia)) {
@@ -3986,3 +3987,110 @@ calculate.granular.path <- function(canonical.path, number.of.additional.points)
   }
   return(granular.path)
 }
+
+
+
+GetLineOrthogonalToPath <- function(canonical.path.line, smoothed.scaled.pop){
+  
+  #starting code from https://stackoverflow.com/questions/53167797/determine-transects-perpendicular-to-a-coastline-in-r
+  
+  AllTransects <- vector('list', 100000) # DB that should contain all transects
+  subset_geometry <- canonical.path.line
+  
+  dx <- c(0, diff(subset_geometry[,'x'])) # Calculate difference at each cell comapred to next cell
+  dy <- c(0, diff(subset_geometry[,'y']))
+  
+  dseg <- sqrt(dx^2+dy^2)                 # get rid of negatives and transfer to uniform distance per segment (pythagoras)
+  dtotal <- cumsum(dseg)                  # cumulative sum total distance of segments
+  
+  linelength = sum(dseg)                  # total linelength
+  sep <- 0.001
+  start <- 0
+  pos = seq(start,linelength, by=sep)     # Array with postions numbers in meters
+  whichseg = unlist(lapply(pos, function(x){sum(dtotal<=x)})) # Segments corresponding to distance
+  
+  pos=data.frame(pos=pos,                            # keep only 
+                 whichseg=whichseg,                  # Position in meters on line
+                 x0=subset_geometry[whichseg,1],     # x-coordinate on line
+                 y0=subset_geometry[whichseg,2],     # y-coordinate on line
+                 dseg = dseg[whichseg+1],            # segment length selected (sum of all dseg in that segment)
+                 dtotal = dtotal[whichseg],          # Accumulated length
+                 x1=subset_geometry[whichseg+1,1],   # Get X coordinate on line for next point
+                 y1=subset_geometry[whichseg+1,2]    # Get Y coordinate on line for next point
+  )
+  
+  pos$further =  pos$pos - pos$dtotal       # which is the next position (in meters)
+  pos$f = pos$further/pos$dseg              # fraction next segment of its distance
+  pos$x = pos$x0 + pos$f * (pos$x1-pos$x0)  # X Position of point on line which is x meters away from x0
+  pos$y = pos$y0 + pos$f * (pos$y1-pos$y0)  # Y Position of point on line which is x meters away from y0
+  
+  pos$theta = atan2(pos$y0-pos$y1,pos$x0-pos$x1)  # Angle between points on the line in radians
+  pos$object = i
+  
+  ##xxamy - add column to pos with thickness desire per whichseg
+  pos$thickness <- smoothed.scaled.pop[whichseg]
+  
+  ###### Define transects
+  pos$thetaT = pos$theta+pi/2         # Get the angle
+  dx_poi <- pos$thickness*cos(pos$thetaT) # coordinates of point of interest as defined by position length (sep)
+  dy_poi <- pos$thickness*sin(pos$thetaT) 
+  
+  # transect is defined by x0,y0 and x1,y1 with x,y the coordinate on the line
+  output <-     data.frame(pos = pos$pos,
+                           x0 = pos$x + dx_poi,       # X coordinate away from line
+                           y0 = pos$y + dy_poi,       # Y coordinate away from line
+                           x1 = pos$x - dx_poi,       # X coordinate away from line
+                           y1 = pos$y - dy_poi,       # X coordinate away from line
+                           theta = pos$thetaT,    # angle
+                           x = pos$x,             # Line coordinate X
+                           y = pos$y,             # Line coordinate Y
+                           object = pos$object,
+                           nextx = pos$x1,
+                           nexty = pos$y1) 
+  
+  
+  pos.opts <- seq(start,linelength, by=sep)   
+  #build new data frame
+  row.indexes <- rep(NA, nrow(canonical.path.line))
+  for (i in 1:nrow(canonical.path.line)){
+    row.indexes[i] <- which(abs(pos.opts-dtotal[i])==min(abs(pos.opts-dtotal[i])))
+  }
+  df.polygon <- output[row.indexes,c("x0","y0","x1","y1","x","y")]  
+  
+  return(df.polygon)
+}
+
+
+
+Unscaled.Canonical.Path <- function(canonical.path.data, canonical.path, regions, years){
+  
+  x <- canonical.path$x
+  y <- canonical.path$y
+  
+  #setting up the data the same as when the canonical path was created
+  d <- canonical.path.data
+  d = d %>% filter(., Year %in% years, WHO_REGION %in% regions, Incidence > 0,
+                   Country != "")
+  j = which(d$Year < 1995 & d$Coefficient.of.Variation == 0)
+  if(length(j) > 0){
+    d = d[-(j), ]
+  }
+  
+  #back transforming incidence and cv
+  log.d.inc <- log(d$Incidence + 0.000001)
+  new.x <- x*(max(d$Coefficient.of.Variation)-min(d$Coefficient.of.Variation))+(min(d$Coefficient.of.Variation))
+  new.y <- exp((y*(max(log.d.inc)-min(log.d.inc)))+(min(log.d.inc)))-0.000001
+  
+  #plot(d$Coefficient.of.Variation,d$Incidence)
+  #points(new.x, new.y, col=2)
+  #plot(new.x, new.y, col=2)
+  #points(new.x, sqrt(new.y), col=4)
+  #axis(4, at=sqrt(c(0.1,0.5,1,1.5)), labels=c(0.1,0.5, 1, 1.5), col="blue", col.ticks="blue", col.lab="blue")
+  
+  canonical.path2 <- data.frame(x=new.x, y=new.y)
+  return(canonical.path2)
+  
+}
+
+
+
