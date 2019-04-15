@@ -3,7 +3,6 @@ title: "Measles and the Canonical Path to Elimination"
 output:
   html_document:
     keep_md: yes
-  pdf_document: default
 bibliography: bibliography.bib
 ---
 
@@ -118,7 +117,7 @@ list[d1b, granular.canonical.path] = closest.path.point.movement.comparison(d = 
 
 When we plot the canonical path now, we see that there is a much greater distinction between points at the low incidence part of the path (Fig. S15 in the supplement).  
 
-```{r, echo = include.code, fig.height = 6, fig.width = 8}
+```{r, echo = include.code, fig.height = 6, fig.width = 6}
 cols.1 <- colorRampPalette(c("red", "white", "blue"))(length(canonical.path$x))
 plot(canonical.path$x, canonical.path$y, pch = 21, cex = 2,
          xlab = 'scaled coefficient of variation', ylab= 'scaled mean incidence', bty="n", 
@@ -132,7 +131,7 @@ Using the scaled canonical path, we assign countries to the closest point on thi
 Fig. 2A shows the 38 point path (unscaled version), in which the grey band represents where the global population lies on the path currently (i.e., furthest position on the path between 2012 and 2017). For comparison, we also displayed the global populatoin position on the path based on the earliest data available for each country, as seen in Fig. 2B of the paper.
 
 
-```{r, echo = include.code, fig.height = 6, fig.width = 8}
+```{r, echo = include.code, fig.height = 10, fig.width = 10}
 
 canonical.path2 <- Unscaled.Canonical.Path(canonical.path.data = canonical.path.data, 
                                            canonical.path = canonical.path, 
@@ -362,7 +361,7 @@ ggplot(dd, aes(x=year, y=mean.delta*(100/nrow(granular.canonical.path)), color=r
 
 We can alternatively overlay population-weighted region averages by year, as seen in supplemental Fig. S29.
 
-```{r, echo = include.code}
+```{r, fig.height = 6, fig.width = 6, echo = include.code}
 ##' summarise the population weighted average position for each region, by year
 dd2b = dd %>% 
   group_by(region, year) %>%
@@ -421,11 +420,11 @@ list[w.plot, A, canonical.path] = plot.world.map (d = canonical.path.data,
                                                   with.text = 1)
 ```
 
-```{r, echo = include.code, fig.height = 4.6, fig.width = 10}
+```{r, echo = include.code, fig.height = 5, fig.width = 10}
 w.plot
 ```
 
-We can also capture direction of movement of each country within the incidence space in order to assess "deviations" from the path or trajectories of countries in incidence space that were different than expected given the characterized canonical path.  Fig. 3D in the paper is reproduced here.  
+We can also capture direction of movement of each country within the incidence space in order to assess "deviations" from the path or trajectories of countries in incidence space that were different than expected given the characterized canonical path.  Fig. 3C and 3D in the paper are reproduced here.  
 
 ```{r, echo=include.code}
 position.and.movement.comparison = data.frame(matrix(NA, nrow(d1b), 15))
@@ -504,7 +503,7 @@ df$actual.x.change[which(df$path.end==1)] <- 0
 df$actual.y.change[which(df$path.end==1)] <- 0
 
 #calculating the angle
-df$actual.angle <- (atan2(df$actual.y.change,df$actual.x.change)*-180/pi)
+df$actual.angle <- (atan2(df$actual.y.change,df$actual.x.change)*-180/pi) #-90 degrees at positive y-axis (top), 90 degrees a negative y-axis (bottom)
 df$canonical.angle <- (atan2(df$canonical.y.change,df$canonical.x.change)*-180/pi) 
 
 #Angle difference
@@ -583,14 +582,15 @@ for (c in 1:length(regs)){
     dfd <- df %>%
       filter(region==regs[c]) %>%
       filter(year %in% year.groups[[y]]) %>%
-      summarise(med=(median(angle.diff)*(-1))) #want positive 90 at top and -90 at bottom
+      summarise(med=(median(angle.diff)*(-1))) #want positive 90 degrees at top and -90 degrees at bottom
     
     #IQR for region and year
     df.iqr <- df %>%
       filter(region==regs[c]) %>%
       filter(year %in% year.groups[[y]])
-    iqr <- quantile((df.iqr$angle.diff*(-1)), c(0.25, 0.5,0.75)) #want positive 90 top, and -90 bottom
-    print(c(paste(regs[c], year.groups[y]), iqr))
+    iqr <- round(quantile((df.iqr$angle.diff*(-1)), c(0.25, 0.5,0.75)),2) #want positive 90 degrees top, and -90 degrees bottom
+    if (c==1 & y==1) print(c("Region:Year Group ", "25%","50%","75%"))
+    print(c(paste(regs[c], year.groups[y]), as.numeric(iqr)))
     
     #plot it
     dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
@@ -620,7 +620,7 @@ do.call(grid.arrange, c(grobs=all.plots, nrow=3, as.table=F))
 
 We also plot the expected and observed movements for all countries and years, as shown in Fig. 3C.
 
-```{r, echo = include.code, fig.height = 3, fig.width = 3}
+```{r, echo = include.code, fig.height = 4, fig.width = 4}
     dfo <- df %>%
       group_by(a = actual.angle10) %>%
       summarise(n=n()) %>%
@@ -679,13 +679,8 @@ We also plot the expected and observed movements for all countries and years, as
     
     #estimating IQR for difference in angle
     iqr.all <- quantile(df$angle.diff*(-1), c(0.25, 0.5,0.75)) 
+    print("Median and IQR observed minus expected angle for all movements")
     print(iqr.all)
-    
-    #how often angle differences plus or minus 45 degrees
-    #observations are year and country
-    df.xtra <- df %>%
-      filter(angle.diff > 45 | angle.diff < (-45))
-    nrow(df.xtra) / nrow(df)
     
     all.together
     
@@ -697,7 +692,6 @@ Along with this analysis, we used a method for estimating the susceptibility in 
 ##' this chunk of code runs the state space model that estimates measles incidence as "output-estimated_incidence.csv"
 ##' and then copied and renamed "State_space_cases_new.csv" 
 source("state.space.model/run_state_space_model.R")
-
 ```
 
 ```{r, eval=F, include=F, eval = FALSE}
@@ -782,7 +776,7 @@ cols.1 <- colorRampPalette(c("red", "white", "blue"))(length(canonical.path$x))
 
 Here we plot the proportion of susceptible individuals by canonical path point (Fig. 4C in the paper). The horizontal dashed lines display the critical level of immunity if the basic reproduction number of measles is 15 or 20 (critical level = 1-(1 / basic reproductive number)).
 
-```{r, echo = include.code, fig.height = 4, fig.width = 6}
+```{r, echo = include.code, fig.height = 6, fig.width =10}
 
     plot( prop.sus[, 2]*100, pch = 21, cex = 2,
           xlab = '', ylab= '% susceptible', bty="n",
@@ -796,18 +790,9 @@ Here we plot the proportion of susceptible individuals by canonical path point (
     
 ```
 
-We plot the age distribution of susceptibles by canonical path point 
-
-```{r, echo = F}
-
-boxplot(age ~ point, data = dist.by.age, col = cols.1, outline = F, bty = "n",
-        ylim = c(0, 60), xaxt = "n", frame.plot = F, xlab = "position on canonical path")
-
-```
-
 We also have data on the mean age of measles cases in multiple countries from 2000-2016. This data has increasing numbers of data as time goes on.
 
-```{r, echo = include.code, fig.height = 5, fig.width = 8}
+```{r, echo = include.code, fig.height = 5, fig.width = 10}
 
 ##' import the data on mean age of measles cases 
 mean.measles.age <- read.csv("data/mean_age_meas.csv", stringsAsFactors = F)
@@ -860,7 +845,7 @@ melt.mean.measles.age = rbind(melt.mean.measles.age, X)
 
 Again, these data can be linked to canonical path point. Here we make a boxplot of the estimated distribution of ages against the mean age of measles cases, to see how they compare (Fig. 4B). The estimates are hollow-wider boxes, and the case data is filled narrow purple boxes. 
 
-```{r, echo = include.code, fig.height = 6, fig.width = 9}
+```{r, echo = include.code, fig.height = 5, fig.width = 10}
 
 boxplot(age ~ point, data = dist.by.age, outline = F, bty = "n",
         ylim = c(0, 60), xaxt = "n", frame.plot = F, xlab = "position on canonical path",
@@ -925,7 +910,7 @@ perc.by.age.sia.rep$pos = 1:nrow(perc.by.age.sia.rep)
 ```
 
 
-```{r, echo = include.code, fig.height = 6, fig.width = 9}
+```{r, echo = include.code, fig.height = 6, fig.width = 9.5}
 
 levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)", 
           xlab="position on canonical path", xaxt = "n",
@@ -945,7 +930,7 @@ abline(h = 50, lwd = 2, lty = 2)
 abline(h = 2/30, lwd = 2, lty = 2)
 
 plot(perc.by.age.sia.rep$pos, perc.by.age.sia.rep$age.for.90.perc, pch = 21, cex = 2,
-     xlab = '', ylab= 'oldest SIA age to reach 90% of susceptibles', bty="n",ylim = c(15,42),
+     xlab = '', ylab= 'oldest SIA age to reach 90% of susceptibles', bty="n",ylim = c(10,60),
      xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black')
 smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$age.for.90.perc),], smooth.spline(pos,age.for.90.perc, df=6))
 result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$age.for.90.perc)]))
@@ -1386,7 +1371,7 @@ for (c in 1:length(uncodes.afro)){
           colMeans(incs.afro[(100*c-99):(100*c), 2:ncol(incs.afro)]), col = 'black')
     points(Af.cv.ss[c,], incs.afro.ss[c,], pch=3, bg = colfunc(28))
     lines(Af.cv.ss[c,], incs.afro.ss[c,], col="grey")
-    LEGEND(1.8,sqrt(4000), c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
+    LEGEND(1.8,sqrt(4000), c("simulated", "estimated"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
 }
 
 ```
@@ -1416,7 +1401,7 @@ for (c in 1:length(uncodes.amro)){
           colMeans(incs.amro[(100*c-99):(100*c), 2:ncol(incs.amro)]), col = 'black')
     points(Am.cv.ss[c,], incs.amro.ss[c,], pch=3, bg = colfunc(28))
     lines(Am.cv.ss[c,], incs.amro.ss[c,], col="grey")
-    LEGEND(1.8,sqrt(2000), c("simulated", "observed"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
+    LEGEND(1.8,sqrt(2000), c("simulated", "estimated"), pch=c(21,3), line.col=c("black","grey"), pt.col="black",lty=1)
 }
 
 ```
@@ -1833,7 +1818,7 @@ for (r in 1:length(regions)){
 
 The last analysis assess direction of movement based on absolute error in angle differences, Fig, S18B.
 
-```{r, echo=F, fig.height = 3, fig.width = 5}
+```{r, echo=F}
 #Direction of movement analysis continued
 #Looking at absolute error in angle differences
 #1990 to 2017
@@ -2015,9 +2000,13 @@ ggplot(df.distanceO) + geom_point(aes(x=log_pop, y=length.diff.percentile), alph
   geom_smooth(aes(x=log_pop, y=length.diff.percentile), method = "gam", formula = y ~ s(x, bs = "cs"), se=F, col="orange") +
   ylim(0,50) + labs(x="Log Population Size", y="Distance from Path \n(Percent of Path Length)")
 
-quantile(df.distanceO$length.diff) #median and IQR distance from path
-quantile(df.distanceO$x.diff) #median and IQR distance in cv
-quantile(df.distanceO$y.diff) #median and IQR distance in incidence
+#quantile(df.distanceO$length.diff) #median and IQR distance from path
+#quantile(df.distanceO$x.diff) #median and IQR distance in cv
+#quantile(df.distanceO$y.diff) #median and IQR distance in incidence
+
+quantile(df.distanceO$length.diff/length.canonical.path) #median and IQR as a proportion of the length of the path 
+quantile(df.distanceO$x.diff/x.range) #median and IQR distance in cv as a proportion of the range of CV
+quantile(df.distanceO$y.diff/y.range) #median and IQR distance in incidence as a proportion of the range of incidence
 
 #IQR distance from path by position on the path
 df.distance <- df.distance %>%
@@ -2562,7 +2551,7 @@ state.space.fig = incidence.space.fig.dashed.arrow(anim.data = state.space.data,
 state.space.fig
 ```
 
-The following chunks of code will recreate all the plots found in Fig. S23, S26-S28, and the bottom row of S29. Theses analyses are based on estimated cases that corrects for under-reporting using a state space model, rather than reported cases.  All analyses were conducted the exact same as when using reported cases, with one small exception. When building the canonical path based on estimated cases, there is a gap between African region countries and Americas region countries, as seen in the figure above (Fig. S14), therefore we forced the gap to be filled with three addtional points. For consistency, we removed three other points. As a result there are 2 main changes to the code: the first is to replace the canonical.path.data with data from the state space model, and the second is to replace the object use.reported.cases with FALSE.
+The following chunks of code will recreate all the plots found in Fig. S23, S26-S28, and the bottom row of S29. Theses analyses are based on estimated cases that corrects for under-reporting using a state space model, rather than reported cases.  All analyses were conducted the exact same as when using reported cases, with one small exception. When building the canonical path based on estimated cases, there is a gap between African region countries and Americas region countries, as seen in the figure above (Fig. S14), therefore we forced the gap to be filled with three addtional points. For consistency with the analysis of the main text, we removed three other points. As a result there are 2 main changes to the code: the first is to replace the canonical.path.data with data from the state space model, and the second is to replace the object use.reported.cases with FALSE.
   
 ```{r, echo = include.code}
 canonical.path.data <- state.space.data
@@ -2606,7 +2595,7 @@ list[d1b, granular.canonical.path] = closest.path.point.movement.comparison(d = 
                                                                             number.of.additional.points = number.of.additional.points) 
 ```
 
-```{r, echo = include.code, fig.height = 6, fig.width = 8}
+```{r, echo = include.code, fig.height = 10, fig.width = 10}
 
 canonical.path2 <- Unscaled.Canonical.Path(canonical.path.data = canonical.path.data, 
                                            canonical.path = canonical.path, 
@@ -2838,7 +2827,7 @@ ggplot(dd, aes(x=year, y=mean.delta*(100/nrow(granular.canonical.path)), color=r
 
 ```
 
-```{r, echo = include.code,  fig.height = 6, fig.width = 10}
+```{r, echo = include.code,  fig.height = 5, fig.width = 10}
 plot.year = 2017
 
 missing.countries = c("Bosnia and Herzegovina", "Central African Republic",
@@ -3022,10 +3011,11 @@ for (c in 1:length(regs)){
     
     #IQR for region and year
     df.iqr <- df %>%
-      dplyr::filter(region==regs[c]) %>%
-      dplyr::filter(year %in% year.groups[[y]])
-    iqr <- quantile((df.iqr$angle.diff*(-1)), c(0.25, 0.5,0.75)) #want positive 90 top, and -90 bottom
-    print(c(paste(regs[c], year.groups[y]), iqr))
+      filter(region==regs[c]) %>%
+      filter(year %in% year.groups[[y]])
+    iqr <- round(quantile((df.iqr$angle.diff*(-1)), c(0.25, 0.5,0.75)),2) #want positive 90 degrees top, and -90 degrees bottom
+    if (c==1 & y==1) print(c("Region:Year Group ", "25%","50%","75%"))
+    print(c(paste(regs[c], year.groups[y]), as.numeric(iqr)))
     
     #plot it
     dfa$obs.exp <- as.numeric(dfa$obs.exp)+2
@@ -3051,7 +3041,7 @@ for (c in 1:length(regs)){
 do.call(grid.arrange, c(grobs=all.plots, nrow=3, as.table=F))
 ```
 
-```{r, echo = include.code, fig.height = 3, fig.width = 3}
+```{r, echo = include.code, fig.height = 4, fig.width = 4}
     dfo <- df %>%
       dplyr::group_by(a = actual.angle10) %>%
       dplyr::summarise(n=n()) %>%
@@ -3112,11 +3102,6 @@ do.call(grid.arrange, c(grobs=all.plots, nrow=3, as.table=F))
     iqr.all <- quantile(df$angle.diff*(-1), c(0.25, 0.5,0.75)) 
     print(iqr.all)
     
-    #how often angle differences plus or minus 45 degrees
-    #observations are year and country
-    df.xtra <- df %>%
-      dplyr::filter(angle.diff > 45 | angle.diff < (-45))
-    nrow(df.xtra) / nrow(df)
     
     all.together
     
@@ -3147,7 +3132,7 @@ list[dist.by.age, canonical.path, prop.sus, d1, prop.sus.by.age] =
 cols.1 <- colorRampPalette(c("red", "white", "blue"))(length(canonical.path$x))
 ```
 
-```{r, echo = include.code, fig.height = 4, fig.width = 6}
+```{r, echo = include.code, fig.height = 6, fig.width = 9}
 
     plot( prop.sus[, 2]*100, pch = 21, cex = 2, ylim=c(4,15),
           xlab = '', ylab= '% susceptible', bty="n",
@@ -3212,7 +3197,7 @@ X$value = -100
 melt.mean.measles.age = rbind(melt.mean.measles.age, X)
 ```
 
-```{r, echo = include.code, fig.height = 6, fig.width = 9}
+```{r, echo = include.code, fig.height = 5, fig.width = 10}
 
 boxplot(age ~ point, data = dist.by.age, outline = F, bty = "n",
         ylim = c(0, 60), xaxt = "n", frame.plot = F, xlab = "position on canonical path",
@@ -3275,7 +3260,7 @@ perc.by.age.sia.rep$pos = 1:nrow(perc.by.age.sia.rep)
 ```
 
 
-```{r, echo = include.code, fig.height = 6, fig.width = 9}
+```{r, echo = include.code, fig.height = 6, fig.width = 9.5}
 
 levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)", 
           xlab="position on canonical path", xaxt = "n",
@@ -3286,10 +3271,7 @@ levelplot(t(as.matrix(prop.sus.by.age.group)), ylab="age (years)",
 plot( perc.by.age.sia.rep$pos, perc.by.age.sia.rep$perc.to.5, pch = 21, cex = 2,
       xlab = '', ylab= '% of susceptibles 5 or under', bty="n",
       xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black', ylim = c(10,70))
-smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5))
-result <- with(perc.by.age.sia.rep, predict(smoo,pos[is.na(perc.by.age.sia.rep$perc.to.5)]))
-perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$perc.to.5),2] <- result$y
-smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5), cv = T)
+smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.5),], smooth.spline(pos,perc.to.5, df=7), cv = T)
 lines(smoo, col='black', lwd=2)
 abline(h = 50, lwd = 2, lty = 2)
 abline(h = 2/30, lwd = 2, lty = 2)
@@ -3306,10 +3288,7 @@ lines(smoo, col='black', lwd=2)
 plot( perc.by.age.sia.rep$pos, perc.by.age.sia.rep$perc.to.15, pch = 21, cex = 2,
       xlab = '', ylab= '% of susceptibles 15 or under', bty="n",
       xaxt = "n",cex.axis=1.5, cex.lab = 1.5, bg = cols.1, col = 'black')
-smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.15),], smooth.spline(pos,perc.to.15))
-result <- predict(smoo,perc.by.age.sia.rep$pos)
-perc.by.age.sia.rep[is.na(perc.by.age.sia.rep$perc.to.15),4] <- result$y
-smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.15),], smooth.spline(pos,perc.to.15), cv = T)
+smoo <- with(perc.by.age.sia.rep[!is.na(perc.by.age.sia.rep$perc.to.15),], smooth.spline(pos,perc.to.15, df=3), cv = T)
 lines(smoo, col='black', lwd=2)
 ```
 

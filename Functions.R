@@ -2794,9 +2794,11 @@ plots.for.sus.dist.by.canonical.path <- function(d1, d2, d3, rep.cases,
         count = count + qq[j]
       }
       if(i==1){
+        set.seed(100)
         dist.by.age = cbind(1, sample(pp, sample.size, replace = T))
       }
       if(i > 1){
+        set.seed(100)
         dist.by.age = rbind(dist.by.age, cbind(i, sample(pp, sample.size, replace = T)))
       }
       head(dist.by.age)
