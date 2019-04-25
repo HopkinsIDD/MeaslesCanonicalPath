@@ -128,7 +128,7 @@ points(granular.canonical.path$x, granular.canonical.path$y, pch = 16, cex = 0.5
 
 Using the scaled canonical path, we assign countries to the closest point on this path each year for which there is reported incidence data. Once countries have been assigned to positions on the canonical path, the majority of the analyses completed in this work can be reproduced.  
 
-Fig. 2A shows the 38 point path (unscaled version), in which the grey band represents where the global population lies on the path currently (i.e., furthest position on the path between 2012 and 2017). For comparison, we also displayed the global populatoin position on the path based on the earliest data available for each country, as seen in Fig. 2B of the paper.
+Fig. 2A shows the 38 point path (unscaled version), in which the grey band represents where the global population lies on the path currently (i.e., furthest position on the path by 2017). For comparison, we also displayed the global population position on the path based on year 1990, as seen in Fig. 2B of the paper.
 
 
 ```{r, echo = include.code, fig.height = 10, fig.width = 10}
@@ -154,8 +154,8 @@ for (a in 1:nrow(df.tmp)){
 }
 df.tmp$pop <- as.numeric(df.tmp$pop)
 
-#Best position 2012-2017 for each country
-dfbest.tmp <- df.tmp %>%
+#Furthest position for each country
+df2017.tmp <- df.tmp %>%
   filter(Year>2012) %>%
   group_by(Country) %>%
   summarise(closest = max(closest), pop = pop[Year==2017]) %>%
@@ -163,8 +163,8 @@ dfbest.tmp <- df.tmp %>%
   summarise(pop = sum(pop))
 
 #Scaling and smoothing the population over the canonical path
-population <- log(dfbest.tmp$pop)+1
-index <- match(1:38, dfbest.tmp$closest)
+population <- log(df2017.tmp$pop)+1
+index <- match(1:38, df2017.tmp$closest)
 population <- population[index]
 population[is.na(population)] <- 0 #filling in missing points on the path
 smoothed.pop <- rep(NA, length(population))
@@ -189,16 +189,16 @@ for (p in 2:nrow(df.polygon1)){
 }
 points(canonical.path2$x, sqrt(canonical.path2$y), pch = 21, cex = 1.5, col = 'black', bg = cols.1)
 
-#Earliest position for each country
-dfearliest.tmp <- df.tmp %>%
+#1990 position for each country
+df1990.tmp <- df.tmp %>%
   group_by(Country) %>%
-  filter(Year==min(Year)) %>%
+  filter(Year==1990) %>%
   group_by(closest) %>%
   summarise(pop = sum(pop))
 
 #Scaling and smoothing the population over the canonical path
-population <- log(dfearliest.tmp$pop)+1
-index <- match(1:38, dfearliest.tmp$closest)
+population <- log(df1990.tmp$pop)+1
+index <- match(1:38, df1990.tmp$closest)
 population <- population[index]
 population[is.na(population)] <- 0 #filling in missing points on the path
 smoothed.pop <- rep(NA, length(population))
@@ -398,13 +398,15 @@ Given our assignment of all countries to the closest point on the path, for any 
 plot.year = 2017
 
 missing.countries = c("Bosnia and Herzegovina", "Central African Republic",
-                       "Congo, Republic of The", "Czech Republic", "Korea, North",
+                       "Congo, Republic of the", "Czech Republic", "Korea, North",
                        "Congo, Democratic Republic of the", "Dominican Republic", "Gambia, The",   
-                       "Burma", "Korea, South", "South Sudan")
+                       "Burma", "Korea, South", "South Sudan", 
+                      "Bahamas, The", "Equatorial Guinea", "Laos", "Solomon Islands")
 
-replace.countries = c("Bosnia and Herz", "Central African Rep.", "Congo", "Czech Rep.",
+replace.countries = c("Bosnia and Herz.", "Central African Rep.", "Congo", "Czech Rep.",
                        "Dem. Rep. Korea", "Dem. Rep. Congo", "Dominican Rep.", "Gambia",
-                       "Myanmar", "Korea", "S. Sudan")
+                       "Myanmar", "Korea", "S. Sudan", 
+                      "Bahamas", "Eq. Guinea", "Lao PDR", "Solomon Is.")
  
  
 list[w.plot, A, canonical.path] = plot.world.map (d = canonical.path.data, 
@@ -2618,8 +2620,8 @@ for (a in 1:nrow(df.tmp)){
 }
 df.tmp$pop <- as.numeric(df.tmp$pop)
 
-#Best position 2012-2017 for each country
-dfbest.tmp <- df.tmp %>%
+#Furthest position for each country
+df2017.tmp <- df.tmp %>%
   filter(Year>2012) %>%
   group_by(Country) %>%
   dplyr::summarise(closest = max(closest), pop = pop[Year==2017]) %>%
@@ -2627,8 +2629,8 @@ dfbest.tmp <- df.tmp %>%
   dplyr::summarise(pop = sum(pop))
 
 #Scaling and smoothing the population over the canonical path
-population <- log(dfbest.tmp$pop)+1
-index <- match(1:38, dfbest.tmp$closest)
+population <- log(df2017.tmp$pop)+1
+index <- match(1:38, df2017.tmp$closest)
 population <- population[index]
 population[is.na(population)] <- 0 #filling in missing points on the path
 smoothed.pop <- rep(NA, length(population))
@@ -2653,16 +2655,16 @@ for (p in 2:nrow(df.polygon1)){
 }
 points(canonical.path2$x, sqrt(canonical.path2$y), pch = 21, cex = 1.5, col = 'black', bg = cols.1)
 
-#Earliest position for each country
-dfearliest.tmp <- df.tmp %>%
+#1990 position for each country
+df1990.tmp <- df.tmp %>%
   group_by(Country) %>%
   filter(Year==min(Year)) %>%
   group_by(closest) %>%
   dplyr::summarise(pop = sum(pop))
 
 #Scaling and smoothing the population over the canonical path
-population <- log(dfearliest.tmp$pop)+1
-index <- match(1:38, dfearliest.tmp$closest)
+population <- log(df1990.tmp$pop)+1
+index <- match(1:38, df1990.tmp$closest)
 population <- population[index]
 population[is.na(population)] <- 0 #filling in missing points on the path
 smoothed.pop <- rep(NA, length(population))

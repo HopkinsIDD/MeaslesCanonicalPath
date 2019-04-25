@@ -3048,11 +3048,24 @@ plot.world.map <- function(d,
       World$pos[j] = A$closest[i]
     }
   }
+  #Replace Somaliland with Somalia's position
+  World$pos[(which(World$iso_a3=="SOL"))] <- World$pos[(which(World$iso_a3=="SOM"))] 
+  World$iso_a3[(which(World$iso_a3=="SOL"))] <-  NA
+  #Replace Taiwan with China's position
+  World$pos[(which(World$iso_a3=="TWN"))] <- World$pos[(which(World$iso_a3=="CHN"))] 
+  World$iso_a3[(which(World$iso_a3=="TWN"))] <-  NA
+  #Replace Peurto Rico with USA's position
+  World$pos[(which(World$iso_a3=="PRI"))] <- World$pos[(which(World$iso_a3=="USA"))] 
+  World$iso_a3[(which(World$iso_a3=="PRI"))] <-  NA
+  
   
   cols.1 <- colorRampPalette(c("red", "white", "blue"))(nrow(canonical.path))
   
   kk = which(World$iso_a3 == "ATA" | World$iso_a3 == "GRL")
   World$cols = cols.1[World$pos]
+  
+  #Fill in color NAs with grey.  These are countries for which we do not have data
+  World$cols[is.na(World$cols)] <- "#969696"
   
   if(with.text==1){
     p<-tm_shape(World[-(kk),]) +
