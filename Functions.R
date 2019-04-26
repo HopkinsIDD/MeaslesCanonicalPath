@@ -4109,3 +4109,32 @@ Unscaled.Canonical.Path <- function(canonical.path.data, canonical.path, regions
 
 
 
+post.mcv2.movements <- function(df.mcv2, d1b){
+  for(i in 1 : nrow(df.mcv2)){
+    cc = df.mcv2$Country[i]
+    post.mcv2.years = max(min(d1b$Year),df.mcv2$MCV2_Intro_Year[i]) : max(d1b$Year)
+    post.mcv2.country = d1b %>% filter(Country == cc, Year %in% post.mcv2.years)
+    time.since.mcv2 =  0:(length(post.mcv2.years)-1)
+    pos.delta = post.mcv2.country$closest - post.mcv2.country$closest[1]
+    post.mcv2.country = cbind(post.mcv2.country, time.since.mcv2=time.since.mcv2, pos.delta=pos.delta)
+    if(i == 1){
+      post.mcv2.positions = post.mcv2.country
+    } else{
+      post.mcv2.positions = rbind(post.mcv2.positions, post.mcv2.country)
+    }
+  }
+  return(post.mcv2.positions)
+}
+
+
+
+average.movement.since.mcv2 <- function(d, lower_q = 0.025, upper_q = 0.975){
+  average.movement = data.frame(matrix(0, max(d$time.since.mcv2), 5))
+  colnames(average.movement) = c("time.since.mcv2", "mean_postion", "median_movement", "lower_quantile","upper_quantile")
+  for(i in 1 : max(d$time.since.mcv2)){
+    dd = d %>% filter(time.since.mcv2 == i)
+    average.movement[i, ] = c(i, mean(dd$closest), median(dd$pos.delta), quantile(dd$pos.delta, lower_q), quantile(dd$pos.delta, upper_q))
+  }
+  return(average.movement)
+}
+

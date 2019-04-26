@@ -2167,6 +2167,85 @@ lines(L$Mean.vaccination, predict(loess_fit), col = "blue", lwd = 2)
 
 ```
 
+Figure S25 shows introduction of MCV2 by mean position and speed of movement for Americas and Africa regions.
+
+```{r, echo=F, fig.height = 6, fig.width = 6}
+##' read in the mcv2 introduction data
+MCV2_introduction <- read_csv("./data/MCV2_introduction.csv")
+
+##' change column names
+colnames(MCV2_introduction) = c("ISO3", "Country", "WHO_Region", "MCV2_Intro_Year", "MCV2_Part_of_country")
+
+##' change intro year to be numeric
+MCV2_introduction$MCV2_Intro_Year = as.numeric(MCV2_introduction$MCV2_Intro_Year)
+
+##' only consider AFR and AMR
+MCV2.AF.AMR = MCV2_introduction %>% filter(WHO_Region %in% c("AFR", "AMR"))
+
+##' remove coutries which never introduced MCV2
+k = which(is.na(MCV2.AF.AMR$MCV2_Intro_Year))
+MCV2.AF.AMR = MCV2.AF.AMR[-(k), ]
+
+##' split into separate regions
+MCV2.AF = MCV2.AF.AMR %>% filter(WHO_Region == "AFR")
+MCV2.AMR = MCV2.AF.AMR %>% filter(WHO_Region == "AMR")
+
+##' find post mcv2 movement. d1 holds the information about which point on the path the country is closest to.
+##' The granular version of the path is used for this analysis.
+post.mcv2.af = post.mcv2.movements(df.mcv2 = MCV2.AF, d1b = d1b)
+post.mcv2.amr = post.mcv2.movements(df.mcv2 = MCV2.AMR, d1b = d1b)
+
+
+##' calculate averages of movement and position
+average.post.mcv2.af = average.movement.since.mcv2(d = post.mcv2.af)
+average.post.mcv2.amr = average.movement.since.mcv2(d = post.mcv2.amr)
+
+
+##' limit plots to a certain number of years post mcv2 introduction
+number.years.to.plot = 10
+average.post.mcv2.af = average.post.mcv2.af %>% filter(time.since.mcv2 <=number.years.to.plot)
+average.post.mcv2.amr = average.post.mcv2.amr %>% filter(time.since.mcv2 <=number.years.to.plot)
+
+##' count the number of countries which have certain number of time points for mcv2 use
+number.countries.af = post.mcv2.af %>% group_by(time.since.mcv2) %>% dplyr::summarise(n=n())
+number.countries.amr = post.mcv2.amr %>% group_by(time.since.mcv2) %>% dplyr::summarise(n=n())
+
+number.countries.af = number.countries.af %>% filter(time.since.mcv2 > 0, time.since.mcv2 <= number.years.to.plot) %>% 
+    dplyr::select(n)
+
+number.countries.amr = number.countries.amr %>% filter(time.since.mcv2 > 0, time.since.mcv2 <= number.years.to.plot) %>% 
+    dplyr::select(n)
+
+##' add this to the data frame
+average.post.mcv2.af = cbind(average.post.mcv2.af, number.countries.af, "AF")
+average.post.mcv2.amr = cbind(average.post.mcv2.amr, number.countries.amr, "AMR")
+
+colnames(average.post.mcv2.af) = c("years", "mean_pos", "median_movement", "lower_quantile",
+                                   "upper_quantile", "n", "Region")
+
+colnames(average.post.mcv2.amr) = c("years", "mean_pos", "median_movement", "lower_quantile",
+                                   "upper_quantile", "n", "Region")
+
+
+
+average.post.mcv2 = rbind(average.post.mcv2.amr, average.post.mcv2.af)
+
+##' do some simple plots
+ggplot(average.post.mcv2, aes(x = years, y = mean_pos, col = Region)) + geom_point(aes(size = n)) + theme_light() +
+    labs(x = "years post mcv2 ",
+         y = "mean position on path",
+         size = "country\ncount")
+
+
+
+ggplot(average.post.mcv2, aes(x = years, y = median_movement, col = Region)) + geom_point(aes(size = n)) + theme_light() +
+    labs(x = "years post mcv2 ",
+         y = "median movement on path",
+         size = "country\ncount")
+
+```
+
+
 Figure S29 displays the results of a sensitivity analysis of incidence-space projections.  Here we show the position and speed of movement analysis by time and country (as displayed in Fig. 3A-B in the main text) for other scalings of incidence and the coefficent of variation.  We overlay the region averages and population-weighted region averages. 
 
 We will start with the square root incidence and then scaling both square root incidence and coefficent of variation so that all of their values are between 0 and 1. 
